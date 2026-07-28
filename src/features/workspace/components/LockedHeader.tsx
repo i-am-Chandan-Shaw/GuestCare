@@ -1,77 +1,84 @@
 import { Link } from "@tanstack/react-router";
+import { WorkspaceSelectorRow } from "@/features/workspace/components/WorkspaceSelectorRow";
+import type { WorkspacePhase } from "@/features/workspace/lib/workspace-state";
 import type { Customer, Issue, Property } from "@/shared/types";
 
 export function LockedHeader({
+  phase,
   customer,
   property,
   issue,
-  onChangeCustomer,
-  onChangeProperty,
-  onClear,
+  customerSearch,
+  onCustomerSearchChange,
+  propertySearch,
+  onPropertySearchChange,
+  issueSearch,
+  onIssueSearchChange,
+  onClearCustomer,
+  onClearProperty,
+  onClearIssue,
 }: {
+  phase: WorkspacePhase;
   customer: Customer | null;
   property?: Property | null;
   issue?: Issue | null;
-  onChangeCustomer?: () => void;
-  onChangeProperty?: () => void;
-  onClear?: () => void;
+  customerSearch: string;
+  onCustomerSearchChange: (value: string) => void;
+  propertySearch: string;
+  onPropertySearchChange: (value: string) => void;
+  issueSearch: string;
+  onIssueSearchChange: (value: string) => void;
+  onClearCustomer: () => void;
+  onClearProperty: () => void;
+  onClearIssue: () => void;
 }) {
-  return (
-    <div className="flex items-center justify-between gap-3 border-b border-border bg-surface/80 px-5 py-3">
-      <div className="flex min-w-0 flex-wrap items-center gap-2 text-[13.5px]">
-        {customer ? (
-          <>
-            <span className="font-semibold text-foreground">{customer.name}</span>
-            {property && (
-              <>
-                <span className="text-muted-foreground">›</span>
-                <span className="font-semibold text-foreground">{property.name}</span>
-              </>
-            )}
-            {issue && (
-              <>
-                <span className="text-muted-foreground">›</span>
-                <span className="font-medium text-foreground">{issue.name}</span>
-              </>
-            )}
-          </>
-        ) : (
-          <span className="font-semibold text-foreground">Customers</span>
-        )}
+  const showSelector = phase !== "protocol";
+
+  if (showSelector) {
+    return (
+      <div className="shrink-0  bg-surface/80 px-5 py-3">
+        <WorkspaceSelectorRow
+          phase={phase}
+          customer={customer}
+          property={property ?? null}
+          issue={issue ?? null}
+          customerSearch={customerSearch}
+          onCustomerSearchChange={onCustomerSearchChange}
+          propertySearch={propertySearch}
+          onPropertySearchChange={onPropertySearchChange}
+          issueSearch={issueSearch}
+          onIssueSearchChange={onIssueSearchChange}
+          onClearCustomer={onClearCustomer}
+          onClearProperty={onClearProperty}
+          onClearIssue={onClearIssue}
+        />
       </div>
-      <div className="flex shrink-0 items-center gap-2">
-        {customer && onChangeCustomer && (
-          <button
-            type="button"
-            onClick={onChangeCustomer}
-            className="rounded-sm border border-border bg-surface px-2.5 py-1 text-[12px] font-semibold text-foreground hover:bg-surface-2"
-          >
-            Change customer
-          </button>
-        )}
-        {property && onChangeProperty && (
-          <button
-            type="button"
-            onClick={onChangeProperty}
-            className="rounded-sm border border-border bg-surface px-2.5 py-1 text-[12px] font-semibold text-foreground hover:bg-surface-2"
-          >
-            Change property
-          </button>
-        )}
-        {onClear && (customer || property || issue) && (
-          <button
-            type="button"
-            onClick={onClear}
-            className="rounded-sm border border-border bg-surface px-2.5 py-1 text-[12px] font-semibold text-foreground hover:bg-surface-2"
-          >
-            Clear
-          </button>
-        )}
+    );
+  }
+
+  return (
+    <div className="shrink-0   bg-surface/80 px-5 py-3">
+      <div className="flex items-center justify-between gap-3">
+        <WorkspaceSelectorRow
+          phase={phase}
+          customer={customer}
+          property={property ?? null}
+          issue={issue ?? null}
+          customerSearch=""
+          onCustomerSearchChange={() => {}}
+          propertySearch=""
+          onPropertySearchChange={() => {}}
+          issueSearch=""
+          onIssueSearchChange={() => {}}
+          onClearCustomer={onClearCustomer}
+          onClearProperty={onClearProperty}
+          onClearIssue={onClearIssue}
+        />
         {customer && (
           <Link
             to="/reports"
             search={{ customerId: customer.id }}
-            className="rounded-sm border border-border bg-surface px-2.5 py-1 text-[12px] font-semibold text-primary hover:bg-surface-2"
+            className="shrink-0 rounded-sm border border-border bg-surface px-2.5 py-1 text-[12px] font-semibold text-primary hover:bg-surface-2"
           >
             View reports
           </Link>

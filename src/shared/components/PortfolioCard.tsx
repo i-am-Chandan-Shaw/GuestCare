@@ -1,4 +1,5 @@
 import { cn } from "@/lib/utils";
+import { PORTFOLIO_CARD_TITLE_CLASS } from "@/shared/components/PortfolioCardThumbnail";
 import {
   AlertCircle,
   Building2,
@@ -31,7 +32,7 @@ function StatCell({
         {icon}
         {label}
       </div>
-      <span className="truncate text-[13px] font-semibold text-card-text">{value}</span>
+      <span className="truncate text-[13px] font-medium text-card-text">{value}</span>
     </div>
   );
 }
@@ -76,7 +77,7 @@ export function PortfolioCard({
       <div className="min-w-0 flex-1">
         <div className="flex flex-wrap items-start justify-between gap-2">
           <div className="min-w-0">
-            <h3 className="text-[15px] font-bold tracking-tight text-card-text">{title}</h3>
+            <h3 className={PORTFOLIO_CARD_TITLE_CLASS}>{title}</h3>
             {subtitle && (
               <p className="mt-0.5 text-[12.5px] text-card-subtext">{subtitle}</p>
             )}

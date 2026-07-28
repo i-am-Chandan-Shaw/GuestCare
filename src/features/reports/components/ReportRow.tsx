@@ -1,5 +1,6 @@
 import { cn } from "@/lib/utils";
 import { priorityMeta } from "@/shared/constants/agent";
+import { PORTFOLIO_CARD_TITLE_CLASS } from "@/shared/components/PortfolioCardThumbnail";
 import type { IncidentLog } from "@/shared/types";
 import { Building2, Clock, User } from "lucide-react";
 
@@ -18,10 +19,10 @@ function DataField({
     <div className={cn("flex min-w-0 items-start gap-2", className)}>
       <Icon className="mt-0.5 h-3.5 w-3.5 shrink-0 text-card-subtext/70" strokeWidth={1.5} />
       <div className="min-w-0">
-        <p className="text-[10px] font-medium uppercase tracking-wide text-card-subtext">
+        <p className="text-[10px] font-semibold uppercase tracking-wide text-card-subtext">
           {label}
         </p>
-        <p className="mt-0.5 truncate text-[13px] font-normal text-card-text">{value}</p>
+        <p className="mt-0.5 truncate text-[13px] font-medium text-card-text">{value}</p>
       </div>
     </div>
   );
@@ -45,7 +46,7 @@ export function ReportRow({ log }: { log: IncidentLog }) {
       <div className="flex min-w-0 flex-1 flex-col gap-2.5">
         <div className="flex items-start justify-between gap-4">
           <div className="min-w-0">
-            <h3 className="truncate text-[14px] font-medium text-card-text">
+            <h3 className={cn("truncate", PORTFOLIO_CARD_TITLE_CLASS)}>
               {log.issueSummary}
             </h3>
             <p className="mt-0.5 truncate text-[12px] text-card-subtext">

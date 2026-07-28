@@ -95,6 +95,7 @@ export interface Property {
     accessNotes?: string;
   };
   tags: string[];
+  imageUrl?: string;
 }
 
 export interface ProtocolStep {

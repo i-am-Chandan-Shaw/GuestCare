@@ -1,5 +1,10 @@
 import { cn } from "@/lib/utils";
 import { formatRelativeTime } from "@/shared/lib/format-relative-time";
+import {
+  PORTFOLIO_CARD_TITLE_CLASS,
+  PortfolioCardActivityChip,
+} from "@/shared/components/PortfolioCardThumbnail";
+import { PORTFOLIO_CARD_ROW_CLASS } from "@/shared/components/PortfolioCardList";
 import type { CustomerSummary } from "@/shared/types";
 import {
   AlertCircle,
@@ -11,15 +16,6 @@ import {
   User,
 } from "lucide-react";
 import type { ReactNode } from "react";
-
-function initialsFromName(name: string): string {
-  return name
-    .split(/\s+/)
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((w) => w[0]?.toUpperCase() ?? "")
-    .join("");
-}
 
 function MetricColumn({
   icon,
@@ -50,8 +46,8 @@ function MetricColumn({
         {icon}
       </div>
       <div className="min-w-0 flex-1">
-        <p className="text-[10px] font-medium uppercase tracking-wider text-card-subtext">{label}</p>
-        <div className="mt-0.5 text-[18px] font-semibold leading-none tracking-tight text-card-text">{value}</div>
+        <p className="text-[10px] font-semibold uppercase tracking-wider text-card-subtext">{label}</p>
+        <div className="mt-0.5 text-[18px] font-medium leading-none tracking-tight text-card-text">{value}</div>
       </div>
     </div>
   );
@@ -71,7 +67,7 @@ function IconActionButton({
       type="button"
       aria-label={label}
       onClick={onClick}
-      className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-border/60 bg-muted/30 text-muted-foreground transition-colors hover:bg-muted/50 hover:text-foreground/80"
+      className="inline-flex h-9 w-9 items-center justify-center rounded-sm border border-border/60 bg-muted/30 text-muted-foreground transition-colors hover:border-border hover:bg-muted/40"
     >
       {children}
     </button>
@@ -116,32 +112,28 @@ export function CustomerPortfolioCard({
           onSelect();
         }
       }}
-      className="group w-full cursor-pointer rounded-md border border-border/60 bg-card text-left transition-colors hover:bg-muted/10"
+      className={PORTFOLIO_CARD_ROW_CLASS}
     >
-      <div className="flex items-center gap-4 px-5 py-4">
-        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-md bg-primary/85 text-[13px] font-semibold text-white">
-          {initialsFromName(customer.name)}
-        </div>
-
+      <div className="flex items-start gap-4 px-5 py-4">
         <div className="min-w-0 flex-1">
-          <h3 className="text-[15px] font-semibold tracking-tight text-card-text">{customer.name}</h3>
-          <p className="mt-0.5 text-[13px] text-card-subtext">
+          <div className="flex flex-wrap items-center gap-2">
+            <h3 className={PORTFOLIO_CARD_TITLE_CLASS}>{customer.name}</h3>
+            {lastActivity && (
+              <PortfolioCardActivityChip>{lastActivity}</PortfolioCardActivityChip>
+            )}
+          </div>
+          <p className="mt-1 text-[12px] font-medium text-card-subtext">
             {customer.email} · {customer.phone}
           </p>
         </div>
 
-        <div className="flex shrink-0 items-center gap-3">
-          {lastActivity && (
-            <span className="text-[13px] text-card-subtext">{lastActivity}</span>
-          )}
-          <div className="flex items-center gap-2">
-            <IconActionButton label="Create report" onClick={handleCreateReport}>
-              <FilePlus2 className="h-4 w-4" strokeWidth={1.75} />
-            </IconActionButton>
-            <IconActionButton label="View customer" onClick={handleSelect}>
-              <User className="h-4 w-4" strokeWidth={1.75} />
-            </IconActionButton>
-          </div>
+        <div className="flex shrink-0 items-start gap-2">
+          <IconActionButton label="Create report" onClick={handleCreateReport}>
+            <FilePlus2 className="h-4 w-4" strokeWidth={1.75} />
+          </IconActionButton>
+          <IconActionButton label="View customer" onClick={handleSelect}>
+            <User className="h-4 w-4" strokeWidth={1.75} />
+          </IconActionButton>
         </div>
       </div>
 
@@ -153,7 +145,7 @@ export function CustomerPortfolioCard({
           value={customer.propertyCount}
         />
 
-        <div className="h-10 w-px shrink-0 bg-border/50" aria-hidden />
+        <div className="h-10 w-px shrink-0 bg-[#e9e9e7]" aria-hidden />
 
         <MetricColumn
           icon={<ClipboardList className="h-4 w-4 text-primary/80" strokeWidth={1.75} />}
@@ -162,7 +154,7 @@ export function CustomerPortfolioCard({
           value={customer.totalIssuesCount}
         />
 
-        <div className="h-10 w-px shrink-0 bg-border/50" aria-hidden />
+        <div className="h-10 w-px shrink-0 bg-[#e9e9e7]" aria-hidden />
 
         <MetricColumn
           icon={<AlertCircle className="h-4 w-4 text-warning/80" strokeWidth={1.75} />}
@@ -171,7 +163,7 @@ export function CustomerPortfolioCard({
           value={customer.openReportsCount}
         />
 
-        <div className="h-10 w-px shrink-0 bg-border/50" aria-hidden />
+        <div className="h-10 w-px shrink-0 bg-[#e9e9e7]" aria-hidden />
 
         <MetricColumn
           icon={<CheckCircle2 className="h-4 w-4 text-success/80" strokeWidth={1.75} />}
@@ -180,14 +172,14 @@ export function CustomerPortfolioCard({
           value={customer.resolvedCount}
         />
 
-        <div className="h-10 w-px shrink-0 bg-border/50" aria-hidden />
+        <div className="h-10 w-px shrink-0 bg-[#e9e9e7]" aria-hidden />
 
         <MetricColumn
           icon={<Clock className="h-4 w-4 text-[#7C3AED]/80" strokeWidth={1.75} />}
           iconClassName="bg-[#7C3AED]/8"
           label="Last Issue"
           value={
-            <span className="block truncate text-[14px] font-semibold leading-snug text-card-text">{lastIssueTitle}</span>
+            <span className="block truncate text-[14px] font-medium leading-snug text-card-text">{lastIssueTitle}</span>
           }
           className="min-w-[200px] flex-[1.4]"
         />

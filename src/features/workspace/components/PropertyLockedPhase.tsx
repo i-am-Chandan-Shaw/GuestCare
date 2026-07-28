@@ -1,19 +1,23 @@
+import { useMemo } from "react";
 import { useIncidentLogs } from "@/features/incidents/hooks/useIncidents";
 import { useSuggestedIssues } from "@/features/copilot/hooks/useProtocolData";
 import { GlanceStats } from "@/shared/components/GlanceStats";
 import { LoadingState } from "@/shared/components/LoadingState";
 import { PortfolioCard } from "@/shared/components/PortfolioCard";
 import { QueryErrorState } from "@/shared/components/QueryErrorState";
+import { filterBySearch } from "@/shared/components/SearchToolbar";
 import { SummaryRow } from "@/shared/components/SummaryRow";
 import type { Customer, Property, PropertySummary } from "@/shared/types";
 
 export function PropertyLockedPhase({
   customer,
   property,
+  search,
   onSelectIssue,
 }: {
   customer: Customer;
   property: Property | PropertySummary;
+  search: string;
   onSelectIssue: (issueId: string) => void;
 }) {
   const reportsQuery = useIncidentLogs({
@@ -22,6 +26,14 @@ export function PropertyLockedPhase({
     limit: 5,
   });
   const suggestedQuery = useSuggestedIssues(property.id);
+
+  const filteredIssues = useMemo(
+    () =>
+      filterBySearch(suggestedQuery.data ?? [], search, ({ issue }) =>
+        [issue.name, issue.category, issue.priority].join(" "),
+      ),
+    [suggestedQuery.data, search],
+  );
 
   if (suggestedQuery.isLoading || reportsQuery.isLoading) {
     return <LoadingState label="Loading property context…" />;
@@ -80,7 +92,7 @@ export function PropertyLockedPhase({
         <h2 className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground">
           Suggested issues
         </h2>
-        {(suggestedQuery.data ?? []).map(({ issue, reason }) => (
+        {(filteredIssues ?? []).map(({ issue, reason }) => (
           <PortfolioCard
             key={issue.id}
             title={issue.name}
