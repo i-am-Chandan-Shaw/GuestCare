@@ -42,10 +42,11 @@ export function CustomerLockedPhase({
         </p>
       ) : (
         <PortfolioCardList>
-          {filtered.map((property) => (
+          {filtered.map((property, index) => (
             <PropertyPortfolioCard
               key={property.id}
               property={property}
+              alternate={index % 2 === 1}
               onSelect={() => onSelectProperty(property)}
             />
           ))}

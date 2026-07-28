@@ -9,6 +9,7 @@ export function WorkspaceSearchBar({
   icon,
   className,
   disabled = false,
+  highlighted = false,
 }: {
   value: string;
   onChange: (value: string) => void;
@@ -16,14 +17,17 @@ export function WorkspaceSearchBar({
   icon?: ReactNode;
   className?: string;
   disabled?: boolean;
+  highlighted?: boolean;
 }) {
   return (
     <div
       className={cn(
-        "flex h-11 items-center gap-2.5 rounded-md border border-border bg-surface px-3 shadow-sm transition-colors",
-        disabled
-          ? "cursor-not-allowed opacity-50"
-          : "focus-within:border-primary/50",
+        "flex h-11 items-center gap-2.5 rounded-md border bg-surface px-3 shadow-sm transition-colors",
+        disabled && "cursor-not-allowed border-border opacity-50",
+        !disabled && !highlighted && "border-border focus-within:border-primary/50",
+        !disabled &&
+          highlighted &&
+          "border-primary/70 bg-primary/[0.04] ring-2 ring-primary/15",
         className,
       )}
     >

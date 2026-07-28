@@ -67,6 +67,7 @@ export function WorkspaceSelectorRow({
           onChange={onCustomerSearchChange}
           placeholder="Search customers…"
           icon={<User className="h-4 w-4" />}
+          highlighted={showCustomerSearch}
           className={WORKSPACE_FIELD_WIDTH}
         />
       )}
@@ -87,6 +88,7 @@ export function WorkspaceSelectorRow({
           placeholder="Search properties…"
           icon={<Building2 className="h-4 w-4" />}
           disabled={!showPropertySearch}
+          highlighted={showPropertySearch}
           className={WORKSPACE_FIELD_WIDTH}
         />
       )}
@@ -107,6 +109,7 @@ export function WorkspaceSelectorRow({
           placeholder="Search issues…"
           icon={<ClipboardList className="h-4 w-4" />}
           disabled={!showIssueSearch}
+          highlighted={showIssueSearch}
           className={WORKSPACE_FIELD_WIDTH}
         />
       )}

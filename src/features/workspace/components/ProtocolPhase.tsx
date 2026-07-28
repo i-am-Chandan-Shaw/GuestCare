@@ -1,7 +1,16 @@
 import { IncidentDrawer, IssuePanel, PropertyPanel } from "@/features/copilot/components";
 import type { WorkspaceState } from "@/features/workspace/hooks/useWorkspace";
+import type { Issue } from "@/shared/types";
 
-export function ProtocolPhase({ workspace }: { workspace: WorkspaceState }) {
+export function ProtocolPhase({
+  workspace,
+  issueSearch = "",
+  onPickIssue,
+}: {
+  workspace: WorkspaceState;
+  issueSearch?: string;
+  onPickIssue?: (issue: Issue) => void;
+}) {
   const {
     customer,
     property,
@@ -33,7 +42,8 @@ export function ProtocolPhase({ workspace }: { workspace: WorkspaceState }) {
           <IssuePanel
             issue={issue}
             property={property}
-            onPick={(next) => selectIssue(next)}
+            issueSearch={issueSearch}
+            onPick={(next) => (onPickIssue ?? selectIssue)(next)}
             checked={checked}
             onToggle={toggleStep}
             verificationChecked={verificationChecked}

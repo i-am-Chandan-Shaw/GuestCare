@@ -38,9 +38,18 @@ export function ReportsPage({ customerId }: { customerId?: string }) {
       {customerId && (
         <div className="flex items-center justify-between gap-3 rounded-sm border border-border/60 bg-muted/20 px-4 py-2.5">
           <p className="text-[13px] text-muted-foreground">Showing reports for one customer.</p>
-          <Link to="/reports" className="text-[13px] font-medium text-primary hover:underline">
-            View all reports
-          </Link>
+          <div className="flex items-center gap-4">
+            <Link
+              to="/"
+              search={{ customerId }}
+              className="text-[13px] font-medium text-primary hover:underline"
+            >
+              Back to workspace
+            </Link>
+            <Link to="/reports" className="text-[13px] font-medium text-primary hover:underline">
+              View all reports
+            </Link>
+          </div>
         </div>
       )}
 

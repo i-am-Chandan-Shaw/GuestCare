@@ -1,16 +1,21 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { getRouteApi, useNavigate } from "@tanstack/react-router";
 import { LockedHeader } from "@/features/workspace/components/LockedHeader";
 import { CustomerBrowsePhase } from "@/features/workspace/components/CustomerBrowsePhase";
 import { CustomerLockedPhase } from "@/features/workspace/components/CustomerLockedPhase";
-import { PropertyLockedPhase } from "@/features/workspace/components/PropertyLockedPhase";
 import { ProtocolPhase } from "@/features/workspace/components/ProtocolPhase";
 import { useWorkspace } from "@/features/workspace/hooks/useWorkspace";
-import { getIssueById } from "@/features/copilot/api/protocols.api";
+import type { WorkspaceSearch } from "@/features/workspace/lib/workspace-url";
+import type { Customer, Issue, Property } from "@/shared/types";
+
+const workspaceRoute = getRouteApi("/");
 
 export function CallWorkspace() {
   const [customerSearch, setCustomerSearch] = useState("");
   const [propertySearch, setPropertySearch] = useState("");
   const [issueSearch, setIssueSearch] = useState("");
+  const navigate = useNavigate();
+  const urlSearch = workspaceRoute.useSearch();
   const workspace = useWorkspace();
   const {
     phase,
@@ -23,42 +28,66 @@ export function CallWorkspace() {
     changeCustomer,
     changeProperty,
     changeIssue,
+    hydrateFromSearch,
   } = workspace;
 
-  const handleSelectCustomer = (next: Parameters<typeof selectCustomer>[0]) => {
+  useEffect(() => {
+    void hydrateFromSearch(urlSearch);
+  }, [hydrateFromSearch, urlSearch]);
+
+  const syncUrl = (search: WorkspaceSearch) => {
+    void navigate({ to: "/", search, replace: true });
+  };
+
+  const handleSelectCustomer = (next: Customer) => {
     setCustomerSearch("");
     selectCustomer(next);
+    syncUrl({ customerId: next.id });
   };
 
   const handleClearCustomer = () => {
     setCustomerSearch("");
     setPropertySearch("");
     changeCustomer();
+    syncUrl({});
   };
 
   const handleClearProperty = () => {
     setPropertySearch("");
     setIssueSearch("");
     changeProperty();
+    if (customer) syncUrl({ customerId: customer.id });
   };
 
   const handleClearIssue = () => {
     setIssueSearch("");
     changeIssue();
-  };
-
-  const handleSelectProperty = (next: Parameters<typeof selectProperty>[0]) => {
-    setPropertySearch("");
-    selectProperty(next);
-  };
-
-  const handleSelectIssue = async (issueId: string) => {
-    const nextIssue = await getIssueById(issueId);
-    if (nextIssue) {
-      setIssueSearch("");
-      selectIssue(nextIssue);
+    if (customer && property) {
+      syncUrl({ customerId: customer.id, propertyId: property.id });
     }
   };
+
+  const handleSelectProperty = (next: Property) => {
+    setPropertySearch("");
+    selectProperty(next);
+    if (customer) {
+      syncUrl({ customerId: customer.id, propertyId: next.id });
+    }
+  };
+
+  const handlePickIssue = (nextIssue: Issue) => {
+    selectIssue(nextIssue);
+    if (customer && property) {
+      syncUrl({
+        customerId: customer.id,
+        propertyId: property.id,
+        issueId: nextIssue.id,
+      });
+    }
+  };
+
+  const showProtocolLayout =
+    (phase === "property" || phase === "protocol") && customer && property;
 
   return (
     <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
@@ -90,16 +119,13 @@ export function CallWorkspace() {
         />
       )}
 
-      {phase === "property" && customer && property && (
-        <PropertyLockedPhase
-          customer={customer}
-          property={property}
-          search={issueSearch}
-          onSelectIssue={handleSelectIssue}
+      {showProtocolLayout && (
+        <ProtocolPhase
+          workspace={workspace}
+          issueSearch={issueSearch}
+          onPickIssue={handlePickIssue}
         />
       )}
-
-      {phase === "protocol" && <ProtocolPhase workspace={workspace} />}
     </div>
   );
 }

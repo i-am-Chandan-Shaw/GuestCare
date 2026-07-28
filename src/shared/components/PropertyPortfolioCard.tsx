@@ -5,7 +5,7 @@ import {
   PortfolioCardActivityChip,
   PortfolioCardThumbnail,
 } from "@/shared/components/PortfolioCardThumbnail";
-import { PORTFOLIO_CARD_ROW_CLASS } from "@/shared/components/PortfolioCardList";
+import { portfolioCardClassName } from "@/shared/components/PortfolioCardList";
 import type { PropertySummary } from "@/shared/types";
 import { AlertCircle, CheckCircle2, ClipboardList, Clock } from "lucide-react";
 import type { ReactNode } from "react";
@@ -49,9 +49,11 @@ function MetricColumn({
 export function PropertyPortfolioCard({
   property,
   onSelect,
+  alternate = false,
 }: {
   property: PropertySummary;
   onSelect: () => void;
+  alternate?: boolean;
 }) {
   const totalIssues = property.openReportsCount + property.resolvedCount;
   const lastIssueTitle = property.lastIssue?.summary ?? "—";
@@ -70,7 +72,7 @@ export function PropertyPortfolioCard({
           onSelect();
         }
       }}
-      className={PORTFOLIO_CARD_ROW_CLASS}
+      className={portfolioCardClassName({ alternate })}
     >
       <div className="flex items-start gap-4 px-5 py-4">
         <PortfolioCardThumbnail name={property.name} imageUrl={property.imageUrl} />

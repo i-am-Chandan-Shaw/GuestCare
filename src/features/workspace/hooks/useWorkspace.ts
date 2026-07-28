@@ -1,11 +1,15 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { emptyForm, type FormState } from "@/features/copilot/components";
+import { getIssueById } from "@/features/copilot/api/protocols.api";
 import { useCreateIncidentMutation } from "@/features/incidents/hooks/useIncidents";
 import {
   syncFormFromIssue,
   syncNotesFromSteps,
   type WorkspacePhase,
 } from "@/features/workspace/lib/workspace-state";
+import type { WorkspaceSearch } from "@/features/workspace/lib/workspace-url";
+import { CUSTOMERS } from "@/data/mock";
+import { PROPERTIES } from "@/data/properties";
 import type { Customer, Issue, Property } from "@/shared/types";
 import { protocolToIncidentType } from "@/shared/types";
 
@@ -81,6 +85,74 @@ export function useWorkspace() {
     setIssue(null);
     setPhase("property");
   }, []);
+
+  const hydrateFromSearch = useCallback(async (search: WorkspaceSearch) => {
+    if (!search.customerId) {
+      clearAll();
+      return;
+    }
+
+    const nextCustomer = CUSTOMERS.find((c) => c.id === search.customerId) ?? null;
+    if (!nextCustomer) {
+      clearAll();
+      return;
+    }
+
+    if (!search.propertyId) {
+      setCustomer(nextCustomer);
+      setProperty(null);
+      setIssue(null);
+      setChecked({});
+      setVerificationChecked({});
+      setOutcome(null);
+      setPhase("customer");
+      return;
+    }
+
+    const nextProperty = PROPERTIES.find((p) => p.id === search.propertyId) ?? null;
+    if (!nextProperty || !nextCustomer.propertyIds.includes(nextProperty.id)) {
+      setCustomer(nextCustomer);
+      setProperty(null);
+      setIssue(null);
+      setChecked({});
+      setVerificationChecked({});
+      setOutcome(null);
+      setPhase("customer");
+      return;
+    }
+
+    if (!search.issueId) {
+      setCustomer(nextCustomer);
+      setProperty(nextProperty);
+      setIssue(null);
+      setChecked({});
+      setVerificationChecked({});
+      setOutcome(null);
+      setPhase("property");
+      return;
+    }
+
+    const nextIssue = await getIssueById(search.issueId);
+    if (!nextIssue) {
+      setCustomer(nextCustomer);
+      setProperty(nextProperty);
+      setIssue(null);
+      setChecked({});
+      setVerificationChecked({});
+      setOutcome(null);
+      setPhase("property");
+      return;
+    }
+
+    setCustomer(nextCustomer);
+    setProperty(nextProperty);
+    setIssue(nextIssue);
+    setForm((current) => syncFormFromIssue(current, nextIssue));
+    setChecked({});
+    setVerificationChecked({});
+    setOutcome(null);
+    setPhase("protocol");
+  }, [clearAll]);
 
   const clearForm = useCallback(() => {
     setChecked({});
@@ -162,6 +234,7 @@ export function useWorkspace() {
       changeCustomer,
       changeProperty,
       changeIssue,
+      hydrateFromSearch,
       clearAll,
       clearForm,
       submitIncident,
@@ -185,6 +258,7 @@ export function useWorkspace() {
       changeCustomer,
       changeProperty,
       changeIssue,
+      hydrateFromSearch,
       clearAll,
       clearForm,
       submitIncident,

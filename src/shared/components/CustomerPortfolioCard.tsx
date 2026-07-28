@@ -4,7 +4,7 @@ import {
   PORTFOLIO_CARD_TITLE_CLASS,
   PortfolioCardActivityChip,
 } from "@/shared/components/PortfolioCardThumbnail";
-import { PORTFOLIO_CARD_ROW_CLASS } from "@/shared/components/PortfolioCardList";
+import { portfolioCardClassName } from "@/shared/components/PortfolioCardList";
 import type { CustomerSummary } from "@/shared/types";
 import {
   AlertCircle,
@@ -78,10 +78,12 @@ export function CustomerPortfolioCard({
   customer,
   onSelect,
   onCreateReport,
+  alternate = false,
 }: {
   customer: CustomerSummary;
   onSelect: () => void;
   onCreateReport?: () => void;
+  alternate?: boolean;
 }) {
   const lastIssue = customer.lastIssue;
   const lastIssueTitle = lastIssue
@@ -112,7 +114,7 @@ export function CustomerPortfolioCard({
           onSelect();
         }
       }}
-      className={PORTFOLIO_CARD_ROW_CLASS}
+      className={portfolioCardClassName({ alternate })}
     >
       <div className="flex items-start gap-4 px-5 py-4">
         <div className="min-w-0 flex-1">
