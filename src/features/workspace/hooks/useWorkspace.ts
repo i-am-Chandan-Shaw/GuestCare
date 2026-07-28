@@ -1,35 +1,17 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { emptyForm, type FormState } from "@/features/copilot/components";
-import { useCreateIncidentMutation } from "@/features/customers/hooks/useCustomers";
+import { useCreateIncidentMutation } from "@/features/incidents/hooks/useIncidents";
+import {
+  syncFormFromIssue,
+  syncNotesFromSteps,
+  type WorkspacePhase,
+} from "@/features/workspace/lib/workspace-state";
 import type { Customer, Issue, Property } from "@/shared/types";
 import { protocolToIncidentType } from "@/shared/types";
 
-export type WorkspacePhase = "browse" | "customer" | "property" | "protocol";
+export type { WorkspacePhase } from "@/features/workspace/lib/workspace-state";
 
-function syncFormFromIssue(form: FormState, issue: Issue): FormState {
-  return {
-    ...form,
-    issueSummary: issue.name,
-    incidentType: protocolToIncidentType(issue.category),
-    priority: issue.priority,
-  };
-}
-
-function syncNotesFromSteps(form: FormState, issue: Issue, checked: Record<string, boolean>): FormState {
-  const doneLabels = issue.steps
-    .filter((s) => checked[s.id])
-    .map((s) => `• ${s.label}`)
-    .join("\n");
-  if (!doneLabels) return form;
-  return {
-    ...form,
-    callNotes: form.callNotes.includes(doneLabels)
-      ? form.callNotes
-      : [form.callNotes, doneLabels].filter(Boolean).join("\n"),
-  };
-}
-
-export function useCopilotWorkspace() {
+export function useWorkspace() {
   const [phase, setPhase] = useState<WorkspacePhase>("browse");
   const [customer, setCustomer] = useState<Customer | null>(null);
   const [property, setProperty] = useState<Property | null>(null);
@@ -213,4 +195,4 @@ export function useCopilotWorkspace() {
   );
 }
 
-export type CopilotWorkspace = ReturnType<typeof useCopilotWorkspace>;
+export type WorkspaceState = ReturnType<typeof useWorkspace>;

@@ -1,11 +1,7 @@
-import {
-  IncidentDrawer,
-  IssuePanel,
-  PropertyPanel,
-} from "@/features/copilot/components";
-import type { CopilotWorkspace } from "@/features/copilot/hooks/useCopilotWorkspace";
+import { IncidentDrawer, IssuePanel, PropertyPanel } from "@/features/copilot/components";
+import type { WorkspaceState } from "@/features/workspace/hooks/useWorkspace";
 
-export function ProtocolPhase({ workspace }: { workspace: CopilotWorkspace }) {
+export function ProtocolPhase({ workspace }: { workspace: WorkspaceState }) {
   const {
     customer,
     property,

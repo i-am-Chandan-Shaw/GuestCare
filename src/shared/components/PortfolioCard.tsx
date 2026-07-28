@@ -27,11 +27,11 @@ function StatCell({
 }) {
   return (
     <div className="flex min-w-0 flex-col gap-0.5">
-      <div className="flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+      <div className="flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wide text-card-subtext">
         {icon}
         {label}
       </div>
-      <span className="truncate text-[13px] font-semibold text-foreground">{value}</span>
+      <span className="truncate text-[13px] font-semibold text-card-text">{value}</span>
     </div>
   );
 }
@@ -76,12 +76,12 @@ export function PortfolioCard({
       <div className="min-w-0 flex-1">
         <div className="flex flex-wrap items-start justify-between gap-2">
           <div className="min-w-0">
-            <h3 className="text-[15px] font-bold tracking-tight text-foreground">{title}</h3>
+            <h3 className="text-[15px] font-bold tracking-tight text-card-text">{title}</h3>
             {subtitle && (
-              <p className="mt-0.5 text-[12.5px] text-muted-foreground">{subtitle}</p>
+              <p className="mt-0.5 text-[12.5px] text-card-subtext">{subtitle}</p>
             )}
             {address && (
-              <p className="mt-1 flex items-center gap-1 text-[12px] text-muted-foreground">
+              <p className="mt-1 flex items-center gap-1 text-[12px] text-card-subtext">
                 <MapPin className="h-3 w-3 shrink-0" />
                 <span className="truncate">{address}</span>
               </p>

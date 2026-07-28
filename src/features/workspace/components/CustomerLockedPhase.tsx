@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { useCustomerSummary, usePropertySummaries } from "@/features/customers/hooks/useCustomers";
-import { useIncidentLogs } from "@/features/copilot/hooks/useCopilotData";
+import { useIncidentLogs } from "@/features/incidents/hooks/useIncidents";
 import { GlanceStats } from "@/shared/components/GlanceStats";
 import { LoadingState } from "@/shared/components/LoadingState";
 import { PortfolioCard } from "@/shared/components/PortfolioCard";

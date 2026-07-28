@@ -1,4 +1,5 @@
-import { useSuggestedIssues, useIncidentLogs } from "@/features/copilot/hooks/useCopilotData";
+import { useIncidentLogs } from "@/features/incidents/hooks/useIncidents";
+import { useSuggestedIssues } from "@/features/copilot/hooks/useProtocolData";
 import { GlanceStats } from "@/shared/components/GlanceStats";
 import { LoadingState } from "@/shared/components/LoadingState";
 import { PortfolioCard } from "@/shared/components/PortfolioCard";
@@ -15,7 +16,11 @@ export function PropertyLockedPhase({
   property: Property | PropertySummary;
   onSelectIssue: (issueId: string) => void;
 }) {
-  const reportsQuery = useIncidentLogs({ customerId: customer.id, propertyId: property.id, limit: 5 });
+  const reportsQuery = useIncidentLogs({
+    customerId: customer.id,
+    propertyId: property.id,
+    limit: 5,
+  });
   const suggestedQuery = useSuggestedIssues(property.id);
 
   if (suggestedQuery.isLoading || reportsQuery.isLoading) {

@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod";
 import { AppLayout } from "@/shared/components/AppLayout";
-import { ReportsPage } from "@/features/reports/components/ReportsPage";
+import { ReportsPage } from "@/features/reports";
 
 const searchSchema = z.object({
   customerId: z.string().optional(),

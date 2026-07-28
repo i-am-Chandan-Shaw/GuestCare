@@ -21,6 +21,8 @@
   --color-panel: var(--panel);
   --color-card: var(--card);
   --color-card-foreground: var(--card-foreground);
+  --color-card-text: var(--card-text);
+  --color-card-subtext: var(--card-subtext);
   --color-popover: var(--popover);
   --color-popover-foreground: var(--popover-foreground);
   --color-primary: var(--primary);
@@ -54,6 +56,8 @@
   --panel: #FFFFFF;
   --card: #FFFFFF;
   --card-foreground: #1D1D1F;
+  --card-text: #2E2A25;
+  --card-subtext: #615e5a;
   --popover: #FFFFFF;
   --popover-foreground: #1D1D1F;
   --primary: #2563EB; /* Vibrant Blue */

@@ -50,8 +50,8 @@ function MetricColumn({
         {icon}
       </div>
       <div className="min-w-0 flex-1">
-        <p className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">{label}</p>
-        <div className="mt-0.5 text-[18px] font-semibold leading-none tracking-tight text-foreground/90">{value}</div>
+        <p className="text-[10px] font-medium uppercase tracking-wider text-card-subtext">{label}</p>
+        <div className="mt-0.5 text-[18px] font-semibold leading-none tracking-tight text-card-text">{value}</div>
       </div>
     </div>
   );
@@ -124,15 +124,15 @@ export function CustomerPortfolioCard({
         </div>
 
         <div className="min-w-0 flex-1">
-          <h3 className="text-[15px] font-semibold tracking-tight text-foreground/90">{customer.name}</h3>
-          <p className="mt-0.5 text-[13px] text-muted-foreground">
+          <h3 className="text-[15px] font-semibold tracking-tight text-card-text">{customer.name}</h3>
+          <p className="mt-0.5 text-[13px] text-card-subtext">
             {customer.email} · {customer.phone}
           </p>
         </div>
 
         <div className="flex shrink-0 items-center gap-3">
           {lastActivity && (
-            <span className="text-[13px] text-muted-foreground">{lastActivity}</span>
+            <span className="text-[13px] text-card-subtext">{lastActivity}</span>
           )}
           <div className="flex items-center gap-2">
             <IconActionButton label="Create report" onClick={handleCreateReport}>
@@ -187,7 +187,7 @@ export function CustomerPortfolioCard({
           iconClassName="bg-[#7C3AED]/8"
           label="Last Issue"
           value={
-            <span className="block truncate text-[14px] font-semibold leading-snug">{lastIssueTitle}</span>
+            <span className="block truncate text-[14px] font-semibold leading-snug text-card-text">{lastIssueTitle}</span>
           }
           className="min-w-[200px] flex-[1.4]"
         />

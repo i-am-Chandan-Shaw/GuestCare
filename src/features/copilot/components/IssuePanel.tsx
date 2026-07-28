@@ -4,11 +4,8 @@ import { cn } from "@/lib/utils";
 import { copyText } from "@/lib/copy-to-clipboard";
 import { Chip, Tabs } from "@/shared/components/copilot";
 import { priorityMeta } from "@/shared/constants/agent";
-import {
-  useGlobalContact,
-  useIncidentLogs,
-  useRecentIssues,
-} from "@/features/copilot/hooks/useCopilotData";
+import { useGlobalContact, useRecentIssues } from "@/features/copilot/hooks/useProtocolData";
+import { useIncidentLogs } from "@/features/incidents/hooks/useIncidents";
 import type { Issue, Property } from "@/shared/types";
 import {
   IssueDocumentsSection,
@@ -107,7 +104,9 @@ export function IssuePanel({
       <div className="mx-auto flex h-full max-w-2xl flex-col gap-4 overflow-y-auto scrollbar-thin p-6">
         <div className="rounded-lg border border-dashed border-border bg-card p-8 text-center">
           <Building2 className="mx-auto h-7 w-7 text-muted-foreground" />
-          <h2 className="mt-3 text-[15px] font-semibold text-foreground">Select a property first</h2>
+          <h2 className="mt-3 text-[15px] font-semibold text-foreground">
+            Select a property first
+          </h2>
           <p className="mt-1.5 text-[12.5px] leading-relaxed text-muted-foreground">
             Protocols can differ by property. Pick a property before choosing an issue.
           </p>
@@ -157,7 +156,12 @@ export function IssuePanel({
           <div className="flex items-start gap-3 mb-2">
             <div className="flex min-w-0 flex-1 flex-wrap items-center gap-3">
               <h1 className="text-[22px] font-bold tracking-tight text-foreground">{issue.name}</h1>
-              <Chip className={cn("rounded-md border px-2.5 py-1 text-[12px] font-semibold", pMeta.tone)}>
+              <Chip
+                className={cn(
+                  "rounded-md border px-2.5 py-1 text-[12px] font-semibold",
+                  pMeta.tone,
+                )}
+              >
                 <span className={cn("h-1.5 w-1.5 rounded-full", pMeta.dot)} />
                 {pMeta.label}
               </Chip>
@@ -170,13 +174,28 @@ export function IssuePanel({
               </Chip>
             </div>
             <div className="flex shrink-0 items-center gap-1.5">
-              <QuickActionPill icon={<Wifi className="h-3.5 w-3.5" />} label="WiFi" onClick={copyWifi} active={wifiCopied} />
-              <QuickActionPill icon={<Key className="h-3.5 w-3.5" />} label="Access" onClick={copyAccess} active={accessCopied} />
-              <QuickActionPill icon={<Phone className="h-3.5 w-3.5" />} label="Host" onClick={callHost} />
+              <QuickActionPill
+                icon={<Wifi className="h-3.5 w-3.5" />}
+                label="WiFi"
+                onClick={copyWifi}
+                active={wifiCopied}
+              />
+              <QuickActionPill
+                icon={<Key className="h-3.5 w-3.5" />}
+                label="Access"
+                onClick={copyAccess}
+                active={accessCopied}
+              />
+              <QuickActionPill
+                icon={<Phone className="h-3.5 w-3.5" />}
+                label="Host"
+                onClick={callHost}
+              />
             </div>
           </div>
           <p className="mb-4 text-[12.5px] font-medium text-foreground/65">
-            {issue.category} · {issue.priorityCategory} · Verification: {issue.reservationVerification}
+            {issue.category} · {issue.priorityCategory} · Verification:{" "}
+            {issue.reservationVerification}
           </p>
           <Tabs
             tabs={[
@@ -211,7 +230,11 @@ export function IssuePanel({
             />
           )}
           {activeTab === "escalations" && (
-            <IssueEscalationsSection issue={issue} property={property} globalContact={globalContact} />
+            <IssueEscalationsSection
+              issue={issue}
+              property={property}
+              globalContact={globalContact}
+            />
           )}
           {activeTab === "documents" && <IssueDocumentsSection issue={issue} />}
           {activeTab === "history" && <IssueHistorySection logs={historyLogs} />}

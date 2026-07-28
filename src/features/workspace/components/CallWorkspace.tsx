@@ -3,11 +3,11 @@ import { CustomerBrowsePhase } from "@/features/workspace/components/CustomerBro
 import { CustomerLockedPhase } from "@/features/workspace/components/CustomerLockedPhase";
 import { PropertyLockedPhase } from "@/features/workspace/components/PropertyLockedPhase";
 import { ProtocolPhase } from "@/features/workspace/components/ProtocolPhase";
-import { useCopilotWorkspace } from "@/features/copilot/hooks/useCopilotWorkspace";
+import { useWorkspace } from "@/features/workspace/hooks/useWorkspace";
 import { getIssueById } from "@/features/copilot/api/protocols.api";
 
 export function CallWorkspace() {
-  const workspace = useCopilotWorkspace();
+  const workspace = useWorkspace();
   const {
     phase,
     customer,

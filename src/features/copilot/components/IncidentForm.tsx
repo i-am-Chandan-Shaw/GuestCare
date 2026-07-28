@@ -2,8 +2,15 @@ import { FilePlus2, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { priorityMeta } from "@/shared/constants/agent";
 import { INCIDENT_STATUSES, INCIDENT_TYPES } from "@/shared/constants/incident";
-import { useIssues } from "@/features/copilot/hooks/useCopilotData";
-import type { Customer, IncidentStatus, IncidentType, Issue, Priority, Property } from "@/shared/types";
+import { useIssues } from "@/features/copilot/hooks/useProtocolData";
+import type {
+  Customer,
+  IncidentStatus,
+  IncidentType,
+  Issue,
+  Priority,
+  Property,
+} from "@/shared/types";
 import { IncidentPreview } from "./IncidentPreview";
 import { ACTION_CHIPS, type FormState } from "./incident-form.types";
 import { CopyIconButton, Field, Input, Select, Textarea } from "./incident-form-controls";
@@ -141,7 +148,10 @@ export function IncidentForm({
                   options={["P1 · Critical", "P2 · High", "P3 · Medium", "P4 · Low"]}
                 />
                 <span
-                  className={cn("absolute left-3 top-1/2 -translate-y-1/2 h-2 w-2 rounded-full", pMeta.dot)}
+                  className={cn(
+                    "absolute left-3 top-1/2 -translate-y-1/2 h-2 w-2 rounded-full",
+                    pMeta.dot,
+                  )}
                 />
               </div>
             </Field>
