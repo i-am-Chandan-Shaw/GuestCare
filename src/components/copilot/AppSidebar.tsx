@@ -1,17 +1,22 @@
 import { cn } from "@/lib/utils";
 import { AGENT } from "@/data/mock";
 import { PhoneCall, History, Users, LifeBuoy } from "lucide-react";
-import { useState } from "react";
+
+export type SidebarNavId = "call" | "history" | "customers";
 
 const nav = [
-  { id: "call", label: "New Call", icon: PhoneCall },
-  { id: "history", label: "Incident History", icon: History },
-  { id: "customers", label: "Customers", icon: Users },
-] as const;
+  { id: "call" as const, label: "New Call", icon: PhoneCall },
+  { id: "history" as const, label: "Incident History", icon: History },
+  { id: "customers" as const, label: "Customers", icon: Users },
+];
 
-export function AppSidebar() {
-  const [active, setActive] = useState<(typeof nav)[number]["id"]>("call");
-
+export function AppSidebar({
+  active,
+  onNavigate,
+}: {
+  active: SidebarNavId;
+  onNavigate: (id: SidebarNavId) => void;
+}) {
   return (
     <aside
       className="flex h-full w-[240px] shrink-0 flex-col text-white"
@@ -42,7 +47,7 @@ export function AppSidebar() {
               key={item.id}
               type="button"
               title={item.label}
-              onClick={() => setActive(item.id)}
+              onClick={() => onNavigate(item.id)}
               className={cn(
                 "flex w-full items-center gap-3 rounded-md px-3.5 py-3 text-[13.5px] font-medium transition-colors",
                 isActive

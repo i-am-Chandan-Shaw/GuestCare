@@ -1,11 +1,13 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
+import { History, Users } from "lucide-react";
 import { ShellFrame } from "@/components/copilot/ui";
-import { AppSidebar } from "@/components/copilot/AppSidebar";
+import { AppSidebar, type SidebarNavId } from "@/components/copilot/AppSidebar";
 import { TopBar } from "@/components/copilot/TopBar";
 import { PropertyPanel } from "@/components/copilot/PropertyPanel";
 import { IssuePanel } from "@/components/copilot/IssuePanel";
 import { IncidentDrawer, emptyForm, type FormState } from "@/components/copilot/IncidentPanel";
+import { WorkspaceEmptyState } from "@/components/copilot/WorkspaceEmptyState";
 import type { Customer, Issue, Property } from "@/data/mock";
 import { protocolToIncidentType } from "@/data/mock";
 
@@ -14,6 +16,7 @@ export const Route = createFileRoute("/")({
 });
 
 function Workspace() {
+  const [nav, setNav] = useState<SidebarNavId>("call");
   const [customer, setCustomer] = useState<Customer | null>(null);
   const [property, setProperty] = useState<Property | null>(null);
   const [issue, setIssue] = useState<Issue | null>(null);
@@ -96,48 +99,64 @@ function Workspace() {
 
   return (
     <ShellFrame>
-      <AppSidebar />
+      <AppSidebar active={nav} onNavigate={setNav} />
       <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
-        <TopBar
-          customer={customer}
-          property={property}
-          issue={issue}
-          onCustomer={handleCustomer}
-          onProperty={handleProperty}
-          onIssue={setIssue}
-          onClearFilters={handleClearFilters}
-        />
-        <main className="grid min-h-0 flex-1 grid-cols-[320px_minmax(0,1fr)]">
-          <div className="min-h-0 border-r border-border bg-surface/60">
-            <PropertyPanel property={property} onPick={setProperty} />
-          </div>
-          <div className="min-h-0 bg-background">
-            <IssuePanel
-              issue={issue}
+        {nav === "call" ? (
+          <>
+            <TopBar
+              customer={customer}
               property={property}
-              onPick={setIssue}
-              checked={checked}
-              onToggle={toggleStep}
-              verificationChecked={verificationChecked}
-              onToggleVerification={toggleVerification}
-              outcome={outcome}
-              setOutcome={setOutcome}
-              onOpenDrawer={() => setDrawerOpen(true)}
+              issue={issue}
+              onCustomer={handleCustomer}
+              onProperty={handleProperty}
+              onIssue={setIssue}
+              onClearFilters={handleClearFilters}
             />
-          </div>
-        </main>
+            <main className="grid min-h-0 flex-1 grid-cols-[320px_minmax(0,1fr)]">
+              <div className="min-h-0 border-r border-border bg-surface/60">
+                <PropertyPanel property={property} onPick={setProperty} />
+              </div>
+              <div className="min-h-0 bg-background">
+                <IssuePanel
+                  issue={issue}
+                  property={property}
+                  onPick={setIssue}
+                  checked={checked}
+                  onToggle={toggleStep}
+                  verificationChecked={verificationChecked}
+                  onToggleVerification={toggleVerification}
+                  outcome={outcome}
+                  setOutcome={setOutcome}
+                  onOpenDrawer={() => setDrawerOpen(true)}
+                />
+              </div>
+            </main>
 
-        <IncidentDrawer
-          open={drawerOpen}
-          onClose={() => setDrawerOpen(false)}
-          form={form}
-          setForm={setForm}
-          onClear={handleClearForm}
-          onSubmit={handleClearFilters}
-          customer={customer}
-          property={property}
-          issue={issue}
-        />
+            <IncidentDrawer
+              open={drawerOpen}
+              onClose={() => setDrawerOpen(false)}
+              form={form}
+              setForm={setForm}
+              onClear={handleClearForm}
+              onSubmit={handleClearFilters}
+              customer={customer}
+              property={property}
+              issue={issue}
+            />
+          </>
+        ) : nav === "history" ? (
+          <WorkspaceEmptyState
+            icon={History}
+            title="No incident history yet"
+            description="Logged incidents from live calls will appear here. Start a new call to create your first report."
+          />
+        ) : (
+          <WorkspaceEmptyState
+            icon={Users}
+            title="No customers to show"
+            description="Customer profiles and portfolios will appear here once accounts are connected."
+          />
+        )}
       </div>
     </ShellFrame>
   );
