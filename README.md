@@ -1,23 +1,22 @@
-# Welcome to your Lovable project
+# GuestCare
 
-This project was built with [Lovable](https://lovable.dev).
+GuestCare is an advanced property management and incident handling application designed to empower agents to efficiently resolve guest issues, view property access instructions, and log detailed incident reports.
 
-## Build with Lovable
+## Features
 
-Open your project in the [Lovable editor](https://lovable.dev) and keep building.
-
-- **Ship faster**: describe what you want to build and Lovable handles the code.
-- **Stay in sync**: connect the project to GitHub and every change made in Lovable is committed straight to your repository.
-- **Full ownership**: this code is yours. Push to your repository and your changes sync back into Lovable, ready for your next prompt.
+- **Guided Protocols:** Dynamic troubleshooting steps and verification requirements for common guest issues.
+- **Incident Reporting:** Built-in form to log incidents, actions taken, and auto-generated Slack previews.
+- **Property Management:** Quick access to property details including house rules, check-in/out instructions, and emergency contacts.
+- **Quick Actions:** Easily copy WiFi, access codes, and property notes for quick communication with guests.
 
 ## Development
 
-Prefer working locally? You need Node.js and npm — [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating).
+You need Node.js and npm — [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating).
 
 ```sh
 git clone <this-repository-url>
 cd <repository-name>
-npm i
+npm install
 npm run dev
 ```
 
