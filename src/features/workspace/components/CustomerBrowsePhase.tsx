@@ -28,7 +28,7 @@ export function CustomerBrowsePhase({
 
   return (
     <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
-      <div className="shrink-0 bg-[#f7f7f5] px-5 pt-3">
+      <div className="shrink-0 bg-[#f7f7f5] px-5 pt-3 pb-4">
         <SearchToolbar
           className="max-w-xl"
           value={search}
