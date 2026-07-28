@@ -4,11 +4,9 @@ import type { Issue } from "@/shared/types";
 
 export function ProtocolPhase({
   workspace,
-  issueSearch = "",
   onPickIssue,
 }: {
   workspace: WorkspaceState;
-  issueSearch?: string;
   onPickIssue?: (issue: Issue) => void;
 }) {
   const {
@@ -42,7 +40,6 @@ export function ProtocolPhase({
           <IssuePanel
             issue={issue}
             property={property}
-            issueSearch={issueSearch}
             onPick={(next) => (onPickIssue ?? selectIssue)(next)}
             checked={checked}
             onToggle={toggleStep}

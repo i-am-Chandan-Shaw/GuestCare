@@ -3,7 +3,7 @@ import {
   WORKSPACE_FIELD_WIDTH,
   WorkspaceSelectionChip,
 } from "@/features/workspace/components/WorkspaceSelectionChip";
-import { WorkspaceSearchBar } from "@/features/workspace/components/WorkspaceSearchBar";
+import { WorkspacePlaceholderSlot } from "@/features/workspace/components/WorkspacePlaceholderSlot";
 import type { WorkspacePhase } from "@/features/workspace/lib/workspace-state";
 import type { Customer, Issue, Property } from "@/shared/types";
 
@@ -22,12 +22,6 @@ export function WorkspaceSelectorRow({
   customer,
   property,
   issue,
-  customerSearch,
-  onCustomerSearchChange,
-  propertySearch,
-  onPropertySearchChange,
-  issueSearch,
-  onIssueSearchChange,
   onClearCustomer,
   onClearProperty,
   onClearIssue,
@@ -36,21 +30,15 @@ export function WorkspaceSelectorRow({
   customer: Customer | null;
   property: Property | null;
   issue: Issue | null;
-  customerSearch: string;
-  onCustomerSearchChange: (value: string) => void;
-  propertySearch: string;
-  onPropertySearchChange: (value: string) => void;
-  issueSearch: string;
-  onIssueSearchChange: (value: string) => void;
   onClearCustomer: () => void;
   onClearProperty: () => void;
   onClearIssue: () => void;
 }) {
-  const showCustomerSearch = phase === "browse" && !customer;
-  const showPropertySearch = phase === "customer" && customer && !property;
-  const showIssueSearch = phase === "property" && property && !issue;
-  const propertyStepActive = Boolean(customer);
-  const issueStepActive = Boolean(customer && property);
+  const customerStepActive = phase === "browse" && !customer;
+  const propertyStepActive = phase === "customer" && customer && !property;
+  const issueStepActive = phase === "property" && property && !issue;
+  const propertyFlowActive = Boolean(customer);
+  const issueFlowActive = Boolean(customer && property);
 
   return (
     <div className="flex flex-wrap items-center gap-1.5">
@@ -62,17 +50,14 @@ export function WorkspaceSelectorRow({
           className={WORKSPACE_FIELD_WIDTH}
         />
       ) : (
-        <WorkspaceSearchBar
-          value={customerSearch}
-          onChange={onCustomerSearchChange}
-          placeholder="Search customers…"
+        <WorkspacePlaceholderSlot
           icon={<User className="h-4 w-4" />}
-          highlighted={showCustomerSearch}
-          className={WORKSPACE_FIELD_WIDTH}
+          label="Customer"
+          active={customerStepActive}
         />
       )}
 
-      <FlowSeparator active={propertyStepActive} />
+      <FlowSeparator active={propertyFlowActive} />
 
       {property ? (
         <WorkspaceSelectionChip
@@ -82,18 +67,14 @@ export function WorkspaceSelectorRow({
           className={WORKSPACE_FIELD_WIDTH}
         />
       ) : (
-        <WorkspaceSearchBar
-          value={propertySearch}
-          onChange={onPropertySearchChange}
-          placeholder="Search properties…"
+        <WorkspacePlaceholderSlot
           icon={<Building2 className="h-4 w-4" />}
-          disabled={!showPropertySearch}
-          highlighted={showPropertySearch}
-          className={WORKSPACE_FIELD_WIDTH}
+          label="Property"
+          active={propertyStepActive}
         />
       )}
 
-      <FlowSeparator active={issueStepActive} />
+      <FlowSeparator active={issueFlowActive} />
 
       {issue ? (
         <WorkspaceSelectionChip
@@ -103,14 +84,10 @@ export function WorkspaceSelectorRow({
           className={WORKSPACE_FIELD_WIDTH}
         />
       ) : (
-        <WorkspaceSearchBar
-          value={issueSearch}
-          onChange={onIssueSearchChange}
-          placeholder="Search issues…"
+        <WorkspacePlaceholderSlot
           icon={<ClipboardList className="h-4 w-4" />}
-          disabled={!showIssueSearch}
-          highlighted={showIssueSearch}
-          className={WORKSPACE_FIELD_WIDTH}
+          label="Issue"
+          active={issueStepActive}
         />
       )}
     </div>

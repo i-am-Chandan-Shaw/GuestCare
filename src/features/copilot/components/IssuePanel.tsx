@@ -46,7 +46,6 @@ function QuickActionPill({
 export function IssuePanel({
   issue,
   property,
-  issueSearch = "",
   onPick,
   checked,
   onToggle,
@@ -58,7 +57,6 @@ export function IssuePanel({
 }: {
   issue: Issue | null;
   property: Property | null;
-  issueSearch?: string;
   onPick: (i: Issue) => void;
   checked: Record<string, boolean>;
   onToggle: (id: string) => void;
@@ -122,7 +120,6 @@ export function IssuePanel({
       <IssuePickerSection
         property={property}
         recentIssues={recentIssues}
-        search={issueSearch}
         onPick={onPick}
       />
     );

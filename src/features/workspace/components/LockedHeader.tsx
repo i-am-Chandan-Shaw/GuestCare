@@ -8,12 +8,6 @@ export function LockedHeader({
   customer,
   property,
   issue,
-  customerSearch,
-  onCustomerSearchChange,
-  propertySearch,
-  onPropertySearchChange,
-  issueSearch,
-  onIssueSearchChange,
   onClearCustomer,
   onClearProperty,
   onClearIssue,
@@ -22,12 +16,6 @@ export function LockedHeader({
   customer: Customer | null;
   property?: Property | null;
   issue?: Issue | null;
-  customerSearch: string;
-  onCustomerSearchChange: (value: string) => void;
-  propertySearch: string;
-  onPropertySearchChange: (value: string) => void;
-  issueSearch: string;
-  onIssueSearchChange: (value: string) => void;
   onClearCustomer: () => void;
   onClearProperty: () => void;
   onClearIssue: () => void;
@@ -36,18 +24,12 @@ export function LockedHeader({
 
   if (showSelector) {
     return (
-      <div className="shrink-0  bg-surface/80 px-5 py-3">
+      <div className="shrink-0 border-b border-border bg-surface/80 px-5 py-3">
         <WorkspaceSelectorRow
           phase={phase}
           customer={customer}
           property={property ?? null}
           issue={issue ?? null}
-          customerSearch={customerSearch}
-          onCustomerSearchChange={onCustomerSearchChange}
-          propertySearch={propertySearch}
-          onPropertySearchChange={onPropertySearchChange}
-          issueSearch={issueSearch}
-          onIssueSearchChange={onIssueSearchChange}
           onClearCustomer={onClearCustomer}
           onClearProperty={onClearProperty}
           onClearIssue={onClearIssue}
@@ -57,19 +39,13 @@ export function LockedHeader({
   }
 
   return (
-    <div className="shrink-0   bg-surface/80 px-5 py-3">
+    <div className="shrink-0 border-b border-border bg-surface/80 px-5 py-3">
       <div className="flex items-center justify-between gap-3">
         <WorkspaceSelectorRow
           phase={phase}
           customer={customer}
           property={property ?? null}
           issue={issue ?? null}
-          customerSearch=""
-          onCustomerSearchChange={() => {}}
-          propertySearch=""
-          onPropertySearchChange={() => {}}
-          issueSearch=""
-          onIssueSearchChange={() => {}}
           onClearCustomer={onClearCustomer}
           onClearProperty={onClearProperty}
           onClearIssue={onClearIssue}

@@ -7,10 +7,10 @@ import {
   ShieldAlert,
   Sparkles,
 } from "lucide-react";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useSuggestedIssues } from "@/features/copilot/hooks/useProtocolData";
 import { Chip, SectionCard } from "@/shared/components/copilot";
-import { filterBySearch } from "@/shared/components/SearchToolbar";
+import { SearchToolbar, filterBySearch } from "@/shared/components/SearchToolbar";
 import type { GlobalContact, IncidentLog, Issue, Property } from "@/shared/types";
 
 export function IssueEscalationsSection({
@@ -151,14 +151,13 @@ export function IssueHistorySection({ logs }: { logs: IncidentLog[] }) {
 export function IssuePickerSection({
   property,
   recentIssues,
-  search = "",
   onPick,
 }: {
   property: Property;
   recentIssues: Issue[];
-  search?: string;
   onPick: (issue: Issue) => void;
 }) {
+  const [search, setSearch] = useState("");
   const suggestedQuery = useSuggestedIssues(property.id);
   const trimmedSearch = search.trim();
 
@@ -180,8 +179,22 @@ export function IssuePickerSection({
           <h2 className="text-[15px] font-semibold text-foreground">What's the guest calling about?</h2>
         </div>
         <p className="mt-1 text-[12.5px] text-muted-foreground">
-          Pick a recent issue or search from the top bar to load the guided protocol for {property.name}.
+          Pick a recent issue or search below to load the guided protocol for {property.name}.
         </p>
+        <div className="mt-4">
+          <SearchToolbar
+            className="max-w-xl"
+            value={search}
+            onChange={setSearch}
+            placeholder="Search issues…"
+            onClear={() => setSearch("")}
+            resultLabel={
+              trimmedSearch
+                ? `Showing ${displayIssues.length} matching issue${displayIssues.length === 1 ? "" : "s"}`
+                : undefined
+            }
+          />
+        </div>
         <div className="mt-5">
           <div className="mb-2 text-[10.5px] font-semibold uppercase tracking-widest text-muted-foreground">
             {sectionLabel}

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { getRouteApi, useNavigate } from "@tanstack/react-router";
 import { LockedHeader } from "@/features/workspace/components/LockedHeader";
 import { CustomerBrowsePhase } from "@/features/workspace/components/CustomerBrowsePhase";
@@ -11,9 +11,6 @@ import type { Customer, Issue, Property } from "@/shared/types";
 const workspaceRoute = getRouteApi("/");
 
 export function CallWorkspace() {
-  const [customerSearch, setCustomerSearch] = useState("");
-  const [propertySearch, setPropertySearch] = useState("");
-  const [issueSearch, setIssueSearch] = useState("");
   const navigate = useNavigate();
   const urlSearch = workspaceRoute.useSearch();
   const workspace = useWorkspace();
@@ -40,27 +37,21 @@ export function CallWorkspace() {
   };
 
   const handleSelectCustomer = (next: Customer) => {
-    setCustomerSearch("");
     selectCustomer(next);
     syncUrl({ customerId: next.id });
   };
 
   const handleClearCustomer = () => {
-    setCustomerSearch("");
-    setPropertySearch("");
     changeCustomer();
     syncUrl({});
   };
 
   const handleClearProperty = () => {
-    setPropertySearch("");
-    setIssueSearch("");
     changeProperty();
     if (customer) syncUrl({ customerId: customer.id });
   };
 
   const handleClearIssue = () => {
-    setIssueSearch("");
     changeIssue();
     if (customer && property) {
       syncUrl({ customerId: customer.id, propertyId: property.id });
@@ -68,7 +59,6 @@ export function CallWorkspace() {
   };
 
   const handleSelectProperty = (next: Property) => {
-    setPropertySearch("");
     selectProperty(next);
     if (customer) {
       syncUrl({ customerId: customer.id, propertyId: next.id });
@@ -96,35 +86,24 @@ export function CallWorkspace() {
         customer={customer}
         property={property}
         issue={issue}
-        customerSearch={customerSearch}
-        onCustomerSearchChange={setCustomerSearch}
-        propertySearch={propertySearch}
-        onPropertySearchChange={setPropertySearch}
-        issueSearch={issueSearch}
-        onIssueSearchChange={setIssueSearch}
         onClearCustomer={handleClearCustomer}
         onClearProperty={handleClearProperty}
         onClearIssue={handleClearIssue}
       />
 
       {phase === "browse" && (
-        <CustomerBrowsePhase search={customerSearch} onSelect={handleSelectCustomer} />
+        <CustomerBrowsePhase onSelect={handleSelectCustomer} />
       )}
 
       {phase === "customer" && customer && (
         <CustomerLockedPhase
           customer={customer}
-          search={propertySearch}
           onSelectProperty={handleSelectProperty}
         />
       )}
 
       {showProtocolLayout && (
-        <ProtocolPhase
-          workspace={workspace}
-          issueSearch={issueSearch}
-          onPickIssue={handlePickIssue}
-        />
+        <ProtocolPhase workspace={workspace} onPickIssue={handlePickIssue} />
       )}
     </div>
   );

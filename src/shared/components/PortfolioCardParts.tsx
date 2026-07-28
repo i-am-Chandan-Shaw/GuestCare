@@ -15,8 +15,8 @@ export function portfolioCardClassName() {
 
 export function PortfolioCardActivityChip({ label }: { label: string }) {
   return (
-    <span className="inline-flex shrink-0 items-center gap-1 rounded-sm border border-[#e9e9e7] bg-[#f5f5f3] px-2 py-0.5 text-[11px] font-semibold text-card-subtext shadow-[0_1px_2px_rgba(15,23,42,0.06)]">
-      <Clock className="h-3 w-3 shrink-0 text-card-subtext" strokeWidth={1.75} />
+    <span className="inline-flex shrink-0 items-center gap-1 rounded-sm border border-amber-200/70 bg-amber-50/90 px-2 py-0.5 text-[11px] font-semibold text-amber-900/70 shadow-[0_1px_2px_rgba(180,130,40,0.08)]">
+      <Clock className="h-3 w-3 shrink-0 text-amber-700/75" strokeWidth={1.75} />
       {label}
     </span>
   );
