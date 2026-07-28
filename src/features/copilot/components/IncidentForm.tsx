@@ -23,6 +23,9 @@ export function IncidentForm({
   customer,
   property,
   issue,
+  embedded = false,
+  compact = false,
+  isSubmitting = false,
 }: {
   form: FormState;
   setForm: (f: FormState) => void;
@@ -31,6 +34,9 @@ export function IncidentForm({
   customer: Customer | null;
   property: Property | null;
   issue: Issue | null;
+  embedded?: boolean;
+  compact?: boolean;
+  isSubmitting?: boolean;
 }) {
   const { data: issues = [] } = useIssues();
   const update = <K extends keyof FormState>(k: K, v: FormState[K]) => setForm({ ...form, [k]: v });
@@ -51,17 +57,36 @@ export function IncidentForm({
 
   return (
     <div className="flex h-full flex-col bg-surface">
-      <div className="flex-1 space-y-4 p-6 overflow-y-auto scrollbar-thin">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-[18px] font-bold text-foreground">Incident Details</h2>
-          <button
-            type="button"
-            onClick={onClear}
-            className="rounded-lg border border-border px-3 py-1.5 text-[12.5px] font-semibold text-foreground hover:bg-surface-2 transition-colors"
-          >
-            Clear Form
-          </button>
-        </div>
+      <div
+        className={cn(
+          "flex-1 overflow-y-auto scrollbar-thin",
+          embedded ? (compact ? "space-y-3 p-3" : "space-y-4 p-4") : "space-y-4 p-6",
+        )}
+      >
+        {!embedded && (
+          <div className="mb-4 flex items-center justify-between">
+            <h2 className="text-[18px] font-bold text-foreground">Incident Details</h2>
+            <button
+              type="button"
+              onClick={onClear}
+              className="rounded-lg border border-border px-3 py-1.5 text-[12.5px] font-semibold text-foreground transition-colors hover:bg-surface-2"
+            >
+              Clear Form
+            </button>
+          </div>
+        )}
+
+        {embedded && (
+          <div className="flex justify-end">
+            <button
+              type="button"
+              onClick={onClear}
+              className="rounded-lg border border-border px-3 py-1.5 text-[12.5px] font-semibold text-foreground transition-colors hover:bg-surface-2"
+            >
+              Clear Form
+            </button>
+          </div>
+        )}
 
         <div className="space-y-4">
           <Field label="Customer">
@@ -209,7 +234,8 @@ export function IncidentForm({
           <button
             type="button"
             onClick={onSubmit}
-            className="flex w-full items-center justify-center gap-2 rounded-md bg-primary py-3.5 text-[14px] font-bold text-primary-foreground shadow-sm hover:bg-primary/90 transition-all active:scale-[0.99]"
+            disabled={isSubmitting}
+            className="flex w-full items-center justify-center gap-2 rounded-md bg-primary py-3.5 text-[14px] font-bold text-primary-foreground shadow-sm transition-all hover:bg-primary/90 active:scale-[0.99] disabled:opacity-60"
           >
             <FilePlus2 className="h-4 w-4" /> Log Incident
           </button>

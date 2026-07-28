@@ -53,7 +53,7 @@ export function IssuePanel({
   onToggleVerification,
   outcome,
   setOutcome,
-  onOpenDrawer,
+  onOpenCompose,
 }: {
   issue: Issue | null;
   property: Property | null;
@@ -64,7 +64,7 @@ export function IssuePanel({
   onToggleVerification: (id: string) => void;
   outcome: "resolve" | "escalate" | null;
   setOutcome: (o: "resolve" | "escalate") => void;
-  onOpenDrawer: () => void;
+  onOpenCompose: () => void;
 }) {
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});
   const toggle = (k: string) => setCollapsed((c) => ({ ...c, [k]: !c[k] }));
@@ -232,7 +232,7 @@ export function IssuePanel({
               setStepExpanded={setStepExpanded}
               outcome={outcome}
               setOutcome={setOutcome}
-              onOpenDrawer={onOpenDrawer}
+              onOpenCompose={onOpenCompose}
             />
           )}
           {activeTab === "escalations" && (
@@ -249,7 +249,7 @@ export function IssuePanel({
 
       <div className="sticky bottom-0 bg-background/95 backdrop-blur mt-auto p-4 px-6 border-t border-border">
         <button
-          onClick={onOpenDrawer}
+          onClick={onOpenCompose}
           className="flex h-[52px] w-full items-center justify-center gap-2 rounded-md bg-primary text-[15px] font-bold text-primary-foreground transition-transform hover:scale-[0.99] active:scale-[0.98] shadow-sm"
         >
           <FilePlus2 className="h-[18px] w-[18px]" />

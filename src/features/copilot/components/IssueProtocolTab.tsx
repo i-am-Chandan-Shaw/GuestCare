@@ -21,7 +21,7 @@ export function IssueProtocolTab({
   setStepExpanded,
   outcome,
   setOutcome,
-  onOpenDrawer,
+  onOpenCompose,
 }: {
   issue: Issue;
   checked: Record<string, boolean>;
@@ -34,7 +34,7 @@ export function IssueProtocolTab({
   setStepExpanded: React.Dispatch<React.SetStateAction<Record<string, boolean>>>;
   outcome: "resolve" | "escalate" | null;
   setOutcome: (o: "resolve" | "escalate") => void;
-  onOpenDrawer: () => void;
+  onOpenCompose: () => void;
 }) {
   const firstUncheckedIdx = issue.steps.findIndex((s) => !checked[s.id]);
   const activeStepIdx = firstUncheckedIdx === -1 ? issue.steps.length : firstUncheckedIdx;
@@ -207,7 +207,7 @@ export function IssueProtocolTab({
           <button
             onClick={() => {
               setOutcome("resolve");
-              onOpenDrawer();
+              onOpenCompose();
             }}
             className={cn(
               "cursor-pointer flex-1 rounded-md bg-[#ebf8f1] border border-[#a3e2c3] px-4 py-2.5 text-[13.5px] font-bold text-[#1f874c] hover:bg-[#dcf3e7] transition-colors flex items-center justify-center gap-2 shadow-sm",
@@ -220,7 +220,7 @@ export function IssueProtocolTab({
           <button
             onClick={() => {
               setOutcome("escalate");
-              onOpenDrawer();
+              onOpenCompose();
             }}
             className={cn(
               "cursor-pointer flex-1 rounded-md bg-[#feeeee] border border-[#f5b8b8] px-4 py-2.5 text-[13.5px] font-bold text-[#d83b3b] hover:bg-[#fde2e2] transition-colors flex items-center justify-center gap-2 shadow-sm",
