@@ -62,7 +62,7 @@ export function SectionCard({
   return (
     <section
       className={cn(
-        "rounded-lg border border-border bg-card shadow-elegant",
+        "rounded-sm border border-border bg-card shadow-elegant",
         className,
       )}
     >

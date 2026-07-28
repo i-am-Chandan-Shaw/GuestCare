@@ -5,7 +5,7 @@ import {
   Building2,
   Copy,
   Phone,
-  Star,
+  Search,
   ExternalLink,
   ChevronDown,
   ChevronRight,
@@ -14,8 +14,12 @@ import {
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { copyText } from "@/lib/copy-to-clipboard";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 
 export type PropertyTab = "access" | "ops";
+
+const PROPERTY_HERO_IMAGE =
+  "https://images.unsplash.com/photo-1512918728675-ed5a9ecdebfd?auto=format&fit=crop&q=80&w=1600&h=1000";
 
 function CopyRow({
   label,
@@ -190,7 +194,7 @@ function PropertyTabs({
 
   return (
     <div
-      className="grid w-full grid-cols-2 rounded-lg bg-white p-1"
+      className="grid w-full grid-cols-2 rounded-sm bg-white p-1"
       style={{
         border: "1px solid #E5E7EB",
         boxShadow: "0 1px 3px rgba(0,0,0,0.08)",
@@ -203,7 +207,7 @@ function PropertyTabs({
             key={tab.id}
             type="button"
             onClick={() => onChange(tab.id)}
-            className="w-full cursor-pointer rounded-md py-[10px] text-center text-[14px] font-bold leading-none transition-colors"
+            className="w-full cursor-pointer rounded-sm py-[10px] text-center text-[14px] font-bold leading-none transition-colors"
             style={
               isActive
                 ? { backgroundColor: PILL_ACTIVE, color: "#ffffff" }
@@ -229,6 +233,7 @@ export function PropertyPanel({
   onTabChange?: (t: PropertyTab) => void;
 }) {
   const [internalTab, setInternalTab] = useState<PropertyTab>("access");
+  const [imagePreviewOpen, setImagePreviewOpen] = useState(false);
   const activeTab = onTabChange ? tab : internalTab;
   const setTab = onTabChange ?? setInternalTab;
 
@@ -251,25 +256,27 @@ export function PropertyPanel({
     SystemKey,
     { info?: string; escalation?: unknown },
   ][];
-  const cardClass = "shadow-sm border border-border rounded-lg";
+  const cardClass = "shadow-sm border border-border rounded-sm";
 
   return (
     <div className="flex h-full flex-col overflow-hidden bg-background">
       <div className="flex min-h-0 flex-1 flex-col overflow-y-auto scrollbar-thin p-4">
         <div className="space-y-4">
           {/* Inset hero card */}
-          <div className="relative h-40 w-full shrink-0 overflow-hidden rounded-lg bg-muted shadow-sm">
+          <div className="relative h-40 w-full shrink-0 overflow-hidden rounded-sm bg-muted shadow-sm">
             <img
-              src="https://images.unsplash.com/photo-1512918728675-ed5a9ecdebfd?auto=format&fit=crop&q=80&w=800&h=400"
+              src={PROPERTY_HERO_IMAGE}
               alt={property.name}
               className="h-full w-full object-cover"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-black/10 to-transparent" />
             <button
               type="button"
-              className="cursor-pointer absolute right-3 top-3 flex h-7 w-7 items-center justify-center rounded-full bg-white/95 shadow-sm text-warning hover:bg-white transition-colors"
+              onClick={() => setImagePreviewOpen(true)}
+              className="cursor-pointer absolute right-3 top-3 flex h-7 w-7 items-center justify-center rounded-full bg-white/95 shadow-sm text-foreground hover:bg-white transition-colors"
+              aria-label="View full image"
             >
-              <Star className="h-3.5 w-3.5 fill-current" />
+              <Search className="h-3.5 w-3.5" />
             </button>
             <div className="absolute bottom-3 left-4 right-4">
               <h2 className="text-[18px] font-bold tracking-tight text-white drop-shadow-sm">
@@ -281,6 +288,24 @@ export function PropertyPanel({
               </div>
             </div>
           </div>
+
+          <Dialog open={imagePreviewOpen} onOpenChange={setImagePreviewOpen}>
+            <DialogContent
+              className={cn(
+                "max-w-[min(96vw,1100px)] border-0 bg-transparent p-0 shadow-none",
+                "[&>button]:right-3 [&>button]:top-3 [&>button]:flex [&>button]:h-9 [&>button]:w-9 [&>button]:items-center [&>button]:justify-center",
+                "[&>button]:rounded-full [&>button]:bg-white [&>button]:opacity-100 [&>button]:text-foreground [&>button]:shadow-md",
+                "[&>button]:hover:bg-white [&>button]:hover:opacity-100 [&>button]:ring-offset-0 [&>button]:focus:ring-0",
+              )}
+            >
+              <DialogTitle className="sr-only">{property.name} photo</DialogTitle>
+              <img
+                src={PROPERTY_HERO_IMAGE}
+                alt={property.name}
+                className="max-h-[90vh] w-full rounded-lg object-contain"
+              />
+            </DialogContent>
+          </Dialog>
 
           <div className="flex flex-wrap items-center gap-1.5">
             {property.tags.map((t) => (
@@ -305,7 +330,7 @@ export function PropertyPanel({
                   href={property.guideUrl}
                   target="_blank"
                   rel="noreferrer"
-                  className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-border bg-white px-2.5 py-2 text-[11.5px] font-semibold text-foreground hover:bg-surface-2 transition-colors shadow-sm"
+                  className="inline-flex items-center justify-center gap-1.5 rounded-sm border border-border bg-white px-2.5 py-2 text-[11.5px] font-semibold text-foreground hover:bg-surface-2 transition-colors shadow-sm"
                 >
                   Property Guide
                   <ExternalLink className="h-3 w-3 text-muted-foreground" />
@@ -316,7 +341,7 @@ export function PropertyPanel({
                   href={property.listingUrl}
                   target="_blank"
                   rel="noreferrer"
-                  className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-border bg-white px-2.5 py-2 text-[11.5px] font-semibold text-foreground hover:bg-surface-2 transition-colors shadow-sm"
+                  className="inline-flex items-center justify-center gap-1.5 rounded-sm border border-border bg-white px-2.5 py-2 text-[11.5px] font-semibold text-foreground hover:bg-surface-2 transition-colors shadow-sm"
                 >
                   Listing
                   <ExternalLink className="h-3 w-3 text-muted-foreground" />

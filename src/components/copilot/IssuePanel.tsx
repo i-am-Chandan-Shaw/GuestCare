@@ -231,7 +231,7 @@ export function IssuePanel({
           {activeTab === "protocol" && (
             <>
               {issue.reservationVerification === "Not Required" ? (
-                <SectionCard title="Verification" className="shadow-sm border border-border rounded-lg">
+                <SectionCard title="Verification" className="shadow-sm border border-border rounded-sm">
                   <p className="text-[13px] text-muted-foreground py-1">Verification not required for this issue type.</p>
                 </SectionCard>
               ) : (
@@ -294,7 +294,7 @@ export function IssuePanel({
                       <li
                         key={step.id}
                         className={cn(
-                          "relative flex items-start justify-between gap-4 p-4 rounded-lg border transition-all mb-2",
+                          "relative flex items-start justify-between gap-4 p-4 rounded-sm border transition-all mb-2",
                           isCurrent ? "bg-[#f4f7fe] border-primary/20" : "bg-white border-transparent",
                         )}
                       >
@@ -429,7 +429,7 @@ export function IssuePanel({
                     <ShieldAlert className="h-4 w-4 text-warning" /> Escalation Contact
                   </span>
                 }
-                className="shadow-sm border border-warning/20 bg-warning/5 rounded-lg"
+                className="shadow-sm border border-warning/20 bg-warning/5 rounded-sm"
               >
                 <p className="text-[14px] font-bold text-foreground">{globalContact?.name ?? issue.escalationContactId}</p>
                 <p className="text-[13px] leading-relaxed text-foreground mt-1">{issue.escalationDetails}</p>
@@ -444,7 +444,7 @@ export function IssuePanel({
               </SectionCard>
 
               {issue.escalationContactId === "property" && property && (
-                <SectionCard title={`Hosts — ${property.name}`} className="shadow-sm border border-border rounded-lg">
+                <SectionCard title={`Hosts — ${property.name}`} className="shadow-sm border border-border rounded-sm">
                   {property.hosts.length === 0 ? (
                     <p className="text-[13px] text-muted-foreground">No hosts on file for this property.</p>
                   ) : (
@@ -465,7 +465,7 @@ export function IssuePanel({
           )}
 
           {activeTab === "documents" && (
-            <SectionCard title="Related Documents" className="shadow-sm border border-border rounded-lg">
+            <SectionCard title="Related Documents" className="shadow-sm border border-border rounded-sm">
               {docs.length === 0 ? (
                 <p className="text-[13px] text-muted-foreground py-2">
                   No protocol documents — use Property Guide on the left.
@@ -500,7 +500,7 @@ export function IssuePanel({
           )}
 
           {activeTab === "history" && (
-            <SectionCard title="Related Incidents" className="shadow-sm border border-border rounded-lg">
+            <SectionCard title="Related Incidents" className="shadow-sm border border-border rounded-sm">
               {historyLogs.length === 0 ? (
                 <p className="text-[13px] text-muted-foreground py-2">No prior incidents for this property/issue.</p>
               ) : (
@@ -555,7 +555,7 @@ function QuickActionPill({
       type="button"
       onClick={onClick}
       className={cn(
-        "inline-flex h-9 items-center gap-1.5 rounded-lg border px-2.5 text-[12px] font-semibold transition-colors shadow-sm",
+        "inline-flex h-9 items-center gap-1.5 rounded-sm border px-2.5 text-[12px] font-semibold transition-colors shadow-sm",
         active
           ? "border-success/30 bg-success/10 text-success"
           : "border-border bg-surface text-foreground hover:bg-surface-2",
@@ -583,7 +583,7 @@ function CollapsibleCard({
   return (
     <SectionCard
       padded={false}
-      className="shadow-sm border border-border rounded-lg"
+      className="shadow-sm border border-border rounded-sm"
       title={
         <button className="flex w-full items-center gap-2.5 text-left" onClick={onToggle}>
           <ChevronDown className={cn("h-4 w-4 shrink-0 text-foreground transition-transform", !open && "-rotate-90")} />
