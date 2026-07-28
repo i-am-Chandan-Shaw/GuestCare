@@ -68,7 +68,7 @@ export function SectionCard({
     >
       {title && (
         <header className="flex items-center justify-between border-b border-border/50 px-4 py-3">
-          <h3 className="text-[13.5px] font-semibold text-foreground">{title}</h3>
+          <h3 className="min-w-0 flex-1 text-[13.5px] font-semibold text-foreground">{title}</h3>
           {action}
         </header>
       )}
@@ -129,7 +129,7 @@ export function Avatar({ initials, size = "md" }: { initials: string; size?: "sm
 /*  Shell frame (root layout wrapper)                                  */
 /* ------------------------------------------------------------------ */
 export function ShellFrame({ children }: { children: ReactNode }) {
-  return <div className="flex h-screen w-full flex-col overflow-hidden bg-background text-foreground">{children}</div>;
+  return <div className="flex h-screen w-full flex-row overflow-hidden bg-background text-foreground">{children}</div>;
 }
 
 /* ------------------------------------------------------------------ */

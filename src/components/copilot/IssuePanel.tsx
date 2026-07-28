@@ -19,7 +19,7 @@ import {
   Check,
   ShieldAlert,
   History,
-  ClipboardList,
+  FilePlus2,
   Phone,
   ExternalLink,
   Building2,
@@ -178,12 +178,12 @@ export function IssuePanel({
           <div className="flex items-start gap-3 mb-2">
             <div className="flex min-w-0 flex-1 flex-wrap items-center gap-3">
               <h1 className="text-[22px] font-bold tracking-tight text-foreground">{issue.name}</h1>
-              <Chip className={cn("px-2.5 py-0.5 rounded-full border border-border bg-opacity-10", pMeta.tone)}>
-                <span className={cn("h-1.5 w-1.5 rounded-full mr-1.5", pMeta.dot)} />
+              <Chip className={cn("rounded-md border px-2.5 py-1 text-[12px] font-semibold", pMeta.tone)}>
+                <span className={cn("h-1.5 w-1.5 rounded-full", pMeta.dot)} />
                 {pMeta.label}
               </Chip>
-              <Chip tone="success" className="px-2.5 py-0.5 rounded-full border border-success/30 bg-success/10 text-success">
-                <Check className="h-3 w-3 mr-1" strokeWidth={3} />
+              <Chip tone="success" className="rounded-md border border-success/40 bg-success/15 px-2.5 py-1 text-[12px] font-semibold text-success">
+                <Check className="h-3.5 w-3.5" strokeWidth={2.75} />
                 SLA {issue.slaMinutes} min
               </Chip>
             </div>
@@ -208,7 +208,7 @@ export function IssuePanel({
               />
             </div>
           </div>
-          <p className="text-[12px] text-muted-foreground mb-4">
+          <p className="mb-4 text-[12.5px] font-medium text-foreground/65">
             {issue.category} · {issue.priorityCategory} · Verification: {issue.reservationVerification}
           </p>
 
@@ -231,7 +231,7 @@ export function IssuePanel({
           {activeTab === "protocol" && (
             <>
               {issue.reservationVerification === "Not Required" ? (
-                <SectionCard title="Verification" className="shadow-sm border border-border rounded-xl">
+                <SectionCard title="Verification" className="shadow-sm border border-border rounded-lg">
                   <p className="text-[13px] text-muted-foreground py-1">Verification not required for this issue type.</p>
                 </SectionCard>
               ) : (
@@ -294,7 +294,7 @@ export function IssuePanel({
                       <li
                         key={step.id}
                         className={cn(
-                          "relative flex items-start justify-between gap-4 p-4 rounded-xl border transition-all mb-2",
+                          "relative flex items-start justify-between gap-4 p-4 rounded-lg border transition-all mb-2",
                           isCurrent ? "bg-[#f4f7fe] border-primary/20" : "bg-white border-transparent",
                         )}
                       >
@@ -429,7 +429,7 @@ export function IssuePanel({
                     <ShieldAlert className="h-4 w-4 text-warning" /> Escalation Contact
                   </span>
                 }
-                className="shadow-sm border border-warning/20 bg-warning/5 rounded-xl"
+                className="shadow-sm border border-warning/20 bg-warning/5 rounded-lg"
               >
                 <p className="text-[14px] font-bold text-foreground">{globalContact?.name ?? issue.escalationContactId}</p>
                 <p className="text-[13px] leading-relaxed text-foreground mt-1">{issue.escalationDetails}</p>
@@ -444,7 +444,7 @@ export function IssuePanel({
               </SectionCard>
 
               {issue.escalationContactId === "property" && property && (
-                <SectionCard title={`Hosts — ${property.name}`} className="shadow-sm border border-border rounded-xl">
+                <SectionCard title={`Hosts — ${property.name}`} className="shadow-sm border border-border rounded-lg">
                   {property.hosts.length === 0 ? (
                     <p className="text-[13px] text-muted-foreground">No hosts on file for this property.</p>
                   ) : (
@@ -465,7 +465,7 @@ export function IssuePanel({
           )}
 
           {activeTab === "documents" && (
-            <SectionCard title="Related Documents" className="shadow-sm border border-border rounded-xl">
+            <SectionCard title="Related Documents" className="shadow-sm border border-border rounded-lg">
               {docs.length === 0 ? (
                 <p className="text-[13px] text-muted-foreground py-2">
                   No protocol documents — use Property Guide on the left.
@@ -500,7 +500,7 @@ export function IssuePanel({
           )}
 
           {activeTab === "history" && (
-            <SectionCard title="Related Incidents" className="shadow-sm border border-border rounded-xl">
+            <SectionCard title="Related Incidents" className="shadow-sm border border-border rounded-lg">
               {historyLogs.length === 0 ? (
                 <p className="text-[13px] text-muted-foreground py-2">No prior incidents for this property/issue.</p>
               ) : (
@@ -529,10 +529,10 @@ export function IssuePanel({
       <div className="sticky bottom-0 bg-background/95 backdrop-blur mt-auto p-4 px-6 border-t border-border">
         <button
           onClick={onOpenDrawer}
-          className="flex h-[52px] w-full items-center justify-center gap-2 rounded-xl bg-primary text-[15px] font-bold text-primary-foreground transition-transform hover:scale-[0.99] active:scale-[0.98] shadow-sm"
+          className="flex h-[52px] w-full items-center justify-center gap-2 rounded-md bg-primary text-[15px] font-bold text-primary-foreground transition-transform hover:scale-[0.99] active:scale-[0.98] shadow-sm"
         >
-          <ClipboardList className="h-[18px] w-[18px]" />
-          Log Incident Report
+          <FilePlus2 className="h-[18px] w-[18px]" />
+          Create Report
         </button>
       </div>
     </div>
@@ -583,14 +583,13 @@ function CollapsibleCard({
   return (
     <SectionCard
       padded={false}
-      className="shadow-sm border border-border rounded-xl"
+      className="shadow-sm border border-border rounded-lg"
       title={
         <button className="flex w-full items-center gap-2.5 text-left" onClick={onToggle}>
-          <ChevronDown className={cn("h-4 w-4 text-foreground transition-transform", !open && "-rotate-90")} />
+          <ChevronDown className={cn("h-4 w-4 shrink-0 text-foreground transition-transform", !open && "-rotate-90")} />
           <span className="text-[14.5px] font-bold text-foreground">{title}</span>
-          <div className="flex-1" />
           {badge && (
-            <span className="rounded-full border border-border/80 bg-surface px-2.5 py-0.5 text-[11px] font-medium text-muted-foreground">{badge}</span>
+            <span className="ml-auto text-[12px] font-medium text-muted-foreground">{badge}</span>
           )}
         </button>
       }

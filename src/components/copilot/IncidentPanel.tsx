@@ -1,9 +1,10 @@
 import { Drawer } from "./ui";
 import type { Customer, IncidentStatus, IncidentType, Issue, Priority, Property } from "@/data/mock";
 import { AGENT, INCIDENT_TYPES, INCIDENT_STATUSES, ISSUES, priorityMeta } from "@/data/mock";
-import { Hash, MessageSquare, Copy, X, FileText, ChevronDown } from "lucide-react";
+import { Hash, MessageSquare, Copy, X, FilePlus2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useMemo, useState } from "react";
+import { toast } from "sonner";
 
 export interface FormState {
   callerName: string;
@@ -85,6 +86,7 @@ export function IncidentDrawer({
   form,
   setForm,
   onClear,
+  onSubmit,
   customer,
   property,
   issue,
@@ -94,6 +96,7 @@ export function IncidentDrawer({
   form: FormState;
   setForm: (f: FormState) => void;
   onClear: () => void;
+  onSubmit: () => void;
   customer: Customer | null;
   property: Property | null;
   issue: Issue | null;
@@ -104,6 +107,7 @@ export function IncidentDrawer({
         form={form}
         setForm={setForm}
         onClear={onClear}
+        onSubmit={onSubmit}
         customer={customer}
         property={property}
         issue={issue}
@@ -116,6 +120,7 @@ function IncidentContent({
   form,
   setForm,
   onClear,
+  onSubmit,
   customer,
   property,
   issue,
@@ -123,11 +128,11 @@ function IncidentContent({
   form: FormState;
   setForm: (f: FormState) => void;
   onClear: () => void;
+  onSubmit: () => void;
   customer: Customer | null;
   property: Property | null;
   issue: Issue | null;
 }) {
-  const [submitted, setSubmitted] = useState(false);
   const update = <K extends keyof FormState>(k: K, v: FormState[K]) => setForm({ ...form, [k]: v });
   const timestamp = useMemo(
     () =>
@@ -311,7 +316,7 @@ function IncidentContent({
           </Field>
         </div>
 
-        <div className="mt-6 rounded-xl border border-border/80 shadow-sm overflow-hidden">
+        <div className="mt-6 rounded-lg border border-border/80 shadow-sm overflow-hidden">
           <div className="flex items-center justify-between border-b border-border bg-surface-2/50 px-4 py-3">
             <div className="flex items-center gap-2.5 font-semibold text-[14px] text-foreground">
               <div className="flex items-center justify-center h-6 w-6 rounded bg-primary/10 text-primary">
@@ -376,22 +381,16 @@ function IncidentContent({
           </div>
         </div>
 
-        <div className="mt-6 flex">
+        <div className="mt-6">
           <button
             type="button"
             onClick={() => {
-              setSubmitted(true);
-              setTimeout(() => setSubmitted(false), 2500);
+              toast.success("Report submitted");
+              onSubmit();
             }}
-            className="flex flex-1 items-center justify-center gap-2 rounded-l-xl bg-primary py-3.5 text-[14px] font-bold text-primary-foreground shadow-sm hover:bg-primary/90 transition-all active:scale-[0.99]"
+            className="flex w-full items-center justify-center gap-2 rounded-md bg-primary py-3.5 text-[14px] font-bold text-primary-foreground shadow-sm hover:bg-primary/90 transition-all active:scale-[0.99]"
           >
-            <FileText className="h-4 w-4" /> {submitted ? "Logged!" : "Log Incident Report"}
-          </button>
-          <button
-            type="button"
-            className="flex items-center justify-center rounded-r-xl border-l border-white/20 bg-primary px-4 py-3.5 text-primary-foreground hover:bg-primary/90 transition-colors"
-          >
-            <ChevronDown className="h-4 w-4" />
+            <FilePlus2 className="h-4 w-4" /> Log Incident
           </button>
         </div>
       </div>

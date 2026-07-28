@@ -70,27 +70,28 @@ function CopyRow({
 
 function PhoneRow({ label, value, red = false }: { label: string; value: string; red?: boolean }) {
   return (
-    <div className="flex items-center justify-between gap-3 py-3 text-[13px]">
-      <span className="text-foreground font-semibold">{label}</span>
-      <div className="flex items-center gap-2 min-w-0">
-        <span
-          className={cn(
-            "font-mono font-semibold break-all text-right",
-            red ? "text-destructive" : "text-muted-foreground",
-          )}
-        >
-          {value}
-        </span>
+    <div className="py-3">
+      <div className="flex items-center justify-between gap-3">
+        <p className="text-[11.5px] font-semibold text-muted-foreground">{label}</p>
         <a
           href={`tel:${value.replace(/\s/g, "")}`}
           className={cn(
             "cursor-pointer shrink-0 transition-colors",
             red ? "text-destructive hover:opacity-80" : "text-muted-foreground hover:text-foreground",
           )}
+          aria-label={`Call ${label}`}
         >
           <Phone className="h-3.5 w-3.5" />
         </a>
       </div>
+      <p
+        className={cn(
+          "mt-1 text-[13px] font-medium break-all font-mono",
+          red ? "text-destructive" : "text-foreground",
+        )}
+      >
+        {value}
+      </p>
     </div>
   );
 }
@@ -233,8 +234,8 @@ export function PropertyPanel({
 
   if (!property) {
     return (
-      <div className="flex h-full flex-col items-center justify-center p-6 bg-surface">
-        <div className="rounded-lg border border-dashed border-border p-8 text-center max-w-[220px]">
+      <div className="flex h-full flex-col items-center justify-center bg-background p-5">
+        <div className="rounded-lg border border-dashed border-border bg-surface p-8 text-center max-w-[220px]">
           <Building2 className="mx-auto h-7 w-7 text-muted-foreground" />
           <p className="mt-3 text-[13px] font-medium text-foreground">No property selected</p>
           <p className="mt-1.5 text-[11.5px] leading-relaxed text-muted-foreground">
@@ -250,86 +251,89 @@ export function PropertyPanel({
     SystemKey,
     { info?: string; escalation?: unknown },
   ][];
+  const cardClass = "shadow-sm border border-border rounded-lg";
 
   return (
-    <div className="flex h-full flex-col overflow-hidden bg-surface">
-      <div className="relative h-36 w-full shrink-0 bg-muted">
-        <img
-          src="https://images.unsplash.com/photo-1512918728675-ed5a9ecdebfd?auto=format&fit=crop&q=80&w=800&h=400"
-          alt={property.name}
-          className="h-full w-full object-cover"
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-black/10 to-transparent" />
-        <button className="cursor-pointer absolute right-3 top-3 flex h-7 w-7 items-center justify-center rounded-full bg-white/95 shadow-sm text-warning hover:bg-white transition-colors">
-          <Star className="h-3.5 w-3.5 fill-current" />
-        </button>
-        <div className="absolute bottom-3 left-4 right-4">
-          <h2 className="text-[18px] font-bold tracking-tight text-white drop-shadow-sm">
-            {property.name}
-          </h2>
-          <div className="mt-1 flex items-start gap-1.5 text-[12px] text-white/90">
-            <MapPin className="h-3.5 w-3.5 shrink-0 mt-0.5" />
-            <span className="leading-snug line-clamp-2">{property.address}</span>
-          </div>
-        </div>
-      </div>
-
-      <div className="flex min-h-0 flex-1 flex-col">
-        <div className="shrink-0 bg-surface">
-          <div className="space-y-3 px-4 pt-3 pb-3">
-            <div className="flex flex-wrap items-center gap-1.5">
-              {property.tags.map((t) => (
-                <span
-                  key={t}
-                  className="inline-flex items-center rounded-md bg-surface-2 px-2 py-0.5 text-[10.5px] font-semibold uppercase tracking-wide text-muted-foreground"
-                >
-                  {t}
-                </span>
-              ))}
-              {property.unit && !property.tags.includes(property.unit) && (
-                <span className="inline-flex items-center rounded-md bg-surface-2 px-2 py-0.5 text-[10.5px] font-semibold uppercase tracking-wide text-muted-foreground">
-                  {property.unit}
-                </span>
-              )}
-            </div>
-
-            {(property.guideUrl || property.listingUrl) && (
-              <div className="grid grid-cols-2 gap-2">
-                {property.guideUrl && (
-                  <a
-                    href={property.guideUrl}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-border bg-white px-2.5 py-2 text-[11.5px] font-semibold text-foreground hover:bg-surface-2 transition-colors shadow-sm"
-                  >
-                    Property Guide
-                    <ExternalLink className="h-3 w-3 text-muted-foreground" />
-                  </a>
-                )}
-                {property.listingUrl && (
-                  <a
-                    href={property.listingUrl}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-border bg-white px-2.5 py-2 text-[11.5px] font-semibold text-foreground hover:bg-surface-2 transition-colors shadow-sm"
-                  >
-                    Listing
-                    <ExternalLink className="h-3 w-3 text-muted-foreground" />
-                  </a>
-                )}
+    <div className="flex h-full flex-col overflow-hidden bg-background">
+      <div className="flex min-h-0 flex-1 flex-col overflow-y-auto scrollbar-thin p-4">
+        <div className="space-y-4">
+          {/* Inset hero card */}
+          <div className="relative h-40 w-full shrink-0 overflow-hidden rounded-lg bg-muted shadow-sm">
+            <img
+              src="https://images.unsplash.com/photo-1512918728675-ed5a9ecdebfd?auto=format&fit=crop&q=80&w=800&h=400"
+              alt={property.name}
+              className="h-full w-full object-cover"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-black/10 to-transparent" />
+            <button
+              type="button"
+              className="cursor-pointer absolute right-3 top-3 flex h-7 w-7 items-center justify-center rounded-full bg-white/95 shadow-sm text-warning hover:bg-white transition-colors"
+            >
+              <Star className="h-3.5 w-3.5 fill-current" />
+            </button>
+            <div className="absolute bottom-3 left-4 right-4">
+              <h2 className="text-[18px] font-bold tracking-tight text-white drop-shadow-sm">
+                {property.name}
+              </h2>
+              <div className="mt-1 flex items-start gap-1.5 text-[12px] text-white/90">
+                <MapPin className="h-3.5 w-3.5 shrink-0 mt-0.5" />
+                <span className="leading-snug line-clamp-2">{property.address}</span>
               </div>
+            </div>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-1.5">
+            {property.tags.map((t) => (
+              <span
+                key={t}
+                className="inline-flex items-center rounded-full bg-surface px-2.5 py-1 text-[10.5px] font-semibold uppercase tracking-wide text-muted-foreground border border-border"
+              >
+                {t}
+              </span>
+            ))}
+            {property.unit && !property.tags.includes(property.unit) && (
+              <span className="inline-flex items-center rounded-full bg-surface px-2.5 py-1 text-[10.5px] font-semibold uppercase tracking-wide text-muted-foreground border border-border">
+                {property.unit}
+              </span>
             )}
           </div>
 
-          <div className="border-t border-border px-4 py-3">
-            <PropertyTabs active={activeTab} onChange={setTab} />
-          </div>
+          {(property.guideUrl || property.listingUrl) && (
+            <div className="grid grid-cols-2 gap-2">
+              {property.guideUrl && (
+                <a
+                  href={property.guideUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-border bg-white px-2.5 py-2 text-[11.5px] font-semibold text-foreground hover:bg-surface-2 transition-colors shadow-sm"
+                >
+                  Property Guide
+                  <ExternalLink className="h-3 w-3 text-muted-foreground" />
+                </a>
+              )}
+              {property.listingUrl && (
+                <a
+                  href={property.listingUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-border bg-white px-2.5 py-2 text-[11.5px] font-semibold text-foreground hover:bg-surface-2 transition-colors shadow-sm"
+                >
+                  Listing
+                  <ExternalLink className="h-3 w-3 text-muted-foreground" />
+                </a>
+              )}
+            </div>
+          )}
         </div>
 
-        <div className="min-h-0 flex-1 overflow-y-auto scrollbar-thin px-4 py-4 space-y-4">
+        <div className="sticky top-[-16px] z-20 -mx-4 bg-background px-4 pb-3 pt-4">
+          <PropertyTabs active={activeTab} onChange={setTab} />
+        </div>
+
+        <div className="space-y-4 pb-2">
           {activeTab === "access" && (
             <>
-              <SectionCard title="Property Overview" className="shadow-sm border border-border">
+              <SectionCard title="Property Overview" className={cardClass}>
                 <div className="grid grid-cols-2 gap-y-4 gap-x-2 pb-1 pt-1">
                   <div className="flex flex-col gap-1">
                     <span className="text-[11.5px] font-semibold text-muted-foreground">Check-in</span>
@@ -360,7 +364,7 @@ export function PropertyPanel({
                 </div>
               </SectionCard>
 
-              <SectionCard title="Access Information" className="shadow-sm border border-border" padded={false}>
+              <SectionCard title="Access Information" className={cardClass} padded={false}>
                 <div className="px-4 divide-y divide-border/60">
                   {accessCode && <CopyRow label="Access Code" value={accessCode} mono />}
                   {property.accessSummary?.keyNest && (
@@ -383,7 +387,7 @@ export function PropertyPanel({
               </SectionCard>
 
               {(property.wifi.network || property.wifi.password || property.wifi.raw) && (
-                <SectionCard title="WiFi" className="shadow-sm border border-border" padded={false}>
+                <SectionCard title="WiFi" className={cardClass} padded={false}>
                   <div className="px-4 divide-y divide-border/60">
                     {property.wifi.network && (
                       <StackedCopyField label="Network" value={property.wifi.network} />
@@ -408,7 +412,7 @@ export function PropertyPanel({
           {activeTab === "ops" && (
             <>
               {property.houseRules.length > 0 && (
-                <SectionCard title="House Rules" className="shadow-sm border border-border">
+                <SectionCard title="House Rules" className={cardClass}>
                   <ul className="space-y-1.5 py-1">
                     {property.houseRules.map((r) => (
                       <li key={r} className="text-[12.5px] text-foreground flex gap-2">
@@ -421,7 +425,7 @@ export function PropertyPanel({
               )}
 
               {(property.laundry || property.waste) && (
-                <SectionCard title="Laundry & Waste" className="shadow-sm border border-border">
+                <SectionCard title="Laundry & Waste" className={cardClass}>
                   {property.laundry && (
                     <div className="py-2">
                       <span className="text-[11.5px] font-semibold text-muted-foreground">Laundry</span>
@@ -442,7 +446,7 @@ export function PropertyPanel({
               )}
 
               {systemEntries.length > 0 && (
-                <SectionCard title="Utilities & Systems" className="shadow-sm border border-border" padded={false}>
+                <SectionCard title="Utilities & Systems" className={cardClass} padded={false}>
                   <div className="px-4 divide-y divide-border/60">
                     {systemEntries.map(([key, sys]) => (
                       <ExpandableNote
@@ -472,7 +476,7 @@ export function PropertyPanel({
                 </SectionCard>
               )}
 
-              <SectionCard title="Property Notes" className="shadow-sm border border-border">
+              <SectionCard title="Property Notes" className={cardClass}>
                 <p className="text-[12.5px] leading-relaxed text-foreground whitespace-pre-wrap py-1">
                   {property.specificInfo}
                 </p>
@@ -488,7 +492,7 @@ export function PropertyPanel({
                 )}
               </SectionCard>
 
-              <SectionCard title="Emergency Contacts" className="shadow-sm border border-border" padded={false}>
+              <SectionCard title="Emergency Contacts" className={cardClass} padded={false}>
                 <div className="px-4 divide-y divide-border/60">
                   {property.hosts.length === 0 ? (
                     <p className="text-[12.5px] text-muted-foreground py-3">No host contacts on file.</p>

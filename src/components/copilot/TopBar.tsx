@@ -1,9 +1,15 @@
-import { Combobox, type ComboItem, Avatar } from "./ui";
-import { AGENT, CUSTOMERS, PROPERTIES, ISSUES, type Customer, type Property, type Issue } from "@/data/mock";
-import { LifeBuoy, ChevronRight, User2, Building2, AlertTriangle } from "lucide-react";
+import { Combobox, type ComboItem } from "./ui";
+import { CUSTOMERS, PROPERTIES, ISSUES, type Customer, type Property, type Issue } from "@/data/mock";
+import { ChevronRight, User2, Building2, AlertTriangle, RotateCcw } from "lucide-react";
 
 export function TopBar({
-  customer, property, issue, onCustomer, onProperty, onIssue,
+  customer,
+  property,
+  issue,
+  onCustomer,
+  onProperty,
+  onIssue,
+  onClearFilters,
 }: {
   customer: Customer | null;
   property: Property | null;
@@ -11,6 +17,7 @@ export function TopBar({
   onCustomer: (c: Customer) => void;
   onProperty: (p: Property) => void;
   onIssue: (i: Issue) => void;
+  onClearFilters: () => void;
 }) {
   const scopedProperties = customer
     ? PROPERTIES.filter((p) => customer.propertyIds.includes(p.id))
@@ -33,20 +40,10 @@ export function TopBar({
     meta: i.priority,
   }));
 
+  const hasFilters = Boolean(customer || property || issue);
+
   return (
     <header className="flex h-16 shrink-0 items-center border-b border-border bg-surface/80 px-5 backdrop-blur">
-      {/* Logo */}
-      <div className="mr-5 flex items-center gap-2.5">
-        <div className="flex h-8 w-8 items-center justify-center rounded-md bg-gradient-to-br from-primary to-info shadow-sm">
-          <LifeBuoy className="h-4 w-4 text-primary-foreground" />
-        </div>
-        <span className="hidden text-[13px] font-semibold tracking-tight text-foreground md:block">GuestCare</span>
-      </div>
-
-      {/* Divider */}
-      <div className="mr-4 h-5 w-px bg-border" />
-
-      {/* Breadcrumb-style selectors */}
       <nav className="flex items-center gap-1.5">
         <Combobox
           placeholder="Customer"
@@ -87,15 +84,16 @@ export function TopBar({
         />
       </nav>
 
-      {/* Right side */}
-      <div className="ml-auto flex items-center gap-2.5">
-        <div className="hidden items-center gap-2 rounded-md border border-border bg-surface pl-1 pr-2.5 py-1 md:flex">
-          <Avatar initials={AGENT.initials} size="sm" />
-          <div className="text-[11px] leading-tight">
-            <div className="font-semibold text-foreground">{AGENT.name}</div>
-            <div className="text-muted-foreground">{AGENT.role}</div>
-          </div>
-        </div>
+      <div className="ml-auto">
+        <button
+          type="button"
+          onClick={onClearFilters}
+          disabled={!hasFilters}
+          className="inline-flex h-9 items-center gap-1.5 rounded-md border border-border bg-surface px-3 text-[12.5px] font-semibold text-foreground transition-colors hover:bg-surface-2 disabled:pointer-events-none disabled:opacity-40"
+        >
+          <RotateCcw className="h-3.5 w-3.5" />
+          Clear filters
+        </button>
       </div>
     </header>
   );
