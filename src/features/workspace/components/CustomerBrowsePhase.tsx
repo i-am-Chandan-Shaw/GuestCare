@@ -35,11 +35,10 @@ export function CustomerBrowsePhase({
         </p>
       ) : (
         <PortfolioCardList>
-          {filtered.map((customer, index) => (
+          {filtered.map((customer) => (
             <CustomerPortfolioCard
               key={customer.id}
               customer={customer}
-              alternate={index % 2 === 1}
               onSelect={() => onSelect(customer)}
             />
           ))}

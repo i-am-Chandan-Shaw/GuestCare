@@ -28,3 +28,18 @@ export function formatRelativeTime(timestamp: string): string {
   if (days < 60) return `${Math.floor(days / 7)} weeks ago`;
   return timestamp.split(",")[0] ?? timestamp;
 }
+
+/** Compact badge label e.g. "1D", "3H", "Now". */
+export function formatCompactRelativeTime(timestamp: string): string {
+  const date = parseIncidentTimestamp(timestamp);
+  if (!date) return timestamp;
+
+  const diffMs = Date.now() - date.getTime();
+  if (diffMs < MINUTE) return "Now";
+  if (diffMs < HOUR) return `${Math.floor(diffMs / MINUTE)}M`;
+  if (diffMs < DAY) return `${Math.floor(diffMs / HOUR)}H`;
+  const days = Math.floor(diffMs / DAY);
+  if (days < 14) return `${days}D`;
+  if (days < 60) return `${Math.floor(days / 7)}W`;
+  return timestamp.split(",")[0] ?? timestamp;
+}

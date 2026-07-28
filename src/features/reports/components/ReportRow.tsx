@@ -1,6 +1,6 @@
 import { cn } from "@/lib/utils";
 import { priorityMeta } from "@/shared/constants/agent";
-import { PORTFOLIO_CARD_TITLE_CLASS } from "@/shared/components/PortfolioCardThumbnail";
+import { PORTFOLIO_CARD_TITLE_CLASS } from "@/shared/components/PortfolioCardParts";
 import type { IncidentLog } from "@/shared/types";
 import { Building2, Clock, User } from "lucide-react";
 

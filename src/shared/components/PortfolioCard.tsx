@@ -1,5 +1,5 @@
 import { cn } from "@/lib/utils";
-import { PORTFOLIO_CARD_TITLE_CLASS } from "@/shared/components/PortfolioCardThumbnail";
+import { PORTFOLIO_CARD_TITLE_CLASS } from "@/shared/components/PortfolioCardParts";
 import {
   AlertCircle,
   Building2,

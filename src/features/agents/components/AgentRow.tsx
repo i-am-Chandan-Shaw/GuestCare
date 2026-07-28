@@ -1,6 +1,6 @@
 import { cn } from "@/lib/utils";
 import { CURRENT_AGENT } from "@/shared/constants/agent";
-import { PORTFOLIO_CARD_TITLE_CLASS } from "@/shared/components/PortfolioCardThumbnail";
+import { PORTFOLIO_CARD_TITLE_CLASS } from "@/shared/components/PortfolioCardParts";
 import type { AgentProfile } from "@/shared/types";
 import { Clock, AtSign, Briefcase } from "lucide-react";
 
