@@ -30,6 +30,11 @@ import {
 import { useCreateIncidentMutation } from "@/features/incidents/hooks/useIncidents";
 import { useAuth } from "@/features/auth/hooks/useAuth";
 import { useWorkspaceContext } from "@/features/workspace/context/WorkspaceProvider";
+import {
+  clearPersistedCompose,
+  readPersistedCompose,
+  writePersistedCompose,
+} from "@/features/workspace/lib/workspace-persistence";
 import { syncFormFromIssue, syncNotesFromSteps } from "@/features/workspace/lib/workspace-state";
 
 type IncidentComposeProviderProps = {
@@ -53,10 +58,13 @@ export function IncidentComposeProvider({ children, syncRef }: IncidentComposePr
   const formBroadcastTimer = useRef<number | null>(null);
 
   const [pipWindow, setPipWindow] = useState<Window | null>(null);
-  const [panelMode, setPanelMode] = useState<IncidentPanelMode>(
-    isPopupWindow ? "detached" : "closed",
+  const [panelMode, setPanelMode] = useState<IncidentPanelMode>(() => {
+    if (isIncidentPopupWindow()) return "detached";
+    return readPersistedCompose()?.panelMode ?? "closed";
+  });
+  const [form, setFormState] = useState<FormState>(
+    () => readPersistedCompose()?.form ?? emptyForm(),
   );
-  const [form, setFormState] = useState<FormState>(emptyForm);
 
   const buildSnapshot = useCallback(
     (overrides?: Partial<IncidentWindowState>): IncidentWindowState => ({
@@ -120,6 +128,7 @@ export function IncidentComposeProvider({ children, syncRef }: IncidentComposePr
     closeDetachedWindow();
     setFormState(emptyForm());
     setPanelMode("closed");
+    clearPersistedCompose();
   }, [closeDetachedWindow]);
 
   const handleSubmitSuccess = useCallback(() => {
@@ -393,6 +402,11 @@ export function IncidentComposeProvider({ children, syncRef }: IncidentComposePr
       setPanelMode("closed");
     }
   }, [panelMode, pipWindow]);
+
+  useEffect(() => {
+    if (isPopupWindow) return;
+    writePersistedCompose({ form, panelMode });
+  }, [form, panelMode, isPopupWindow]);
 
   const isDetached = panelMode === "detached";
   const formDirty = isIncidentFormDirty(form, issue);

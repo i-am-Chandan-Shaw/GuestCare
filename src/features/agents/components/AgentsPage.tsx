@@ -71,7 +71,7 @@ export function AgentsPage() {
       <div className="shrink-0 bg-app-bg px-5 pt-3 pb-4">
         <SearchToolbar
           layout="inline"
-          className="min-w-[200px] max-w-xl"
+          className="w-full max-w-md"
           value={search}
           onChange={setSearch}
           placeholder="Search agents…"

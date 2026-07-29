@@ -3,7 +3,6 @@ import {
 } from "@/shared/lib/format-relative-time";
 import {
   PORTFOLIO_CARD_TITLE_CLASS,
-  PortfolioCardActionButton,
   PortfolioCardActivityChip,
   PortfolioCardHeader,
   PortfolioCardMetricsRow,
@@ -17,7 +16,6 @@ import {
   CheckCircle2,
   ClipboardList,
   Clock,
-  User,
 } from "lucide-react";
 
 export function CustomerPortfolioCard({
@@ -35,11 +33,6 @@ export function CustomerPortfolioCard({
     : "—";
   const activityLabel = lastIssue ? formatCompactRelativeTime(lastIssue.timestamp) : null;
 
-  const handleSelect = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    onSelect();
-  };
-
   return (
     <article
       role="button"
@@ -54,22 +47,14 @@ export function CustomerPortfolioCard({
       className={portfolioCardClassName()}
     >
       <PortfolioCardHeader>
-        <div className="flex items-start justify-between gap-4">
-          <div className="min-w-0 flex-1">
-            <div className="flex flex-wrap items-center gap-2">
-              <h3 className={PORTFOLIO_CARD_TITLE_CLASS}>{customer.name}</h3>
-              {activityLabel && <PortfolioCardActivityChip label={activityLabel} />}
-            </div>
-            <p className="mt-1 text-[12px] font-medium text-card-subtext">
-              {customer.email} | {customer.phone}
-            </p>
+        <div className="min-w-0">
+          <div className="flex flex-wrap items-center gap-2">
+            <h3 className={PORTFOLIO_CARD_TITLE_CLASS}>{customer.name}</h3>
+            {activityLabel && <PortfolioCardActivityChip label={activityLabel} />}
           </div>
-
-          <div className="flex shrink-0 items-center gap-2">
-            <PortfolioCardActionButton label="View customer" onClick={handleSelect}>
-              <User className="h-4 w-4" strokeWidth={1.75} />
-            </PortfolioCardActionButton>
-          </div>
+          <p className="mt-1 text-[12px] font-medium text-card-subtext">
+            {customer.email} | {customer.phone}
+          </p>
         </div>
       </PortfolioCardHeader>
 

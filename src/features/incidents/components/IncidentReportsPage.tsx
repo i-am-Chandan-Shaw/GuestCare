@@ -116,7 +116,7 @@ export function IncidentReportsPage({ customerId }: { customerId?: string }) {
           <div className="flex flex-wrap items-center gap-3">
             <SearchToolbar
               layout="inline"
-              className="min-w-[200px] flex-1"
+              className="w-full max-w-md"
               value={search}
               onChange={setSearch}
               placeholder="Search reports…"

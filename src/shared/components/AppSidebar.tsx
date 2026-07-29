@@ -1,5 +1,6 @@
 import { Link, useRouter, useRouterState } from "@tanstack/react-router";
 import { getAgentInitials, formatAgentRole } from "@/shared/lib/agent-display";
+import { readIncidentsNavSearch } from "@/features/workspace/lib/workspace-persistence";
 import { cn } from "@/lib/utils";
 import { logout } from "@/features/auth/api/auth.api";
 import { useAuth } from "@/features/auth/hooks/useAuth";
@@ -22,6 +23,7 @@ export function AppSidebar() {
   const router = useRouter();
   const { agent } = useAuth();
   const active = useActiveNav();
+  const incidentsSearch = readIncidentsNavSearch();
 
   const handleLogout = async () => {
     await logout();
@@ -53,7 +55,7 @@ export function AppSidebar() {
             <Link
               key={item.id}
               to={item.href}
-              {...(item.id === "issues" ? { search: {} } : {})}
+              {...(item.id === "issues" ? { search: incidentsSearch } : {})}
               aria-current={isActive ? "page" : undefined}
               className={cn(
                 "flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-[13px] font-medium transition-colors duration-150",
