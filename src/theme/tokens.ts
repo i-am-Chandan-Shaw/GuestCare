@@ -13,7 +13,8 @@ export const tokens = {
   },
   text: {
     primary: "#1B2559",
-    secondary: "#A3AED0",
+    secondary: "#5e6b85",
+    muted: "#8491a8",
     inputText: "#2e2a25",
     inputLabel: "#1b2559",
     inputLabelFocus: "#95938f",

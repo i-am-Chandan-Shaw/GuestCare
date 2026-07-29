@@ -52,11 +52,11 @@ export function IncidentPreview({
             className="mt-1 h-8 w-8 rounded-md object-cover"
           />
           <div className="min-w-0 flex-1 space-y-1">
-            <div className="flex items-center gap-1.5 font-semibold text-[13.5px] text-foreground mb-2">
-              <Hash className="h-4 w-4 text-muted-foreground" />
+            <div className="flex items-center gap-1.5 font-semibold text-[13.5px] text-text-primary mb-2">
+              <Hash className="h-4 w-4 text-text-muted" />
               guest-issues
             </div>
-            <div className="text-[13px] leading-relaxed text-foreground space-y-0.5">
+            <div className="space-y-0.5 text-[13px] leading-relaxed text-text-primary">
               <div>
                 <span className="font-semibold">Customer:</span> {customer?.name || "—"}
               </div>
@@ -93,7 +93,7 @@ export function IncidentPreview({
                 <span className="font-semibold">Notes:</span> {form.callNotes || "—"}
               </div>
             </div>
-            <div className="mt-3 flex items-center gap-1.5 text-[11.5px] text-muted-foreground font-medium">
+            <div className="mt-3 flex items-center gap-1.5 text-[11.5px] font-medium text-text-secondary">
               <img
                 src="https://i.pravatar.cc/150?u=a042581f4e29026704d"
                 alt="Priya"

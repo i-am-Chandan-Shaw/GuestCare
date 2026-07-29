@@ -197,7 +197,7 @@ export function IssuePanel({
               />
             </div>
           </div>
-          <p className="mb-4 text-[12.5px] font-medium text-foreground/65">
+          <p className="mb-4 text-[12.5px] font-medium text-text-secondary">
             {issue.category} · {issue.priorityCategory} · Verification:{" "}
             {issue.reservationVerification}
           </p>

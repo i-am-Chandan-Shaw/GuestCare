@@ -19,9 +19,10 @@
   --color-card-bg: #ffffff;
   --color-input-surface: rgba(255, 255, 255, 0.5);
 
-  /* AiGency text */
+  /* AiGency text — secondary/muted tuned for WCAG on white */
   --color-text-primary: #1b2559;
-  --color-text-secondary: #a3aed0;
+  --color-text-secondary: #5e6b85;
+  --color-text-muted: #8491a8;
   --color-input-text: #2e2a25;
   --color-input-label: #1b2559;
   --color-input-label-focus: #95938f;
@@ -108,7 +109,7 @@
   --card: #ffffff;
   --card-foreground: #1b2559;
   --card-text: #1b2559;
-  --card-subtext: #a3aed0;
+  --card-subtext: #5e6b85;
   --popover: #ffffff;
   --popover-foreground: #1b2559;
   --primary: #007bff;
@@ -116,7 +117,7 @@
   --secondary: #f8f9fa;
   --secondary-foreground: #1b2559;
   --muted: #f8f9fa;
-  --muted-foreground: #a3aed0;
+  --muted-foreground: #5e6b85;
   --accent: #e9ecef;
   --accent-foreground: #1b2559;
   --destructive: #ef4444;
@@ -157,6 +158,14 @@
 @utility btn-primary-gradient {
   background: linear-gradient(107deg, #0061a5 0%, #0d99ff 100%);
   color: white;
+  border: none;
+  &:hover:not(:disabled) {
+    background: linear-gradient(107deg, #005491 0%, #0b8ae6 100%);
+  }
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
 }
 
 @utility hover-lift {

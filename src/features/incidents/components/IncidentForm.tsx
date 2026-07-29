@@ -1,5 +1,6 @@
 import { FilePlus2, X } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/Button";
 import { priorityMeta } from "@/shared/constants/agent";
 import { INCIDENT_STATUSES, INCIDENT_TYPES } from "@/shared/constants/incident";
 import { useIssues } from "@/features/copilot/hooks/useProtocolData";
@@ -92,7 +93,7 @@ export function IncidentForm({
           <Field label="Customer">
             <Input value={customer?.name ?? ""} readOnly placeholder="Select customer in top bar" />
             {customer && (
-              <p className="mt-1.5 text-[11.5px] text-muted-foreground">
+              <p className="mt-1.5 text-[11.5px] text-text-muted">
                 {customer.email} · {customer.phone}
               </p>
             )}
@@ -202,7 +203,7 @@ export function IncidentForm({
                       "cursor-pointer flex items-center gap-1.5 rounded-md px-2.5 py-1 text-[13px] font-medium transition-colors",
                       active
                         ? "bg-primary/10 text-primary"
-                        : "bg-surface-2 text-muted-foreground hover:text-foreground",
+                        : "bg-surface-2 text-text-secondary hover:text-text-primary",
                     )}
                   >
                     {label}
@@ -221,7 +222,7 @@ export function IncidentForm({
                 placeholder="What you tried, who you called, codes generated, next steps…"
                 rows={5}
               />
-              <div className="absolute bottom-2 right-3 text-[11px] font-medium text-muted-foreground">
+              <div className="absolute bottom-2 right-3 text-[11px] font-medium text-text-muted">
                 {form.callNotes.length} / 2000
               </div>
             </div>
@@ -231,14 +232,16 @@ export function IncidentForm({
         <IncidentPreview form={form} customer={customer} property={property} issue={issue} />
 
         <div className="mt-6">
-          <button
+          <Button
             type="button"
+            size="lg"
             onClick={onSubmit}
             disabled={isSubmitting}
-            className="flex w-full items-center justify-center gap-2 rounded-md bg-primary py-3.5 text-[14px] font-bold text-primary-foreground shadow-sm transition-all hover:bg-primary/90 active:scale-[0.99] disabled:opacity-60"
+            className="w-full active:scale-[0.99]"
           >
-            <FilePlus2 className="h-4 w-4" /> Log Incident
-          </button>
+            <FilePlus2 className="h-4 w-4" />
+            Log Incident
+          </Button>
         </div>
       </div>
     </div>

@@ -66,16 +66,16 @@ export function PropertyHero({ property }: { property: Property }) {
       </div>
 
       {(property.guideUrl || property.listingUrl) && (
-        <div className="grid grid-cols-2 gap-2">
+        <div className="flex flex-wrap items-center gap-x-5 gap-y-2 border-t border-border-color pt-3">
           {property.guideUrl && (
             <a
               href={property.guideUrl}
               target="_blank"
               rel="noreferrer"
-              className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-border-color bg-card-bg px-2.5 py-2 text-[11px] font-semibold text-text-primary transition-colors shadow-sm hover:bg-app-bg"
+              className="inline-flex items-center gap-1.5 text-[13px] font-semibold text-brand-primary transition-colors hover:text-brand-primary-strong hover:underline"
             >
               Property Guide
-              <ExternalLink className="h-3 w-3 text-muted-foreground" />
+              <ExternalLink className="h-3.5 w-3.5 shrink-0 opacity-80" />
             </a>
           )}
           {property.listingUrl && (
@@ -83,10 +83,10 @@ export function PropertyHero({ property }: { property: Property }) {
               href={property.listingUrl}
               target="_blank"
               rel="noreferrer"
-              className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-border-color bg-card-bg px-2.5 py-2 text-[11px] font-semibold text-text-primary transition-colors shadow-sm hover:bg-app-bg"
+              className="inline-flex items-center gap-1.5 text-[13px] font-semibold text-brand-primary transition-colors hover:text-brand-primary-strong hover:underline"
             >
               Listing
-              <ExternalLink className="h-3 w-3 text-muted-foreground" />
+              <ExternalLink className="h-3.5 w-3.5 shrink-0 opacity-80" />
             </a>
           )}
         </div>

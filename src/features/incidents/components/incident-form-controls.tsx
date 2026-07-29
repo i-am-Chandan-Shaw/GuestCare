@@ -72,7 +72,7 @@ export function Input({
       placeholder={placeholder}
       readOnly={readOnly}
       className={cn(
-        "h-11 w-full rounded-lg border border-input-border bg-input-surface px-3 text-[13px] text-text-primary outline-none transition-all placeholder:text-text-secondary shadow-sm",
+        "h-11 w-full rounded-lg border border-input-border bg-input-surface px-3 text-[13px] text-text-primary outline-none transition-all placeholder:text-text-muted shadow-sm",
         "focus:border-input-border-focus focus:ring-2 focus:ring-brand-primary/20",
         readOnly &&
           "bg-app-bg/60 text-text-secondary cursor-default focus:ring-0 focus:border-input-border",
@@ -100,7 +100,7 @@ export function Textarea({
       onChange={(e) => onChange(e.target.value)}
       placeholder={placeholder}
       rows={rows}
-      className="w-full resize-none rounded-lg border border-input-border bg-input-surface px-3 py-2.5 text-[13px] text-text-primary outline-none transition-all placeholder:text-text-secondary shadow-sm focus:border-input-border-focus focus:ring-2 focus:ring-brand-primary/20"
+      className="w-full resize-none rounded-lg border border-input-border bg-input-surface px-3 py-2.5 text-[13px] text-text-primary outline-none transition-all placeholder:text-text-muted shadow-sm focus:border-input-border-focus focus:ring-2 focus:ring-brand-primary/20"
     />
   );
 }

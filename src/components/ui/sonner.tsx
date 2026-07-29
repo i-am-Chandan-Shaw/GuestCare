@@ -11,7 +11,7 @@ const Toaster = ({ ...props }: ToasterProps) => {
           toast:
             "group toast group-[.toaster]:bg-card-bg group-[.toaster]:text-text-primary group-[.toaster]:border-border-color group-[.toaster]:shadow-lg",
           description: "group-[.toast]:text-text-secondary",
-          actionButton: "group-[.toast]:bg-brand-primary group-[.toast]:text-white",
+          actionButton: "group-[.toast]:btn-primary-gradient group-[.toast]:text-white group-[.toast]:shadow-sm",
           cancelButton: "group-[.toast]:bg-app-bg group-[.toast]:text-text-secondary",
           success:
             "!bg-success/10 !text-success !border-success/20 [&_[data-icon]]:!text-success [&_[data-title]]:!text-success [&_[data-description]]:!text-success/80",

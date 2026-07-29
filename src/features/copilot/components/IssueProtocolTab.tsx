@@ -119,7 +119,7 @@ export function IssueProtocolTab({
                     className={cn(
                       "relative flex h-7 w-7 shrink-0 items-center justify-center rounded-full border-[1.5px] font-semibold text-[13px] transition-all",
                       isCurrent
-                        ? "bg-primary border-primary text-white"
+                        ? "btn-primary-gradient border-transparent text-white"
                         : isCompleted
                           ? "bg-success border-success text-white"
                           : "bg-white border-border-strong text-muted-foreground",

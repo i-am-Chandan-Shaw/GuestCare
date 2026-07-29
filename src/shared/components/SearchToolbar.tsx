@@ -27,7 +27,7 @@ export function SearchToolbar({
             value={value}
             onChange={(e) => onChange(e.target.value)}
             placeholder={placeholder}
-            className="h-9 w-full rounded-lg border border-input-border bg-card-bg pl-10 pr-4 text-xs text-text-primary shadow-sm outline-none transition-all placeholder:text-text-secondary focus:border-input-border-focus focus:ring-2 focus:ring-brand-primary/15"
+            className="h-9 w-full rounded-lg border border-input-border bg-card-bg pl-10 pr-4 text-xs text-text-primary shadow-sm outline-none transition-all placeholder:text-text-muted focus:border-input-border-focus focus:ring-2 focus:ring-brand-primary/15"
           />
         </div>
         {hasFilter && onClear && (

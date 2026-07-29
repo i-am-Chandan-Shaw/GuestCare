@@ -45,7 +45,7 @@ export function PortfolioCardActionButton({
 type MetricTone = "neutral" | "warning" | "success";
 
 const metricToneClass: Record<MetricTone, { icon: string; label: string }> = {
-  neutral: { icon: "text-text-secondary/80", label: "text-text-primary/50" },
+  neutral: { icon: "text-text-muted", label: "text-text-muted" },
   warning: { icon: "text-warning/80", label: "text-warning/90" },
   success: { icon: "text-success/80", label: "text-success/90" },
 };
