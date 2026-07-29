@@ -5,7 +5,7 @@ import { useAuth } from "@/features/auth/hooks/useAuth";
 import { BarChart3, CircleAlert, UserCircle, LifeBuoy, LogOut } from "lucide-react";
 
 const nav = [
-  { id: "issues" as const, label: "Issues", href: "/", icon: CircleAlert },
+  { id: "issues" as const, label: "Incidents", href: "/", icon: CircleAlert },
   { id: "reports" as const, label: "Reports", href: "/reports", icon: BarChart3 },
   { id: "agents" as const, label: "Agents", href: "/agents", icon: UserCircle },
 ];

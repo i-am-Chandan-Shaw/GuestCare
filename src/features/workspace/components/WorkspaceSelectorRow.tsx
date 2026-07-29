@@ -86,7 +86,7 @@ export function WorkspaceSelectorRow({
       ) : (
         <WorkspacePlaceholderSlot
           icon={<ClipboardList className="h-4 w-4" />}
-          label="Issue"
+          label="Incidents"
           active={issueStepActive}
         />
       )}

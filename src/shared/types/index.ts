@@ -232,6 +232,22 @@ export interface AgentProfile {
   shift: string;
 }
 
+export interface AgentsQuery {
+  page: number;
+  limit: number;
+  search?: string;
+}
+
+export interface PaginatedAgents {
+  data: AgentProfile[];
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+  };
+}
+
 export function protocolToIncidentType(category: string): IncidentType {
   const c = category.toLowerCase();
   if (c.includes("access")) return "Property Access Issues";

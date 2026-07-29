@@ -72,18 +72,18 @@ export function IncidentReportsPage({ customerId }: { customerId?: string }) {
   }, [debouncedSearch, status, customerId]);
 
   return (
-    <div className="flex h-full min-h-0 w-full flex-col gap-5 p-4">
-      <div className="shrink-0">
+    <div className="flex h-full min-h-0 w-full flex-col overflow-hidden">
+      <div className="shrink-0 border-b border-border-color bg-white/80 px-5 py-4 backdrop-blur-xl">
         <h1 className="text-lg font-black uppercase tracking-tight text-text-primary">Reports</h1>
-        <p className="mt-1 text-[13px] text-text-secondary">
+        <p className="mt-1 text-[11px] font-semibold uppercase tracking-wide text-text-secondary">
           {customerId
-            ? "Incidents for the selected customer."
-            : "All logged incidents across customers."}
+            ? "Incidents for the selected customer"
+            : "All logged incidents across customers"}
         </p>
 
         {customerId && (
-          <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-[13px]">
-            <span className="text-text-secondary">Filtered to one customer.</span>
+          <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-[13px] normal-case">
+            <span className="font-normal text-text-secondary">Filtered to one customer.</span>
             <Link
               to="/"
               search={{ customerId }}
@@ -98,44 +98,48 @@ export function IncidentReportsPage({ customerId }: { customerId?: string }) {
         )}
       </div>
 
-      <div className="flex shrink-0 flex-wrap items-center gap-3">
-        <SearchToolbar
-          layout="inline"
-          className="min-w-[200px] flex-1"
-          value={search}
-          onChange={setSearch}
-          placeholder="Search reports…"
-          onClear={() => setSearch("")}
-        />
+      <div className="shrink-0 bg-app-bg px-5 pt-3 pb-4">
+        <div className="flex flex-wrap items-center gap-3">
+          <SearchToolbar
+            layout="inline"
+            className="min-w-[200px] flex-1"
+            value={search}
+            onChange={setSearch}
+            placeholder="Search reports…"
+            onClear={() => setSearch("")}
+          />
 
-        <div className="flex shrink-0 flex-wrap gap-2">
-          {STATUS_FILTERS.map((item) => (
-            <button
-              key={item.id}
-              type="button"
-              onClick={() => setStatus(item.id)}
-              className={cn(
-                "rounded-full border px-3 py-1 text-[12px] font-semibold transition-colors",
-                status === item.id
-                  ? "border-brand-primary/20 bg-brand-primary/10 text-brand-primary"
-                  : "border-border-color bg-card-bg text-text-secondary hover:bg-app-bg",
-              )}
-            >
-              {item.label}
-            </button>
-          ))}
+          <div className="flex shrink-0 flex-wrap gap-2">
+            {STATUS_FILTERS.map((item) => (
+              <button
+                key={item.id}
+                type="button"
+                onClick={() => setStatus(item.id)}
+                className={cn(
+                  "rounded-full border px-3 py-1 text-[12px] font-semibold transition-colors",
+                  status === item.id
+                    ? "border-brand-primary/20 bg-brand-primary/10 text-brand-primary"
+                    : "border-border-color bg-card-bg text-text-secondary hover:bg-app-bg",
+                )}
+              >
+                {item.label}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
 
-      <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-2xl border border-border-color bg-card-bg shadow-sm">
-        <ServerPaginatedTable<IncidentLog>
-          gridRef={gridRef}
-          columnDefs={reportsTableColumnDefs}
-          fetchData={handleFetchData}
-          getRowId={({ data }) => data.id}
-          emptyMessage="No reports match your filters."
-          height="100%"
-        />
+      <div className="flex min-h-0 flex-1 flex-col overflow-hidden p-4 pt-0">
+        <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-2xl border border-border-color bg-card-bg shadow-sm">
+          <ServerPaginatedTable<IncidentLog>
+            gridRef={gridRef}
+            columnDefs={reportsTableColumnDefs}
+            fetchData={handleFetchData}
+            getRowId={({ data }) => data.id}
+            emptyMessage="No reports match your filters."
+            height="100%"
+          />
+        </div>
       </div>
     </div>
   );

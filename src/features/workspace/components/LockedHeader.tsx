@@ -24,23 +24,31 @@ export function LockedHeader({
 
   if (showSelector) {
     return (
-      <div className="shrink-0 border-b border-border-color bg-white/80 px-5 py-3 backdrop-blur-xl">
-        <WorkspaceSelectorRow
-          phase={phase}
-          customer={customer}
-          property={property ?? null}
-          issue={issue ?? null}
-          onClearCustomer={onClearCustomer}
-          onClearProperty={onClearProperty}
-          onClearIssue={onClearIssue}
-        />
+      <div className="shrink-0 border-b border-border-color bg-white/80 backdrop-blur-xl">
+        <div className="px-5 pt-4">
+          <h1 className="text-lg font-black uppercase tracking-tight text-text-primary">Incidents</h1>
+        </div>
+        <div className="px-5 py-3">
+          <WorkspaceSelectorRow
+            phase={phase}
+            customer={customer}
+            property={property ?? null}
+            issue={issue ?? null}
+            onClearCustomer={onClearCustomer}
+            onClearProperty={onClearProperty}
+            onClearIssue={onClearIssue}
+          />
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="shrink-0 border-b border-border-color bg-white/80 px-5 py-3 backdrop-blur-xl">
-      <div className="flex items-center justify-between gap-3">
+    <div className="shrink-0 border-b border-border-color bg-white/80 backdrop-blur-xl">
+      <div className="px-5 pt-4">
+        <h1 className="text-lg font-black uppercase tracking-tight text-text-primary">Incidents</h1>
+      </div>
+      <div className="flex items-center justify-between gap-3 px-5 py-3">
         <WorkspaceSelectorRow
           phase={phase}
           customer={customer}
