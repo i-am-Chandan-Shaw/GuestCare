@@ -46,7 +46,7 @@ export function WorkspaceSelectorRow({
 
   return (
     <nav
-      className="flex w-full min-w-0 items-center gap-1 rounded-lg  bg-white px-4 pl-0 py-2"
+      className="flex w-full min-w-0 items-center gap-1 rounded-lg  bg-white py-2"
       aria-label="Workspace steps"
     >
       <div className="flex min-w-0 flex-1 basis-0 justify-start overflow-hidden">
