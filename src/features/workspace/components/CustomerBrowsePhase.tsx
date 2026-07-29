@@ -1,7 +1,6 @@
 import { useMemo, useState } from "react";
 import { useCustomerSummaries } from "@/features/customers/hooks/useCustomers";
 import { CustomerPortfolioCard } from "@/shared/components/CustomerPortfolioCard";
-import { PortfolioCardList } from "@/shared/components/PortfolioCardList";
 import { LoadingState } from "@/shared/components/LoadingState";
 import { QueryErrorState } from "@/shared/components/QueryErrorState";
 import { SearchToolbar, filterBySearch } from "@/shared/components/SearchToolbar";
@@ -15,50 +14,55 @@ export function CustomerBrowsePhase({
   const [search, setSearch] = useState("");
   const { data, isLoading, isError, refetch } = useCustomerSummaries();
 
+  const customers = data ?? [];
+
   const filtered = useMemo(
     () =>
-      filterBySearch(data ?? [], search, (customer) =>
+      filterBySearch(customers, search, (customer) =>
         [customer.name, customer.email, customer.phone].join(" "),
       ),
-    [data, search],
+    [customers, search],
   );
 
   if (isLoading) return <LoadingState label="Loading customers…" />;
   if (isError) return <QueryErrorState onRetry={() => refetch()} />;
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col overflow-hidden bg-white">
-      <div className="shrink-0 bg-white px-5 pt-3 pb-4">
-        <SearchToolbar
-          className="w-full max-w-[250px]"
-          value={search}
-          onChange={setSearch}
-          placeholder="Search customers…"
-          onClear={() => setSearch("")}
-          resultLabel={
-            search.trim()
-              ? `Showing ${filtered.length} of ${data?.length ?? 0} customers`
-              : undefined
-          }
-        />
-      </div>
+    <div className="flex min-h-0 flex-1 flex-col overflow-hidden bg-app-bg p-4">
+      <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-md border border-border-color bg-card-bg">
+        <div className="flex shrink-0 items-center justify-between gap-3 border-b border-border-color px-4 py-3">
+          <h2 className="text-[14px] font-bold text-text-primary">
+            Customers ({customers.length})
+          </h2>
+          <SearchToolbar
+            layout="inline"
+            className="w-full max-w-[250px]"
+            value={search}
+            onChange={setSearch}
+            placeholder="Search customers…"
+            onClear={() => setSearch("")}
+          />
+        </div>
 
-      <div className="flex min-h-0 flex-1 flex-col overflow-y-auto bg-white p-0">
-        {filtered.length === 0 ? (
-          <p className="m-5 rounded-md border border-dashed border-border bg-card p-10 text-center text-[13px] text-card-subtext">
-            No customers match your search.
-          </p>
-        ) : (
-          <PortfolioCardList>
-            {filtered.map((customer) => (
-              <CustomerPortfolioCard
-                key={customer.id}
-                customer={customer}
-                onSelect={() => onSelect(customer)}
-              />
-            ))}
-          </PortfolioCardList>
-        )}
+        <div className="min-h-0 flex-1 overflow-y-auto">
+          {filtered.length === 0 ? (
+            <p className="m-4 rounded-md border border-dashed border-border bg-card p-8 text-center text-[13px] text-card-subtext">
+              No customers match your search.
+            </p>
+          ) : (
+            <ul className="divide-y divide-border-color">
+              {filtered.map((customer, index) => (
+                <li key={customer.id}>
+                  <CustomerPortfolioCard
+                    customer={customer}
+                    striped={index % 2 === 1}
+                    onSelect={() => onSelect(customer)}
+                  />
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
       </div>
     </div>
   );

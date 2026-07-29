@@ -48,6 +48,7 @@ export function IssuePanel({
   issue,
   property,
   onPick,
+  onBack,
   checked,
   onToggle,
   verificationChecked,
@@ -58,6 +59,7 @@ export function IssuePanel({
   issue: Issue | null;
   property: Property | null;
   onPick: (i: Issue) => void;
+  onBack?: () => void;
   checked: Record<string, boolean>;
   onToggle: (id: string) => void;
   verificationChecked: Record<string, boolean>;
@@ -122,6 +124,7 @@ export function IssuePanel({
           property={property}
           recentIssues={recentIssues}
           onPick={onPick}
+          onBack={onBack}
         />
         <IssueHistoryPanel
           variant="section"

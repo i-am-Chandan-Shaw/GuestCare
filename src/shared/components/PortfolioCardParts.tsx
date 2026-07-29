@@ -70,6 +70,7 @@ export function PortfolioMetricColumn({
   tone = "neutral",
   className,
   valueClassName,
+  labelAccessory,
 }: {
   icon: ReactNode;
   label: string;
@@ -77,14 +78,18 @@ export function PortfolioMetricColumn({
   tone?: MetricTone;
   className?: string;
   valueClassName?: string;
+  labelAccessory?: ReactNode;
 }) {
   const colors = metricToneClass[tone];
 
   return (
     <div className={cn("flex min-w-0 flex-1 flex-col gap-1.5", className)}>
-      <div className="flex items-center gap-1.5">
+      <div className="flex min-w-0 items-center gap-1.5">
         <span className={cn("shrink-0 [&>svg]:h-3.5 [&>svg]:w-3.5", colors.icon)}>{icon}</span>
-        <p className={cn("text-[8px] font-bold uppercase tracking-wide", colors.label)}>{label}</p>
+        <p className={cn("shrink-0 text-[8px] font-bold uppercase tracking-wide", colors.label)}>
+          {label}
+        </p>
+        {labelAccessory}
       </div>
       <div
         className={cn(

@@ -5,9 +5,11 @@ import type { Issue } from "@/shared/types";
 export function ProtocolPhase({
   workspace,
   onPickIssue,
+  onBack,
 }: {
   workspace: WorkspaceState;
   onPickIssue?: (issue: Issue) => void;
+  onBack?: () => void;
 }) {
   const {
     property,
@@ -33,6 +35,7 @@ export function ProtocolPhase({
           issue={issue}
           property={property}
           onPick={(next) => (onPickIssue ?? selectIssue)(next)}
+          onBack={onBack}
           checked={checked}
           onToggle={toggleStep}
           verificationChecked={verificationChecked}

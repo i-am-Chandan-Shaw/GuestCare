@@ -1,25 +1,23 @@
 import { useMemo, useState } from "react";
-import {
-  useCustomerSummary,
-  usePropertySummaries,
-} from "@/features/customers/hooks/useCustomers";
+import { usePropertySummaries } from "@/features/customers/hooks/useCustomers";
 import { CustomerIssueHistoryPanel } from "@/features/workspace/components/CustomerIssueHistoryPanel";
-import { CustomerSummaryBanner } from "@/features/workspace/components/CustomerSummaryBanner";
 import { PropertyListRow } from "@/features/workspace/components/PropertyListRow";
 import { LoadingState } from "@/shared/components/LoadingState";
 import { QueryErrorState } from "@/shared/components/QueryErrorState";
 import { SearchToolbar, filterBySearch } from "@/shared/components/SearchToolbar";
 import type { Customer, PropertySummary } from "@/shared/types";
+import { ChevronLeft } from "lucide-react";
 
 export function CustomerLockedPhase({
   customer,
   onSelectProperty,
+  onBack,
 }: {
   customer: Customer;
   onSelectProperty: (property: PropertySummary) => void;
+  onBack: () => void;
 }) {
   const [search, setSearch] = useState("");
-  const summaryQuery = useCustomerSummary(customer.id);
   const propertiesQuery = usePropertySummaries(customer.id);
 
   const sortedProperties = useMemo(() => {
@@ -36,34 +34,32 @@ export function CustomerLockedPhase({
     [sortedProperties, search],
   );
 
-  const firstProperty = sortedProperties[0];
-  const bannerAddress = firstProperty?.address ?? customer.email;
-
-  if (propertiesQuery.isLoading || summaryQuery.isLoading) {
-    return <LoadingState label="Loading customer…" />;
+  if (propertiesQuery.isLoading) {
+    return <LoadingState label="Loading properties…" />;
   }
 
   if (propertiesQuery.isError) {
     return <QueryErrorState onRetry={() => propertiesQuery.refetch()} />;
   }
 
-  if (summaryQuery.isError || !summaryQuery.data) {
-    return <QueryErrorState onRetry={() => summaryQuery.refetch()} />;
-  }
-
   return (
     <div className="flex min-h-0 flex-1 gap-4 overflow-hidden bg-app-bg p-4">
-      <div className="flex min-h-0 min-w-0 flex-[7] flex-col gap-4 overflow-hidden">
-        <CustomerSummaryBanner
-          summary={summaryQuery.data}
-          address={bannerAddress}
-        />
-
+      <div className="flex min-h-0 min-w-0 flex-[7] flex-col overflow-hidden">
         <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-md border border-border-color bg-card-bg">
           <div className="flex shrink-0 items-center justify-between gap-3 border-b border-border-color px-4 py-3">
-            <h2 className="text-[14px] font-bold text-text-primary">
-              Properties ({sortedProperties.length})
-            </h2>
+            <div className="flex min-w-0 items-center gap-1.5">
+              <button
+                type="button"
+                onClick={onBack}
+                aria-label="Back to customers"
+                className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-text-secondary transition-colors hover:bg-app-bg hover:text-text-primary"
+              >
+                <ChevronLeft className="h-4 w-4" strokeWidth={2} />
+              </button>
+              <h2 className="text-[14px] font-bold text-text-primary">
+                Properties ({sortedProperties.length})
+              </h2>
+            </div>
             <SearchToolbar
               layout="inline"
               className="w-full max-w-[250px]"
@@ -81,10 +77,11 @@ export function CustomerLockedPhase({
               </p>
             ) : (
               <ul className="divide-y divide-border-color">
-                {filtered.map((property) => (
+                {filtered.map((property, index) => (
                   <li key={property.id}>
                     <PropertyListRow
                       property={property}
+                      striped={index % 2 === 1}
                       onSelect={() => onSelectProperty(property)}
                     />
                   </li>

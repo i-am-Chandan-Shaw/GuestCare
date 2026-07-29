@@ -21,9 +21,11 @@ function MetricCell({ children }: { children: ReactNode }) {
 export function PropertyListRow({
   property,
   onSelect,
+  striped = false,
 }: {
   property: PropertySummary;
   onSelect: () => void;
+  striped?: boolean;
 }) {
   const totalIssues = property.openReportsCount + property.resolvedCount;
   const activityLabel = property.lastIssue
@@ -42,8 +44,10 @@ export function PropertyListRow({
         }
       }}
       className={cn(
-        "group flex w-full cursor-pointer items-center gap-4 px-4 py-3.5 text-left",
-        "transition-colors duration-200 hover:bg-app-bg",
+        "group flex w-full cursor-pointer items-center gap-4 px-4 py-3.5 text-left transition-colors duration-200",
+        striped
+          ? "bg-grid-header-bg/40 hover:bg-grid-header-bg/60"
+          : "hover:bg-app-bg",
       )}
     >
       <PortfolioCardThumbnail
@@ -52,7 +56,7 @@ export function PropertyListRow({
         className="h-[56px] w-[84px]"
       />
 
-      <div className="min-w-0 w-[200px] shrink-0">
+      <div className="min-w-0 w-[200px] shrink-0 border-r border-border-color pr-4">
         <div className="flex min-w-0 items-center gap-2">
           <h3 className={cn(PORTFOLIO_CARD_TITLE_CLASS, "min-w-0 truncate text-[14px]")}>
             {property.name}
@@ -64,7 +68,7 @@ export function PropertyListRow({
         </p>
       </div>
 
-      <div className="flex min-w-0 flex-1 items-stretch">
+      <div className="flex min-w-0 flex-1 items-stretch pl-4">
         <MetricCell>
           <PortfolioMetricColumn
             icon={<AlertCircle strokeWidth={1.75} />}
