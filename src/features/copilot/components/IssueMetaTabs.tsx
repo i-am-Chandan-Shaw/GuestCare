@@ -152,10 +152,13 @@ export function IssuePickerSection({
   property,
   recentIssues,
   onPick,
+  layout = "page",
 }: {
   property: Property;
   recentIssues: Issue[];
   onPick: (issue: Issue) => void;
+  /** `page` = full centered column; `stacked` = content-sized card for top of property right pane */
+  layout?: "page" | "stacked";
 }) {
   const [search, setSearch] = useState("");
   const suggestedQuery = useSuggestedIssues(property.id);
@@ -171,65 +174,73 @@ export function IssuePickerSection({
 
   const sectionLabel = trimmedSearch ? "Search results" : "Recently used";
 
+  const card = (
+    <div className="rounded-lg border border-border bg-card p-6">
+      <div className="flex items-center gap-2">
+        <Sparkles className="h-4 w-4 text-primary" />
+        <h2 className="text-[15px] font-semibold text-foreground">What's the guest calling about?</h2>
+      </div>
+      <p className="mt-1 text-[12.5px] text-muted-foreground">
+        Pick a recent issue or search below to load the guided protocol for {property.name}.
+      </p>
+      <div className="mt-4">
+        <SearchToolbar
+          className="max-w-md"
+          value={search}
+          onChange={setSearch}
+          placeholder="Search issues…"
+          onClear={() => setSearch("")}
+          resultLabel={
+            trimmedSearch
+              ? `Showing ${displayIssues.length} matching issue${displayIssues.length === 1 ? "" : "s"}`
+              : undefined
+          }
+        />
+      </div>
+      <div className="mt-5">
+        <div className="mb-2 text-[10.5px] font-semibold uppercase tracking-widest text-muted-foreground">
+          {sectionLabel}
+        </div>
+        {displayIssues.length === 0 ? (
+          <p className="text-[13px] text-muted-foreground">
+            {trimmedSearch ? "No issues match your search." : "No recent issues available."}
+          </p>
+        ) : (
+          <div className="grid grid-cols-2 gap-2">
+            {displayIssues.map((i) => (
+              <button
+                key={i.id}
+                type="button"
+                onClick={() => onPick(i)}
+                className="cursor-pointer group rounded-md border border-border bg-surface/60 p-3 text-left transition-all hover:border-primary/40 hover:bg-surface-2"
+              >
+                <div className="flex items-center justify-between gap-2">
+                  <span className="text-[13px] font-medium text-foreground line-clamp-2">{i.name}</span>
+                  <Chip
+                    tone={i.priority === "P1" ? "danger" : i.priority === "P2" ? "warning" : "info"}
+                    className="shrink-0"
+                  >
+                    {i.priority}
+                  </Chip>
+                </div>
+                <div className="mt-1 text-[11px] text-muted-foreground">
+                  {i.category} · SLA {i.slaMinutes}m
+                </div>
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+
+  if (layout === "stacked") {
+    return <div className="w-full max-h-[55%] shrink-0 overflow-y-auto">{card}</div>;
+  }
+
   return (
     <div className="mx-auto flex h-full max-w-2xl flex-col gap-4 overflow-y-auto scrollbar-thin p-6">
-      <div className="rounded-lg border border-border bg-card p-6">
-        <div className="flex items-center gap-2">
-          <Sparkles className="h-4 w-4 text-primary" />
-          <h2 className="text-[15px] font-semibold text-foreground">What's the guest calling about?</h2>
-        </div>
-        <p className="mt-1 text-[12.5px] text-muted-foreground">
-          Pick a recent issue or search below to load the guided protocol for {property.name}.
-        </p>
-        <div className="mt-4">
-          <SearchToolbar
-            className="max-w-md"
-            value={search}
-            onChange={setSearch}
-            placeholder="Search issues…"
-            onClear={() => setSearch("")}
-            resultLabel={
-              trimmedSearch
-                ? `Showing ${displayIssues.length} matching issue${displayIssues.length === 1 ? "" : "s"}`
-                : undefined
-            }
-          />
-        </div>
-        <div className="mt-5">
-          <div className="mb-2 text-[10.5px] font-semibold uppercase tracking-widest text-muted-foreground">
-            {sectionLabel}
-          </div>
-          {displayIssues.length === 0 ? (
-            <p className="text-[13px] text-muted-foreground">
-              {trimmedSearch ? "No issues match your search." : "No recent issues available."}
-            </p>
-          ) : (
-            <div className="grid grid-cols-2 gap-2">
-              {displayIssues.map((i) => (
-                <button
-                  key={i.id}
-                  type="button"
-                  onClick={() => onPick(i)}
-                  className="cursor-pointer group rounded-md border border-border bg-surface/60 p-3 text-left transition-all hover:border-primary/40 hover:bg-surface-2"
-                >
-                  <div className="flex items-center justify-between gap-2">
-                    <span className="text-[13px] font-medium text-foreground line-clamp-2">{i.name}</span>
-                    <Chip
-                      tone={i.priority === "P1" ? "danger" : i.priority === "P2" ? "warning" : "info"}
-                      className="shrink-0"
-                    >
-                      {i.priority}
-                    </Chip>
-                  </div>
-                  <div className="mt-1 text-[11px] text-muted-foreground">
-                    {i.category} · SLA {i.slaMinutes}m
-                  </div>
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
-      </div>
+      {card}
     </div>
   );
 }

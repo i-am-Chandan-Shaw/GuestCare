@@ -10,6 +10,7 @@ export function LockedHeader({
   onClearCustomer,
   onClearProperty,
   onClearIssue,
+  onClearAll,
 }: {
   phase: WorkspacePhase;
   customer: Customer | null;
@@ -18,6 +19,7 @@ export function LockedHeader({
   onClearCustomer: () => void;
   onClearProperty: () => void;
   onClearIssue: () => void;
+  onClearAll: () => void;
 }) {
   return (
     <div className="shrink-0 border-b border-border-color bg-white px-5 py-2.5">
@@ -34,6 +36,7 @@ export function LockedHeader({
           onClearCustomer={onClearCustomer}
           onClearProperty={onClearProperty}
           onClearIssue={onClearIssue}
+          onClearAll={onClearAll}
         />
       </div>
     </div>

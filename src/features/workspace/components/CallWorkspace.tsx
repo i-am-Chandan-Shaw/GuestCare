@@ -49,6 +49,11 @@ export function CallWorkspace() {
     syncUrl({});
   };
 
+  const handleClearAll = () => {
+    changeCustomer();
+    syncUrl({});
+  };
+
   const handleClearProperty = () => {
     changeProperty();
     if (customer) syncUrl({ customerId: customer.id });
@@ -92,6 +97,7 @@ export function CallWorkspace() {
         onClearCustomer={handleClearCustomer}
         onClearProperty={handleClearProperty}
         onClearIssue={handleClearIssue}
+        onClearAll={handleClearAll}
       />
 
       {phase === "browse" && (
