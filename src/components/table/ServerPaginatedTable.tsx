@@ -6,6 +6,7 @@ import type {
   GridReadyEvent,
   IGetRowsParams,
   IDatasource,
+  RowClickedEvent,
 } from "ag-grid-community";
 import "@/lib/ag-grid-setup";
 import { computeInfiniteScrollLastRow } from "@/components/table/computeInfiniteScrollLastRow";
@@ -25,6 +26,7 @@ export type ServerPaginatedTableProps<TData> = {
   columnDefs: ColDef<TData>[];
   fetchData: ServerTableFetchData<TData>;
   getRowId?: (params: { data: TData }) => string;
+  onRowClicked?: (event: RowClickedEvent<TData>) => void;
   height?: string;
   emptyMessage?: string;
   className?: string;
@@ -42,6 +44,7 @@ export function ServerPaginatedTable<TData>({
   columnDefs,
   fetchData,
   getRowId,
+  onRowClicked,
   height = "100%",
   emptyMessage = "No rows to show",
   className,
@@ -84,9 +87,10 @@ export function ServerPaginatedTable<TData>({
 
             params.successCallback(data, lastRow);
           })
-          .catch(() => {
+          .catch((error) => {
             isFirstBlockRef.current = false;
             apiRef.current?.hideOverlay();
+            console.error("ServerPaginatedTable fetch failed:", error);
             params.failCallback();
           });
       },
@@ -136,6 +140,7 @@ export function ServerPaginatedTable<TData>({
         overlayNoRowsTemplate={overlayNoRowsTemplate}
         overlayLoadingTemplate='<span class="ag-overlay-loading-center">Loading…</span>'
         onGridReady={onGridReady}
+        onRowClicked={onRowClicked}
       />
     </div>
   );

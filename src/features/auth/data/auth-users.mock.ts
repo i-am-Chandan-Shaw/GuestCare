@@ -1,14 +1,12 @@
-import { AGENTS } from "@/shared/constants/agent";
+import { AGENT_DEV_PASSWORDS, findAgentByEmail } from "@/data/agents.seed";
+import type { Agent } from "@/shared/types/agent";
 
-const MOCK_EMAIL = "chandan@guestcare.com";
-const MOCK_PASSWORD = process.env.AUTH_DEV_PASSWORD ?? "admin";
-const MOCK_AGENT = AGENTS.find((agent) => agent.id === "agent-chandan");
+export function findMockAuthUser(email: string, password: string): { email: string; agent: Agent } | null {
+  const agent = findAgentByEmail(email);
+  if (!agent || !agent.isActive) return null;
 
-export function findMockAuthUser(email: string, password: string) {
-  const normalized = email.trim().toLowerCase();
-  if (normalized !== MOCK_EMAIL || password !== MOCK_PASSWORD || !MOCK_AGENT) {
-    return null;
-  }
+  const expectedPassword = AGENT_DEV_PASSWORDS[agent.id];
+  if (!expectedPassword || password !== expectedPassword) return null;
 
-  return { email: MOCK_EMAIL, agent: MOCK_AGENT };
+  return { email: agent.email, agent };
 }

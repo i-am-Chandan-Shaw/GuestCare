@@ -1,7 +1,7 @@
-import type { AgentProfile } from "@/shared/types";
+import type { Agent } from "@/shared/types/agent";
 
 export interface AuthSession {
   userId: string;
   email: string;
-  agent: AgentProfile;
+  agent: Agent;
 }

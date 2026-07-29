@@ -10,6 +10,7 @@ function useInvalidateIncidentQueries() {
     queryClient.invalidateQueries({ queryKey: queryKeys.incidents.all });
     queryClient.invalidateQueries({ queryKey: queryKeys.customers.all });
     queryClient.invalidateQueries({ queryKey: queryKeys.properties.all });
+    queryClient.invalidateQueries({ queryKey: ["reports"] });
   };
 }
 

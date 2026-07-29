@@ -8,7 +8,7 @@ import {
   computeInfiniteScrollLastRow,
 } from "@/components/table/ServerPaginatedTable";
 import { SearchToolbar } from "@/shared/components/SearchToolbar";
-import type { AgentProfile } from "@/shared/types";
+import type { AgentListItem } from "@/shared/types/agent";
 
 function useDebouncedValue<T>(value: T, delayMs: number): T {
   const [debounced, setDebounced] = useState(value);
@@ -24,7 +24,7 @@ function useDebouncedValue<T>(value: T, delayMs: number): T {
 export function AgentsPage() {
   const [search, setSearch] = useState("");
   const debouncedSearch = useDebouncedValue(search, 300);
-  const gridRef = useRef<AgGridReact<AgentProfile>>(null);
+  const gridRef = useRef<AgGridReact<AgentListItem>>(null);
   const isMounted = useRef(false);
 
   const handleFetchData = useCallback(
@@ -64,7 +64,7 @@ export function AgentsPage() {
       <div className="shrink-0 border-b border-border-color bg-white/80 px-5 py-4 backdrop-blur-xl">
         <h1 className="text-lg font-black uppercase tracking-tight text-text-primary">Agents</h1>
         <p className="mt-1 text-[11px] font-semibold uppercase tracking-wide text-text-secondary">
-          Support team roster and shifts
+          Support team roster, roles, and customer scope
         </p>
       </div>
 
@@ -81,7 +81,7 @@ export function AgentsPage() {
 
       <div className="flex min-h-0 flex-1 flex-col overflow-hidden p-4 pt-0">
         <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-2xl border border-border-color bg-card-bg shadow-sm">
-          <ServerPaginatedTable<AgentProfile>
+          <ServerPaginatedTable<AgentListItem>
             gridRef={gridRef}
             columnDefs={agentsTableColumnDefs}
             fetchData={handleFetchData}

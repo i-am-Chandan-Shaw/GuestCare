@@ -1,7 +1,34 @@
 import type { ColDef } from "ag-grid-community";
-import type { AgentProfile } from "@/shared/types";
+import type { ICellRendererParams } from "ag-grid-community";
+import { StatusChip } from "@/components/ui/StatusChip";
+import { formatAgentRole } from "@/shared/lib/agent-display";
+import { formatActivityTimestamp } from "@/shared/lib/datetime";
+import type { AgentListItem } from "@/shared/types/agent";
 
-export const agentsTableColumnDefs: ColDef<AgentProfile>[] = [
+function ActiveCell({ data }: ICellRendererParams<AgentListItem>) {
+  if (!data) return null;
+  return (
+    <StatusChip tone={data.isActive ? "success" : "warning"}>
+      {data.isActive ? "Active" : "Inactive"}
+    </StatusChip>
+  );
+}
+
+function RoleCell({ data }: ICellRendererParams<AgentListItem>) {
+  if (!data) return null;
+  return <span className="text-[13px] text-text-secondary">{formatAgentRole(data.role)}</span>;
+}
+
+function CreatedCell({ data }: ICellRendererParams<AgentListItem>) {
+  if (!data) return null;
+  return (
+    <span className="tabular-nums text-text-secondary">
+      {formatActivityTimestamp(data.createdAt)}
+    </span>
+  );
+}
+
+export const agentsTableColumnDefs: ColDef<AgentListItem>[] = [
   {
     headerName: "AGENT",
     field: "name",
@@ -10,25 +37,41 @@ export const agentsTableColumnDefs: ColDef<AgentProfile>[] = [
     minWidth: 180,
   },
   {
-    headerName: "HANDLE",
-    field: "handle",
-    colId: "handle",
+    headerName: "EMAIL",
+    field: "email",
+    colId: "email",
     flex: 1,
-    minWidth: 120,
+    minWidth: 200,
   },
   {
     headerName: "ROLE",
-    field: "role",
     colId: "role",
-    flex: 1,
-    minWidth: 160,
+    width: 120,
+    minWidth: 100,
+    cellRenderer: RoleCell,
+    suppressSizeToFit: true,
   },
   {
-    headerName: "SHIFT",
-    field: "shift",
-    colId: "shift",
+    headerName: "STATUS",
+    colId: "isActive",
+    width: 110,
+    minWidth: 110,
+    cellRenderer: ActiveCell,
+    suppressSizeToFit: true,
+  },
+  {
+    headerName: "SCOPE",
+    field: "customerScopeLabel",
+    colId: "scope",
     flex: 1,
-    minWidth: 160,
-    cellClass: "tabular-nums",
+    minWidth: 140,
+  },
+  {
+    headerName: "CREATED",
+    colId: "createdAt",
+    width: 180,
+    minWidth: 180,
+    cellRenderer: CreatedCell,
+    suppressSizeToFit: true,
   },
 ];

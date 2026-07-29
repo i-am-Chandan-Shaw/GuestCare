@@ -239,7 +239,7 @@ export function IncidentComposeProvider({ children, syncRef }: IncidentComposePr
       propertyLabel: property?.name,
       protocolIssueId: issue?.id,
       agentName: agent.name,
-      submittedBy: agent.handle,
+      submittedBy: getAgentHandle(agent),
     });
   }, [createIncident, form, customer, property, issue, agent]);
 
@@ -345,7 +345,7 @@ export function IncidentComposeProvider({ children, syncRef }: IncidentComposePr
         return;
       }
       if (message.type === "DETACH") {
-        if (!isPopupWindow) {
+        if (isPopupWindow) {
           setPanelMode("detached");
         }
         return;
@@ -378,6 +378,21 @@ export function IncidentComposeProvider({ children, syncRef }: IncidentComposePr
       unsubscribe();
     };
   }, [isPopupWindow, syncRef, workspace.actions]);
+
+  // Recover if panel is stuck in detached mode without an active PiP/popup window.
+  useEffect(() => {
+    if (panelMode !== "detached") return;
+
+    const pipAlive = pipWindowRef.current && !pipWindowRef.current.closed;
+    const popupAlive = popupRef.current && !popupRef.current.closed;
+
+    if (!pipAlive && !popupAlive) {
+      pipWindowRef.current = null;
+      popupRef.current = null;
+      setPipWindow(null);
+      setPanelMode("closed");
+    }
+  }, [panelMode, pipWindow]);
 
   const isDetached = panelMode === "detached";
   const formDirty = isIncidentFormDirty(form, issue);

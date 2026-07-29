@@ -280,3 +280,29 @@ export function isPresent(v: string | undefined | null): v is string {
   const t = v.trim();
   return t !== "" && t.toUpperCase() !== "NA";
 }
+
+export type {
+  Agent,
+  AgentCustomerScope,
+  AgentListItem,
+  AgentRole,
+  IsoDateTime,
+  ReportActor,
+} from "./agent";
+
+export type {
+  AddReportCommentInput,
+  AssignReportInput,
+  CreateReportInput,
+  PaginatedReports,
+  Report,
+  ReportDetail,
+  ReportListItem,
+  ReportSource,
+  ReportStatus,
+  ReportStatusFilter,
+  ReportThreadEntry,
+  ReportThreadEntryType,
+  ReportsQuery,
+  UpdateReportInput,
+} from "./report";
