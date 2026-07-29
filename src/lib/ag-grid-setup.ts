@@ -1,3 +1,4 @@
+import type { Module } from "ag-grid-community";
 import {
   CellStyleModule,
   ClientSideRowModelModule,
@@ -10,14 +11,16 @@ import {
   themeQuartz,
 } from "ag-grid-community";
 
-ModuleRegistry.registerModules([
+export const AG_GRID_MODULES: Module[] = [
   InfiniteRowModelModule,
   ClientSideRowModelModule,
   CellStyleModule,
   RowApiModule,
   EventApiModule,
   ...(import.meta.env.DEV ? [ValidationModule] : []),
-]);
+];
+
+ModuleRegistry.registerModules(AG_GRID_MODULES);
 
 provideGlobalGridOptions({
   theme: themeQuartz.withParams({

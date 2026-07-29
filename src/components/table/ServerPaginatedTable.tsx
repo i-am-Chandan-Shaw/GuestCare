@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { AgGridReact } from "ag-grid-react";
+import { AgGridProvider, AgGridReact } from "ag-grid-react";
 import type {
   ColDef,
   GridApi,
@@ -8,7 +8,7 @@ import type {
   IDatasource,
   RowClickedEvent,
 } from "ag-grid-community";
-import "@/lib/ag-grid-setup";
+import { AG_GRID_MODULES } from "@/lib/ag-grid-setup";
 import { computeInfiniteScrollLastRow } from "@/components/table/computeInfiniteScrollLastRow";
 
 export const SERVER_TABLE_PAGE_SIZE = 50;
@@ -124,24 +124,26 @@ export function ServerPaginatedTable<TData>({
 
   return (
     <div className={className ?? "ag-grid-guestcare"} style={{ height }}>
-      <AgGridReact<TData>
-        ref={gridRef}
-        columnDefs={columnDefs}
-        defaultColDef={defaultColDef}
-        rowModelType="infinite"
-        cacheBlockSize={SERVER_TABLE_PAGE_SIZE}
-        maxBlocksInCache={10}
-        rowHeight={48}
-        headerHeight={44}
-        alwaysShowHorizontalScroll
-        animateRows
-        suppressCellFocus
-        getRowId={getRowId ? (params) => getRowId({ data: params.data }) : undefined}
-        overlayNoRowsTemplate={overlayNoRowsTemplate}
-        overlayLoadingTemplate='<span class="ag-overlay-loading-center">Loading…</span>'
-        onGridReady={onGridReady}
-        onRowClicked={onRowClicked}
-      />
+      <AgGridProvider modules={AG_GRID_MODULES}>
+        <AgGridReact<TData>
+          ref={gridRef}
+          columnDefs={columnDefs}
+          defaultColDef={defaultColDef}
+          rowModelType="infinite"
+          cacheBlockSize={SERVER_TABLE_PAGE_SIZE}
+          maxBlocksInCache={10}
+          rowHeight={48}
+          headerHeight={44}
+          alwaysShowHorizontalScroll
+          animateRows
+          suppressCellFocus
+          getRowId={getRowId ? (params) => getRowId({ data: params.data }) : undefined}
+          overlayNoRowsTemplate={overlayNoRowsTemplate}
+          overlayLoadingTemplate='<span class="ag-overlay-loading-center">Loading…</span>'
+          onGridReady={onGridReady}
+          onRowClicked={onRowClicked}
+        />
+      </AgGridProvider>
     </div>
   );
 }
