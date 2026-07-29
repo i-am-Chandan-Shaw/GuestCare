@@ -9,14 +9,14 @@ const Toaster = ({ ...props }: ToasterProps) => {
       toastOptions={{
         classNames: {
           toast:
-            "group toast group-[.toaster]:bg-background group-[.toaster]:text-foreground group-[.toaster]:border-border group-[.toaster]:shadow-lg",
-          description: "group-[.toast]:text-muted-foreground",
-          actionButton: "group-[.toast]:bg-primary group-[.toast]:text-primary-foreground",
-          cancelButton: "group-[.toast]:bg-muted group-[.toast]:text-muted-foreground",
+            "group toast group-[.toaster]:bg-card-bg group-[.toaster]:text-text-primary group-[.toaster]:border-border-color group-[.toaster]:shadow-lg",
+          description: "group-[.toast]:text-text-secondary",
+          actionButton: "group-[.toast]:btn-primary-gradient group-[.toast]:text-white group-[.toast]:shadow-sm",
+          cancelButton: "group-[.toast]:bg-app-bg group-[.toast]:text-text-secondary",
           success:
-            "!bg-[#E8F8EE] !text-[#0B7A3B] !border-[#A7E3BC] [&_[data-icon]]:!text-[#0B7A3B] [&_[data-title]]:!text-[#0B7A3B] [&_[data-description]]:!text-[#1A6B3C]",
+            "!bg-success/10 !text-success !border-success/20 [&_[data-icon]]:!text-success [&_[data-title]]:!text-success [&_[data-description]]:!text-success/80",
           error:
-            "!bg-[#FDECEC] !text-[#B42318] !border-[#F5C2C0] [&_[data-icon]]:!text-[#B42318] [&_[data-title]]:!text-[#B42318]",
+            "!bg-danger/10 !text-danger !border-danger/20 [&_[data-icon]]:!text-danger [&_[data-title]]:!text-danger",
         },
       }}
       {...props}

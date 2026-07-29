@@ -1,6 +1,7 @@
 import type { Property, SystemInfo, SystemKey } from "./types";
 import { isPresent, parseEscalation } from "./types";
 import { getPropertyHosts } from "./contacts";
+import { getPropertyImageUrl } from "@/shared/constants/property-images";
 
 const MEDIA_FOLDER_URL =
   "https://drive.google.com/drive/folders/16lz6Pfy4n8CRWC6RTy_fwJkObwvazLLr";
@@ -45,7 +46,10 @@ const DEFAULT_HOUSE_RULES = [
 ];
 
 function propertyWithDefaults(source: PropertySource): Property {
-  const p = property(source);
+  const p = property({
+    ...source,
+    imageUrl: source.imageUrl ?? getPropertyImageUrl(source.id),
+  });
   if (!p.houseRules.length) p.houseRules = [...DEFAULT_HOUSE_RULES];
   return p;
 }
