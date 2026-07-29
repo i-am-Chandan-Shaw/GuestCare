@@ -1,5 +1,6 @@
 import { cn } from "@/lib/utils";
 import { Search, X } from "lucide-react";
+import type { Ref } from "react";
 
 export function SearchToolbar({
   value,
@@ -9,6 +10,8 @@ export function SearchToolbar({
   onClear,
   className,
   layout = "stacked",
+  shortcutHint,
+  inputRef,
 }: {
   value: string;
   onChange: (value: string) => void;
@@ -17,22 +20,32 @@ export function SearchToolbar({
   onClear?: () => void;
   className?: string;
   layout?: "stacked" | "inline";
+  shortcutHint?: string;
+  inputRef?: Ref<HTMLInputElement>;
 }) {
   const hasSearch = Boolean(value.trim());
+  const showShortcut = Boolean(shortcutHint) && !hasSearch;
+  const showClear = hasSearch && Boolean(onClear);
 
   const searchInput = (
     <div className="relative min-w-0">
       <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-text-secondary" />
       <input
+        ref={inputRef}
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
         className={cn(
           "h-9 w-full rounded-lg border border-input-border bg-card-bg pl-10 text-xs text-text-primary shadow-sm outline-none transition-all placeholder:text-text-muted focus:border-input-border-focus focus:ring-2 focus:ring-brand-primary/15",
-          hasSearch && onClear ? "pr-10" : "pr-4",
+          showClear ? "pr-10" : showShortcut ? "pr-14" : "pr-4",
         )}
       />
-      {hasSearch && onClear && (
+      {showShortcut && (
+        <kbd className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 rounded border border-border-color bg-app-bg px-1.5 py-0.5 font-mono text-[10px] font-medium text-text-muted">
+          {shortcutHint}
+        </kbd>
+      )}
+      {showClear && (
         <button
           type="button"
           onClick={onClear}

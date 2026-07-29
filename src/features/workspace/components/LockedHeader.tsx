@@ -20,34 +20,35 @@ export function LockedHeader({
   onClearProperty: () => void;
   onClearIssue: () => void;
 }) {
-  const showSelector = phase !== "protocol";
+  const showReportsLink = phase === "protocol" && customer;
 
   return (
-    <div className="shrink-0 border-b border-border-color bg-white/80 px-5 py-3 backdrop-blur-xl">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="flex min-w-0 flex-1 flex-wrap items-center gap-x-4 gap-y-2">
-          <h1 className="shrink-0 text-lg font-black uppercase tracking-tight text-text-primary">
-            Incidents
-          </h1>
-          <WorkspaceSelectorRow
-            phase={phase}
-            customer={customer}
-            property={property ?? null}
-            issue={issue ?? null}
-            onClearCustomer={onClearCustomer}
-            onClearProperty={onClearProperty}
-            onClearIssue={onClearIssue}
-          />
-        </div>
-        {!showSelector && customer && (
+    <div className="shrink-0 border-b border-border-color bg-white px-5 py-2.5">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <h1 className="shrink-0 text-[15px] font-black uppercase tracking-tight text-text-primary">
+          Incidents
+        </h1>
+        {showReportsLink && (
           <Link
             to="/reports"
             search={{ customerId: customer.id }}
-            className="shrink-0 rounded-lg border border-border-color bg-card-bg px-2.5 py-1 text-[12px] font-semibold text-brand-primary hover:bg-app-bg"
+            className="shrink-0 rounded-md border border-border-color bg-card-bg px-2 py-0.5 text-[11px] font-semibold text-brand-primary hover:bg-app-bg"
           >
             View reports
           </Link>
         )}
+      </div>
+
+      <div className="mt-2">
+        <WorkspaceSelectorRow
+          phase={phase}
+          customer={customer}
+          property={property ?? null}
+          issue={issue ?? null}
+          onClearCustomer={onClearCustomer}
+          onClearProperty={onClearProperty}
+          onClearIssue={onClearIssue}
+        />
       </div>
     </div>
   );

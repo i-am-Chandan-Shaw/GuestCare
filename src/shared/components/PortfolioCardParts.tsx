@@ -1,5 +1,5 @@
 import { cn } from "@/lib/utils";
-import { Clock } from "lucide-react";
+import { Info } from "lucide-react";
 import type { ReactNode } from "react";
 
 export const PORTFOLIO_CARD_TITLE_CLASS =
@@ -7,15 +7,15 @@ export const PORTFOLIO_CARD_TITLE_CLASS =
 
 export function portfolioCardClassName() {
   return cn(
-    "group w-full cursor-pointer rounded-xl border border-border-color bg-card-bg text-left shadow-sm",
-    "transition-[border-color,box-shadow] hover:border-border-color hover:shadow-md",
+    "group w-full cursor-pointer rounded-md border border-border-color bg-card-bg text-left shadow-none",
+    "transition-colors hover:border-border-color hover:bg-app-bg/60",
   );
 }
 
 export function PortfolioCardActivityChip({ label }: { label: string }) {
   return (
     <span className="inline-flex shrink-0 items-center gap-1 rounded-full border border-warning/20 bg-warning/10 px-2 py-0.5 text-[11px] font-semibold text-warning">
-      <Clock className="h-3 w-3 shrink-0" strokeWidth={1.75} />
+      <Info className="h-3 w-3 shrink-0" strokeWidth={2} />
       {label}
     </span>
   );
@@ -44,10 +44,22 @@ export function PortfolioCardActionButton({
 
 type MetricTone = "neutral" | "warning" | "success";
 
-const metricToneClass: Record<MetricTone, { icon: string; label: string }> = {
-  neutral: { icon: "text-text-muted", label: "text-text-muted" },
-  warning: { icon: "text-warning/80", label: "text-warning/90" },
-  success: { icon: "text-success/80", label: "text-success/90" },
+const metricToneClass: Record<MetricTone, { icon: string; label: string; value: string }> = {
+  neutral: {
+    icon: "text-text-muted",
+    label: "text-text-muted",
+    value: "text-text-primary",
+  },
+  warning: {
+    icon: "text-warning/80",
+    label: "text-warning/90",
+    value: "text-warning",
+  },
+  success: {
+    icon: "text-success/80",
+    label: "text-success/90",
+    value: "text-success",
+  },
 };
 
 export function PortfolioMetricColumn({
@@ -68,14 +80,15 @@ export function PortfolioMetricColumn({
   const colors = metricToneClass[tone];
 
   return (
-    <div className={cn("flex min-w-0 flex-1 flex-col gap-2", className)}>
+    <div className={cn("flex min-w-0 flex-1 flex-col gap-1.5", className)}>
       <div className="flex items-center gap-1.5">
-        <span className={cn("shrink-0 [&>svg]:h-4 [&>svg]:w-4", colors.icon)}>{icon}</span>
-        <p className={cn("text-[10px] font-bold uppercase tracking-wide", colors.label)}>{label}</p>
+        <span className={cn("shrink-0 [&>svg]:h-3.5 [&>svg]:w-3.5", colors.icon)}>{icon}</span>
+        <p className={cn("text-[8px] font-bold uppercase tracking-wide", colors.label)}>{label}</p>
       </div>
       <div
         className={cn(
-          "text-[17px] font-medium leading-snug tracking-tight text-text-primary",
+          "text-[15px] font-semibold leading-snug tracking-tight",
+          colors.value,
           valueClassName,
         )}
       >

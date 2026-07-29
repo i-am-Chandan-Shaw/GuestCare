@@ -1,20 +1,28 @@
-import { Building2, ChevronRight, ClipboardList, User } from "lucide-react";
+import { Building2, ClipboardList, User } from "lucide-react";
 import {
-  WORKSPACE_FIELD_WIDTH,
-  WorkspaceSelectionChip,
-} from "@/features/workspace/components/WorkspaceSelectionChip";
-import { WorkspacePlaceholderSlot } from "@/features/workspace/components/WorkspacePlaceholderSlot";
+  WorkspaceStep,
+  WorkspaceStepSeparator,
+  type WorkspaceStepState,
+} from "@/features/workspace/components/WorkspaceStep";
 import type { WorkspacePhase } from "@/features/workspace/lib/workspace-state";
 import type { Customer, Issue, Property } from "@/shared/types";
 
-function FlowSeparator({ active = false }: { active?: boolean }) {
-  return (
-    <ChevronRight
-      className={active ? "h-4 w-4 shrink-0 text-card-subtext" : "h-4 w-4 shrink-0 text-muted-foreground/35"}
-      strokeWidth={1.75}
-      aria-hidden
-    />
-  );
+function resolveStepStates(
+  phase: WorkspacePhase,
+  customer: Customer | null,
+  property: Property | null,
+  issue: Issue | null,
+): { customer: WorkspaceStepState; property: WorkspaceStepState; issue: WorkspaceStepState } {
+  if (issue || phase === "protocol") {
+    return { customer: "completed", property: "completed", issue: "completed" };
+  }
+  if (property || phase === "property") {
+    return { customer: "completed", property: "completed", issue: "current" };
+  }
+  if (customer || phase === "customer") {
+    return { customer: "completed", property: "current", issue: "incomplete" };
+  }
+  return { customer: "current", property: "incomplete", issue: "incomplete" };
 }
 
 export function WorkspaceSelectorRow({
@@ -34,62 +42,49 @@ export function WorkspaceSelectorRow({
   onClearProperty: () => void;
   onClearIssue: () => void;
 }) {
-  const customerStepActive = phase === "browse" && !customer;
-  const propertyStepActive = phase === "customer" && customer && !property;
-  const issueStepActive = phase === "property" && property && !issue;
-  const propertyFlowActive = Boolean(customer);
-  const issueFlowActive = Boolean(customer && property);
+  const states = resolveStepStates(phase, customer, property, issue);
 
   return (
-    <div className="flex flex-wrap items-center gap-1.5">
-      {customer ? (
-        <WorkspaceSelectionChip
-          label={customer.name}
-          onClear={onClearCustomer}
-          icon={<User className="h-4 w-4" />}
-          className={WORKSPACE_FIELD_WIDTH}
-        />
-      ) : (
-        <WorkspacePlaceholderSlot
-          icon={<User className="h-4 w-4" />}
+    <nav
+      className="flex w-full min-w-0 items-center gap-1 rounded-lg border border-[#E5E7EB] bg-white px-4 py-2"
+      aria-label="Workspace steps"
+    >
+      <div className="flex min-w-0 flex-1 basis-0 justify-start overflow-hidden">
+        <WorkspaceStep
+          stepNumber={1}
           label="Customer"
-          active={customerStepActive}
+          value={customer?.name}
+          icon={<User strokeWidth={1.75} />}
+          state={states.customer}
+          onClear={states.customer === "completed" ? onClearCustomer : undefined}
         />
-      )}
+      </div>
 
-      <FlowSeparator active={propertyFlowActive} />
+      <WorkspaceStepSeparator />
 
-      {property ? (
-        <WorkspaceSelectionChip
-          label={property.name}
-          onClear={onClearProperty}
-          icon={<Building2 className="h-4 w-4" />}
-          className={WORKSPACE_FIELD_WIDTH}
-        />
-      ) : (
-        <WorkspacePlaceholderSlot
-          icon={<Building2 className="h-4 w-4" />}
+      <div className="flex min-w-0 flex-1 basis-0 justify-center overflow-hidden">
+        <WorkspaceStep
+          stepNumber={2}
           label="Property"
-          active={propertyStepActive}
+          value={property?.name}
+          icon={<Building2 strokeWidth={1.75} />}
+          state={states.property}
+          onClear={states.property === "completed" ? onClearProperty : undefined}
         />
-      )}
+      </div>
 
-      <FlowSeparator active={issueFlowActive} />
+      <WorkspaceStepSeparator />
 
-      {issue ? (
-        <WorkspaceSelectionChip
-          label={issue.name}
-          onClear={onClearIssue}
-          icon={<ClipboardList className="h-4 w-4" />}
-          className={WORKSPACE_FIELD_WIDTH}
+      <div className="flex min-w-0 flex-1 basis-0 justify-center overflow-hidden">
+        <WorkspaceStep
+          stepNumber={3}
+          label="Issue"
+          value={issue?.name}
+          icon={<ClipboardList strokeWidth={1.75} />}
+          state={states.issue}
+          onClear={states.issue === "completed" ? onClearIssue : undefined}
         />
-      ) : (
-        <WorkspacePlaceholderSlot
-          icon={<ClipboardList className="h-4 w-4" />}
-          label="Incidents"
-          active={issueStepActive}
-        />
-      )}
-    </div>
+      </div>
+    </nav>
   );
 }

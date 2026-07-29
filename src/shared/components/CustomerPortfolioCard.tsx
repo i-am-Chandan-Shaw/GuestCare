@@ -1,22 +1,29 @@
-import {
-  formatCompactRelativeTime,
-} from "@/shared/lib/format-relative-time";
+import { formatCompactRelativeTime } from "@/shared/lib/format-relative-time";
 import {
   PORTFOLIO_CARD_TITLE_CLASS,
   PortfolioCardActivityChip,
-  PortfolioCardHeader,
-  PortfolioCardMetricsRow,
   PortfolioMetricColumn,
   portfolioCardClassName,
 } from "@/shared/components/PortfolioCardParts";
+import { cn } from "@/lib/utils";
 import type { CustomerSummary } from "@/shared/types";
+import type { ReactNode } from "react";
 import {
   AlertCircle,
   Building2,
   CheckCircle2,
+  ChevronRight,
   ClipboardList,
   Clock,
 } from "lucide-react";
+
+function MetricCell({ children }: { children: ReactNode }) {
+  return (
+    <div className="flex min-w-0 flex-1 items-stretch border-l border-border-color pl-4 first:border-l-0 first:pl-0">
+      {children}
+    </div>
+  );
+}
 
 export function CustomerPortfolioCard({
   customer,
@@ -44,54 +51,67 @@ export function CustomerPortfolioCard({
           onSelect();
         }
       }}
-      className={portfolioCardClassName()}
+      className={cn(portfolioCardClassName(), "flex items-center gap-0 px-5 py-4")}
     >
-      <PortfolioCardHeader>
-        <div className="min-w-0">
-          <div className="flex flex-wrap items-center gap-2">
-            <h3 className={PORTFOLIO_CARD_TITLE_CLASS}>{customer.name}</h3>
-            {activityLabel && <PortfolioCardActivityChip label={activityLabel} />}
-          </div>
-          <p className="mt-1 text-[12px] font-medium text-card-subtext">
-            {customer.email} | {customer.phone}
-          </p>
+      <div className="min-w-0 w-[240px] shrink-0 border-r border-border-color pr-4">
+        <div className="flex min-w-0 items-center gap-2">
+          <h3 className={cn(PORTFOLIO_CARD_TITLE_CLASS, "min-w-0 truncate text-[15px]")}>
+            {customer.name}
+          </h3>
+          {activityLabel && <PortfolioCardActivityChip label={activityLabel} />}
         </div>
-      </PortfolioCardHeader>
+        <p className="mt-0.5 truncate text-[12px] font-medium text-card-subtext">{customer.email}</p>
+        <p className="truncate text-[12px] font-medium text-card-subtext">{customer.phone}</p>
+      </div>
 
-      <PortfolioCardMetricsRow>
-        <PortfolioMetricColumn
-          icon={<Building2 strokeWidth={1.75} />}
-          label="Properties"
-          value={customer.propertyCount}
-        />
+      <div className="flex min-w-0 flex-1 items-stretch pl-4 pr-6">
+        <MetricCell>
+          <PortfolioMetricColumn
+            icon={<Building2 strokeWidth={1.75} />}
+            label="Properties"
+            value={customer.propertyCount}
+          />
+        </MetricCell>
 
-        <PortfolioMetricColumn
-          icon={<ClipboardList strokeWidth={1.75} />}
-          label="Total Issues"
-          value={customer.totalIssuesCount}
-        />
+        <MetricCell>
+          <PortfolioMetricColumn
+            icon={<ClipboardList strokeWidth={1.75} />}
+            label="Total Issues"
+            value={customer.totalIssuesCount}
+          />
+        </MetricCell>
 
-        <PortfolioMetricColumn
-          icon={<AlertCircle strokeWidth={1.75} />}
-          label="Open Issues"
-          value={customer.openReportsCount}
-        />
+        <MetricCell>
+          <PortfolioMetricColumn
+            icon={<AlertCircle strokeWidth={1.75} />}
+            label="Open Issues"
+            value={customer.openReportsCount}
+          />
+        </MetricCell>
 
-        <PortfolioMetricColumn
-          icon={<CheckCircle2 strokeWidth={1.75} />}
-          label="Resolved"
-          value={customer.resolvedCount}
-        />
+        <MetricCell>
+          <PortfolioMetricColumn
+            icon={<CheckCircle2 strokeWidth={1.75} />}
+            label="Resolved"
+            value={customer.resolvedCount}
+          />
+        </MetricCell>
 
-        <PortfolioMetricColumn
-          icon={<Clock strokeWidth={1.75} />}
-          label="Last Issue"
-          value={
-            <span className="block truncate">{lastIssueTitle}</span>
-          }
-          className="min-w-[200px] flex-[1.35]"
-        />
-      </PortfolioCardMetricsRow>
+        <MetricCell>
+          <PortfolioMetricColumn
+            icon={<Clock strokeWidth={1.75} />}
+            label="Last Issue"
+            value={<span className="block truncate text-[12px] font-semibold">{lastIssueTitle}</span>}
+            className="min-w-0 max-w-[200px] flex-[1.2]"
+          />
+        </MetricCell>
+      </div>
+
+      <ChevronRight
+        className="ml-6 mr-1 h-4 w-4 shrink-0 text-text-muted transition-colors group-hover:text-text-secondary"
+        strokeWidth={1.75}
+        aria-hidden
+      />
     </article>
   );
 }
