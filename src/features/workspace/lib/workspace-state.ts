@@ -1,4 +1,4 @@
-import type { FormState } from "@/features/copilot/components";
+import type { FormState } from "@/features/incidents/components/incident-form.types";
 import type { Customer, Issue, Property } from "@/shared/types";
 import { protocolToIncidentType } from "@/shared/types";
 

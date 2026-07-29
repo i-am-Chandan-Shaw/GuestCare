@@ -1,5 +1,5 @@
 import { ExternalLink } from "lucide-react";
-import { SectionCard } from "@/shared/components/copilot";
+import { SectionCard } from "@/shared/components/ui-kit";
 import { SYSTEM_LABELS } from "@/shared/constants/system-labels";
 import type { Property, SystemKey } from "@/shared/types";
 import { ExpandableNote, PhoneRow, propertyCardClass } from "./property-shared";

@@ -17,18 +17,15 @@ import {
   CheckCircle2,
   ClipboardList,
   Clock,
-  FilePlus2,
   User,
 } from "lucide-react";
 
 export function CustomerPortfolioCard({
   customer,
   onSelect,
-  onCreateReport,
 }: {
   customer: CustomerSummary;
   onSelect: () => void;
-  onCreateReport?: () => void;
 }) {
   const lastIssue = customer.lastIssue;
   const lastIssueTitle = lastIssue
@@ -37,11 +34,6 @@ export function CustomerPortfolioCard({
       : lastIssue.summary
     : "—";
   const activityLabel = lastIssue ? formatCompactRelativeTime(lastIssue.timestamp) : null;
-
-  const handleCreateReport = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    (onCreateReport ?? onSelect)();
-  };
 
   const handleSelect = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -74,9 +66,6 @@ export function CustomerPortfolioCard({
           </div>
 
           <div className="flex shrink-0 items-center gap-2">
-            <PortfolioCardActionButton label="Create report" onClick={handleCreateReport}>
-              <FilePlus2 className="h-4 w-4" strokeWidth={1.75} />
-            </PortfolioCardActionButton>
             <PortfolioCardActionButton label="View customer" onClick={handleSelect}>
               <User className="h-4 w-4" strokeWidth={1.75} />
             </PortfolioCardActionButton>

@@ -9,7 +9,7 @@ import {
 } from "lucide-react";
 import { useMemo, useState } from "react";
 import { useSuggestedIssues } from "@/features/copilot/hooks/useProtocolData";
-import { Chip, SectionCard } from "@/shared/components/copilot";
+import { Chip, SectionCard } from "@/shared/components/ui-kit";
 import { SearchToolbar, filterBySearch } from "@/shared/components/SearchToolbar";
 import type { GlobalContact, IncidentLog, Issue, Property } from "@/shared/types";
 

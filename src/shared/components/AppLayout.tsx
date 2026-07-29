@@ -1,4 +1,4 @@
-import { ShellFrame } from "@/shared/components/copilot";
+import { ShellFrame } from "@/shared/components/ui-kit";
 import { AppSidebar } from "@/shared/components/AppSidebar";
 import { IncidentComposeShell } from "@/features/incidents/components/IncidentComposeShell";
 

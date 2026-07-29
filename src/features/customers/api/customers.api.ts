@@ -1,12 +1,16 @@
 import { CUSTOMERS } from "@/data/mock";
 import { PROPERTIES } from "@/data/properties";
 import { getIncidentLogs } from "@/features/incidents/api/incidents.api";
-import type { Customer, CustomerSummary, IncidentLog, LastIssueSummary, PropertySummary } from "@/shared/types";
+import type {
+  Customer,
+  CustomerSummary,
+  IncidentLog,
+  LastIssueSummary,
+  Property,
+  PropertySummary,
+} from "@/shared/types";
 
-function isOpenIncident(log: IncidentLog): boolean {
-  return log.status !== "Resolved";
-}
-
+import { isOpenIncident } from "@/shared/lib/incident-status";
 function toLastIssue(log: IncidentLog): LastIssueSummary {
   return {
     summary: log.issueSummary,
@@ -60,6 +64,14 @@ function summarizeProperty(property: Property, logs: IncidentLog[]): PropertySum
     resolvedCount,
     lastIssue,
   };
+}
+
+export async function getCustomerById(customerId: string): Promise<Customer | null> {
+  return CUSTOMERS.find((c) => c.id === customerId) ?? null;
+}
+
+export async function getPropertyById(propertyId: string): Promise<Property | null> {
+  return PROPERTIES.find((p) => p.id === propertyId) ?? null;
 }
 
 export async function getCustomerSummaries(): Promise<CustomerSummary[]> {

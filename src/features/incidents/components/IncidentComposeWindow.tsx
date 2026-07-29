@@ -1,16 +1,11 @@
 import { Maximize2, Minus, Pin, X } from "lucide-react";
 import { useState } from "react";
-import { IncidentForm } from "@/features/copilot/components/IncidentForm";
-import { isDocumentPipSupported } from "@/features/workspace/lib/compose-pip";
-import type { ComposeMode } from "@/features/workspace/lib/workspace-sync";
+import { IncidentForm } from "@/features/incidents/components/IncidentForm";
+import { isDocumentPipSupported } from "@/features/incidents/lib/incident-pip";
+import type { IncidentPanelMode } from "@/features/incidents/lib/incident-window-sync";
+import { formatIncidentTitle } from "@/features/incidents/lib/format-incident-title";
 import type { Customer, Issue, Property } from "@/shared/types";
-import type { FormState } from "@/features/copilot/components/incident-form.types";
-
-function composeTitle(customer: Customer | null, property: Property | null) {
-  if (customer && property) return `${customer.name} · ${property.name}`;
-  if (customer) return customer.name;
-  return "New incident";
-}
+import type { FormState } from "@/features/incidents/components/incident-form.types";
 
 function HeaderIconButton({
   label,
@@ -43,14 +38,14 @@ export function IncidentComposeWindow({
   setForm,
   onClear,
   onSubmit,
-  isFormDirty,
+  isIncidentFormDirty,
   isSubmitting,
   onMinimize,
   onDetach,
   onExpand,
   onRequestClose,
 }: {
-  mode: Exclude<ComposeMode, "closed" | "detached">;
+  mode: Exclude<IncidentPanelMode, "closed" | "detached">;
   customer: Customer | null;
   property: Property | null;
   issue: Issue | null;
@@ -58,7 +53,7 @@ export function IncidentComposeWindow({
   setForm: (f: FormState) => void;
   onClear: () => void;
   onSubmit: () => void;
-  isFormDirty: boolean;
+  isIncidentFormDirty: boolean;
   isSubmitting: boolean;
   onMinimize: () => void;
   onDetach: () => void;
@@ -66,14 +61,14 @@ export function IncidentComposeWindow({
   onRequestClose: () => void;
 }) {
   const [confirmDiscard, setConfirmDiscard] = useState(false);
-  const title = composeTitle(customer, property);
+  const title = formatIncidentTitle(customer, property);
   const isMinimized = mode === "minimized";
   const pinLabel = isDocumentPipSupported()
     ? "Keep on top while browsing"
     : "Open in separate window";
 
   const handleClose = () => {
-    if (isFormDirty) {
+    if (isIncidentFormDirty) {
       setConfirmDiscard(true);
       return;
     }

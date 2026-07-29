@@ -14,10 +14,7 @@ function resolveCustomerIdForProperty(propertyId?: string): string | undefined {
   return CUSTOMERS.find((c) => c.propertyIds.includes(propertyId))?.id;
 }
 
-function isOpenIncident(log: IncidentLog): boolean {
-  return log.status !== "Resolved";
-}
-
+import { isOpenIncident } from "@/shared/lib/incident-status";
 const createIncidentSchema = z.object({
   callerName: z.string(),
   callerContact: z.string(),

@@ -1,8 +1,8 @@
-import { Building2, Check, FilePlus2, Key, Phone, Wifi } from "lucide-react";
+import { Building2, Check, Key, Phone, Wifi } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { cn } from "@/lib/utils";
 import { copyText } from "@/lib/copy-to-clipboard";
-import { Chip, Tabs } from "@/shared/components/copilot";
+import { Chip, Tabs } from "@/shared/components/ui-kit";
 import { priorityMeta } from "@/shared/constants/agent";
 import { useGlobalContact, useRecentIssues } from "@/features/copilot/hooks/useProtocolData";
 import { useIncidentLogs } from "@/features/incidents/hooks/useIncidents";
@@ -53,7 +53,6 @@ export function IssuePanel({
   onToggleVerification,
   outcome,
   setOutcome,
-  onOpenCompose,
 }: {
   issue: Issue | null;
   property: Property | null;
@@ -64,7 +63,6 @@ export function IssuePanel({
   onToggleVerification: (id: string) => void;
   outcome: "resolve" | "escalate" | null;
   setOutcome: (o: "resolve" | "escalate") => void;
-  onOpenCompose: () => void;
 }) {
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});
   const toggle = (k: string) => setCollapsed((c) => ({ ...c, [k]: !c[k] }));
@@ -232,7 +230,6 @@ export function IssuePanel({
               setStepExpanded={setStepExpanded}
               outcome={outcome}
               setOutcome={setOutcome}
-              onOpenCompose={onOpenCompose}
             />
           )}
           {activeTab === "escalations" && (
@@ -245,16 +242,6 @@ export function IssuePanel({
           {activeTab === "documents" && <IssueDocumentsSection issue={issue} />}
           {activeTab === "history" && <IssueHistorySection logs={historyLogs} />}
         </div>
-      </div>
-
-      <div className="sticky bottom-0 bg-background/95 backdrop-blur mt-auto p-4 px-6 border-t border-border">
-        <button
-          onClick={onOpenCompose}
-          className="flex h-[52px] w-full items-center justify-center gap-2 rounded-md bg-primary text-[15px] font-bold text-primary-foreground transition-transform hover:scale-[0.99] active:scale-[0.98] shadow-sm"
-        >
-          <FilePlus2 className="h-[18px] w-[18px]" />
-          Create Report
-        </button>
       </div>
     </div>
   );

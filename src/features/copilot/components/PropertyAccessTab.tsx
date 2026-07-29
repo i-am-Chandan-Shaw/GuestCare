@@ -1,4 +1,4 @@
-import { SectionCard } from "@/shared/components/copilot";
+import { SectionCard } from "@/shared/components/ui-kit";
 import type { Property } from "@/shared/types";
 import {
   CopyRow,

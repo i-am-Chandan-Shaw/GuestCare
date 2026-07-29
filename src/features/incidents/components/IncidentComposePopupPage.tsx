@@ -1,39 +1,24 @@
 import { PinOff, X } from "lucide-react";
 import { useState } from "react";
-import { IncidentForm } from "@/features/copilot/components/IncidentForm";
+import { IncidentForm } from "@/features/incidents/components/IncidentForm";
+import { useIncidentCompose } from "@/features/incidents/context/IncidentComposeProvider";
+import { formatIncidentTitle } from "@/features/incidents/lib/format-incident-title";
 import { useWorkspaceContext } from "@/features/workspace/context/WorkspaceProvider";
-import type { Customer, Property } from "@/shared/types";
-
-function composeTitle(customer: Customer | null, property: Property | null) {
-  if (customer && property) return `${customer.name} · ${property.name}`;
-  if (customer) return customer.name;
-  return "New incident";
-}
 
 export function IncidentComposePopupPage({ alwaysOnTop = false }: { alwaysOnTop?: boolean }) {
-  const {
-    customer,
-    property,
-    issue,
-    form,
-    setForm,
-    clearForm,
-    submitIncident,
-    attachCompose,
-    closeCompose,
-    isFormDirty,
-    isSubmitting,
-  } = useWorkspaceContext();
+  const { state: workspaceState } = useWorkspaceContext();
+  const { customer, property, issue } = workspaceState.selection;
+  const { state, actions, meta } = useIncidentCompose();
 
   const [confirmDiscard, setConfirmDiscard] = useState(false);
-  const title = composeTitle(customer, property);
+  const title = formatIncidentTitle(customer, property);
 
   const handleClose = () => {
-    if (isFormDirty) {
+    if (meta.isIncidentFormDirty) {
       setConfirmDiscard(true);
       return;
     }
-    closeCompose();
+    actions.closeIncidentPanel();
   };
 
   return (
@@ -41,7 +26,7 @@ export function IncidentComposePopupPage({ alwaysOnTop = false }: { alwaysOnTop?
       <header className="flex shrink-0 items-center gap-1 border-b border-border bg-surface-2/80 px-3 py-2">
         <button
           type="button"
-          onClick={attachCompose}
+          onClick={actions.attachIncidentPanel}
           title="Return to app"
           aria-label="Return to app"
           className="inline-flex items-center gap-1.5 rounded-md bg-primary/10 px-2.5 py-1.5 text-[12px] font-semibold text-primary hover:bg-primary/15"
@@ -81,7 +66,7 @@ export function IncidentComposePopupPage({ alwaysOnTop = false }: { alwaysOnTop?
               type="button"
               onClick={() => {
                 setConfirmDiscard(false);
-                closeCompose();
+                actions.closeIncidentPanel();
               }}
               className="rounded bg-destructive px-2 py-0.5 font-medium text-destructive-foreground"
             >
@@ -94,14 +79,14 @@ export function IncidentComposePopupPage({ alwaysOnTop = false }: { alwaysOnTop?
       <div className="min-h-0 flex-1 overflow-hidden">
         <IncidentForm
           embedded
-          form={form}
-          setForm={setForm}
-          onClear={clearForm}
-          onSubmit={submitIncident}
+          form={state.form}
+          setForm={actions.setForm}
+          onClear={actions.clearForm}
+          onSubmit={actions.submitIncident}
           customer={customer}
           property={property}
           issue={issue}
-          isSubmitting={isSubmitting}
+          isSubmitting={meta.isSubmitting}
         />
       </div>
     </div>

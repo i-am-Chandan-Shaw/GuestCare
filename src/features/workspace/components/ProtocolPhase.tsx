@@ -19,7 +19,6 @@ export function ProtocolPhase({
     toggleStep,
     toggleVerification,
     selectIssue,
-    openCompose,
   } = workspace;
 
   if (!property) return null;
@@ -40,7 +39,6 @@ export function ProtocolPhase({
           onToggleVerification={toggleVerification}
           outcome={outcome}
           setOutcome={setOutcome}
-          onOpenCompose={() => openCompose("expanded")}
         />
       </div>
     </main>

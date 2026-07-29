@@ -1,324 +1,232 @@
 import {
   createContext,
+  use,
   useCallback,
-  useContext,
-  useEffect,
   useMemo,
+  useReducer,
   useRef,
-  useState,
   type ReactNode,
 } from "react";
-import { emptyForm, type FormState } from "@/features/copilot/components";
-import { getIssueById } from "@/features/copilot/api/protocols.api";
-import { useCreateIncidentMutation } from "@/features/incidents/hooks/useIncidents";
+import { IncidentComposeProvider } from "@/features/incidents/context/IncidentComposeProvider";
+import { createIncidentWindowSync } from "@/features/incidents/lib/incident-window-sync";
+import { type WorkspacePhase } from "@/features/workspace/lib/workspace-state";
 import {
-  syncFormFromIssue,
-  syncNotesFromSteps,
-  type WorkspacePhase,
-} from "@/features/workspace/lib/workspace-state";
+  resolveWorkspaceFromUrl,
+  type WorkspaceSyncPatch,
+} from "@/features/workspace/lib/resolve-workspace-from-url";
 import type { WorkspaceSearch } from "@/features/workspace/lib/workspace-url";
-import {
-  openComposePipWindow,
-  watchPipClosed,
-} from "@/features/workspace/lib/compose-pip";
-import {
-  createWorkspaceSync,
-  isComposePopupWindow,
-  openComposePopup,
-  watchPopupClosed,
-  type ComposeMode,
-  type WorkspaceSnapshot,
-} from "@/features/workspace/lib/workspace-sync";
-import { CUSTOMERS } from "@/data/mock";
-import { PROPERTIES } from "@/data/properties";
+import type {
+  WorkspaceActions,
+  WorkspaceChecklistState,
+  WorkspaceSelectionState,
+} from "@/features/workspace/context/workspace.types";
 import type { Customer, Issue, Property } from "@/shared/types";
-import { protocolToIncidentType } from "@/shared/types";
+import { getCustomerById, getPropertyById } from "@/features/customers/api/customers.api";
+import { getIssueById } from "@/features/copilot/api/protocols.api";
 
-export type { ComposeMode, WorkspacePhase };
+export type { WorkspacePhase };
 
-function baselineForm(issue: Issue | null): FormState {
-  return {
-    ...emptyForm(),
-    issueSummary: issue?.name ?? "",
-    incidentType: issue ? protocolToIncidentType(issue.category) : "Other",
-    priority: issue?.priority ?? "P2",
-  };
+type SelectionAction =
+  | { type: "SET"; payload: WorkspaceSelectionState }
+  | {
+      type: "PATCH";
+      payload: Partial<WorkspaceSelectionState> & {
+        customer?: Customer | null;
+        property?: Property | null;
+        issue?: Issue | null;
+      };
+    };
+
+function selectionReducer(
+  state: WorkspaceSelectionState,
+  action: SelectionAction,
+): WorkspaceSelectionState {
+  if (action.type === "SET") return action.payload;
+  return { ...state, ...action.payload };
 }
 
-export function isFormDirty(form: FormState, issue: Issue | null): boolean {
-  return JSON.stringify(form) !== JSON.stringify(baselineForm(issue));
-}
+type ChecklistAction =
+  | { type: "SET"; payload: WorkspaceChecklistState }
+  | { type: "RESET" }
+  | { type: "PATCH"; payload: Partial<WorkspaceChecklistState> };
 
-type WorkspaceContextValue = {
-  phase: WorkspacePhase;
-  customer: Customer | null;
-  property: Property | null;
-  issue: Issue | null;
-  checked: Record<string, boolean>;
-  verificationChecked: Record<string, boolean>;
-  outcome: "resolve" | "escalate" | null;
-  form: FormState;
-  composeMode: ComposeMode;
-  isDetached: boolean;
-  isPopupWindow: boolean;
-  pipWindow: Window | null;
-  isFormDirty: boolean;
-  setForm: (f: FormState) => void;
-  setOutcome: (o: "resolve" | "escalate") => void;
-  setComposeMode: (mode: ComposeMode) => void;
-  openCompose: (mode?: Exclude<ComposeMode, "closed">) => void;
-  closeCompose: () => void;
-  minimizeCompose: () => void;
-  detachCompose: () => void;
-  attachCompose: () => void;
-  expandCompose: () => void;
-  selectCustomer: (next: Customer) => void;
-  selectProperty: (next: Property) => void;
-  selectIssue: (next: Issue) => void;
-  changeCustomer: () => void;
-  changeProperty: () => void;
-  changeIssue: () => void;
-  hydrateFromSearch: (search: WorkspaceSearch) => Promise<void>;
-  clearAll: () => void;
-  clearForm: () => void;
-  submitIncident: () => void;
-  toggleStep: (id: string) => void;
-  toggleVerification: (id: string) => void;
-  isSubmitting: boolean;
+const emptyChecklist: WorkspaceChecklistState = {
+  checked: {},
+  verificationChecked: {},
+  outcome: null,
 };
 
-const WorkspaceContext = createContext<WorkspaceContextValue | null>(null);
+function checklistReducer(
+  state: WorkspaceChecklistState,
+  action: ChecklistAction,
+): WorkspaceChecklistState {
+  if (action.type === "SET") return action.payload;
+  if (action.type === "RESET") return emptyChecklist;
+  return { ...state, ...action.payload };
+}
+
+type WorkspaceInternalActions = WorkspaceActions & {
+  resetChecklist: () => void;
+  applyRemotePatch: (patch: WorkspaceSyncPatch & { phase?: WorkspacePhase }) => Promise<void>;
+  applyRemoteSnapshot: (snapshot: {
+    phase: WorkspacePhase;
+    customerId: string | null;
+    propertyId: string | null;
+    issueId: string | null;
+    checked: Record<string, boolean>;
+    verificationChecked: Record<string, boolean>;
+    outcome: "resolve" | "escalate" | null;
+  }) => Promise<void>;
+};
+
+type WorkspaceInternalContextValue = {
+  state: {
+    selection: WorkspaceSelectionState;
+    checklist: WorkspaceChecklistState;
+  };
+  actions: WorkspaceInternalActions;
+  broadcastPatch: (patch: WorkspaceSyncPatch) => void;
+};
+
+const WorkspaceContext = createContext<WorkspaceInternalContextValue | null>(null);
 
 export function WorkspaceProvider({ children }: { children: ReactNode }) {
-  const isPopupWindow = isComposePopupWindow();
-  const syncRef = useRef(createWorkspaceSync());
-  const popupRef = useRef<Window | null>(null);
-  const pipWindowRef = useRef<Window | null>(null);
+  const syncRef = useRef(createIncidentWindowSync());
   const isRemoteUpdate = useRef(false);
-  const formBroadcastTimer = useRef<number | null>(null);
 
-  const [pipWindow, setPipWindow] = useState<Window | null>(null);
+  const [selection, dispatchSelection] = useReducer(selectionReducer, {
+    phase: "browse",
+    customer: null,
+    property: null,
+    issue: null,
+  });
 
-  const [phase, setPhase] = useState<WorkspacePhase>("browse");
-  const [customer, setCustomer] = useState<Customer | null>(null);
-  const [property, setProperty] = useState<Property | null>(null);
-  const [issue, setIssue] = useState<Issue | null>(null);
-  const [checked, setChecked] = useState<Record<string, boolean>>({});
-  const [verificationChecked, setVerificationChecked] = useState<Record<string, boolean>>({});
-  const [outcome, setOutcome] = useState<"resolve" | "escalate" | null>(null);
-  const [composeMode, setComposeMode] = useState<ComposeMode>(
-    isPopupWindow ? "detached" : "closed",
+  const [checklist, dispatchChecklist] = useReducer(checklistReducer, emptyChecklist);
+
+  const broadcastPatch = useCallback((patch: WorkspaceSyncPatch) => {
+    if (isRemoteUpdate.current) return;
+    syncRef.current.post({ type: "SYNC_PATCH", patch });
+  }, []);
+
+  const resetChecklist = useCallback(() => {
+    dispatchChecklist({ type: "RESET" });
+  }, []);
+
+  const resetAfterSubmit = useCallback(() => {
+    dispatchSelection({
+      type: "SET",
+      payload: { phase: "browse", customer: null, property: null, issue: null },
+    });
+    dispatchChecklist({ type: "RESET" });
+  }, []);
+
+  const applyRemotePatch = useCallback(
+    async (patch: WorkspaceSyncPatch & { phase?: WorkspacePhase }) => {
+      isRemoteUpdate.current = true;
+      try {
+        if (patch.phase !== undefined) {
+          dispatchSelection({ type: "PATCH", payload: { phase: patch.phase } });
+        }
+
+        if (patch.customerId !== undefined) {
+          const nextCustomer = patch.customerId ? await getCustomerById(patch.customerId) : null;
+          dispatchSelection({ type: "PATCH", payload: { customer: nextCustomer } });
+        }
+
+        if (patch.propertyId !== undefined) {
+          const cid = patch.customerId ?? selection.customer?.id ?? null;
+          const nextCustomer = cid ? await getCustomerById(cid) : null;
+          const nextProperty =
+            patch.propertyId && nextCustomer ? await getPropertyById(patch.propertyId) : null;
+          dispatchSelection({ type: "PATCH", payload: { property: nextProperty } });
+        }
+
+        if (patch.issueId !== undefined) {
+          const nextIssue = patch.issueId ? await getIssueById(patch.issueId) : null;
+          dispatchSelection({ type: "PATCH", payload: { issue: nextIssue } });
+        }
+
+        if (
+          patch.checked !== undefined ||
+          patch.verificationChecked !== undefined ||
+          patch.outcome !== undefined
+        ) {
+          dispatchChecklist({
+            type: "PATCH",
+            payload: {
+              ...(patch.checked !== undefined ? { checked: patch.checked } : {}),
+              ...(patch.verificationChecked !== undefined
+                ? { verificationChecked: patch.verificationChecked }
+                : {}),
+              ...(patch.outcome !== undefined ? { outcome: patch.outcome } : {}),
+            },
+          });
+        }
+      } finally {
+        isRemoteUpdate.current = false;
+      }
+    },
+    [selection.customer?.id],
   );
-  const [form, setFormState] = useState<FormState>(emptyForm);
 
-  const buildSnapshot = useCallback(
-    (overrides?: Partial<WorkspaceSnapshot>): WorkspaceSnapshot => ({
-      form,
-      phase,
-      customerId: customer?.id ?? null,
-      propertyId: property?.id ?? null,
-      issueId: issue?.id ?? null,
-      checked,
-      verificationChecked,
-      outcome,
-      composeMode,
-      detached: composeMode === "detached",
-      ...overrides,
-    }),
-    [form, phase, customer, property, issue, checked, verificationChecked, outcome, composeMode],
-  );
+  const applyRemoteSnapshot = useCallback(
+    async (snapshot: {
+      phase: WorkspacePhase;
+      customerId: string | null;
+      propertyId: string | null;
+      issueId: string | null;
+      checked: Record<string, boolean>;
+      verificationChecked: Record<string, boolean>;
+      outcome: "resolve" | "escalate" | null;
+    }) => {
+      isRemoteUpdate.current = true;
+      try {
+        const nextCustomer = snapshot.customerId
+          ? await getCustomerById(snapshot.customerId)
+          : null;
 
-  const broadcastPatch = useCallback(
-    (patch: Partial<WorkspaceSnapshot>) => {
-      if (isRemoteUpdate.current) return;
-      syncRef.current.post({ type: "SYNC_PATCH", patch });
+        const nextProperty =
+          snapshot.propertyId && nextCustomer ? await getPropertyById(snapshot.propertyId) : null;
+
+        const nextIssue = snapshot.issueId ? await getIssueById(snapshot.issueId) : null;
+
+        dispatchSelection({
+          type: "SET",
+          payload: {
+            phase: snapshot.phase,
+            customer: nextCustomer,
+            property: nextProperty,
+            issue: nextIssue,
+          },
+        });
+
+        dispatchChecklist({
+          type: "SET",
+          payload: {
+            checked: snapshot.checked,
+            verificationChecked: snapshot.verificationChecked,
+            outcome: snapshot.outcome,
+          },
+        });
+      } finally {
+        isRemoteUpdate.current = false;
+      }
     },
     [],
   );
 
-  const broadcastFull = useCallback(
-    (overrides?: Partial<WorkspaceSnapshot>) => {
-      if (isRemoteUpdate.current) return;
-      syncRef.current.post({ type: "SYNC_FULL", snapshot: buildSnapshot(overrides) });
-    },
-    [buildSnapshot],
-  );
-
-  const applyPatch = useCallback(async (patch: Partial<WorkspaceSnapshot>) => {
-    isRemoteUpdate.current = true;
-    try {
-      if (patch.form !== undefined) setFormState(patch.form);
-      if (patch.phase !== undefined) setPhase(patch.phase);
-      if (patch.checked !== undefined) setChecked(patch.checked);
-      if (patch.verificationChecked !== undefined) setVerificationChecked(patch.verificationChecked);
-      if (patch.outcome !== undefined) setOutcome(patch.outcome);
-      if (patch.composeMode !== undefined) setComposeMode(patch.composeMode);
-
-      if (patch.customerId !== undefined) {
-        setCustomer(
-          patch.customerId ? (CUSTOMERS.find((c) => c.id === patch.customerId) ?? null) : null,
-        );
-      }
-
-      if (patch.propertyId !== undefined) {
-        const cid = patch.customerId ?? customer?.id ?? null;
-        const nextCustomer = cid ? (CUSTOMERS.find((c) => c.id === cid) ?? null) : null;
-        setProperty(
-          patch.propertyId && nextCustomer
-            ? (PROPERTIES.find((p) => p.id === patch.propertyId) ?? null)
-            : null,
-        );
-      }
-
-      if (patch.issueId !== undefined) {
-        if (patch.issueId) {
-          setIssue(await getIssueById(patch.issueId));
-        } else {
-          setIssue(null);
-        }
-      }
-    } finally {
-      isRemoteUpdate.current = false;
-    }
-  }, [customer?.id]);
-
-  const applySnapshot = useCallback(async (snapshot: WorkspaceSnapshot) => {
-    isRemoteUpdate.current = true;
-    try {
-      setFormState(snapshot.form);
-      setPhase(snapshot.phase);
-      setChecked(snapshot.checked);
-      setVerificationChecked(snapshot.verificationChecked);
-      setOutcome(snapshot.outcome);
-      setComposeMode(snapshot.composeMode);
-
-      const nextCustomer = snapshot.customerId
-        ? (CUSTOMERS.find((c) => c.id === snapshot.customerId) ?? null)
-        : null;
-      setCustomer(nextCustomer);
-
-      const nextProperty =
-        snapshot.propertyId && nextCustomer
-          ? (PROPERTIES.find((p) => p.id === snapshot.propertyId) ?? null)
-          : null;
-      setProperty(nextProperty);
-
-      if (snapshot.issueId) {
-        const nextIssue = await getIssueById(snapshot.issueId);
-        setIssue(nextIssue);
-      } else {
-        setIssue(null);
-      }
-    } finally {
-      isRemoteUpdate.current = false;
-    }
-  }, []);
-
-  const setForm = useCallback(
-    (next: FormState) => {
-      setFormState(next);
-      if (isRemoteUpdate.current) return;
-      if (formBroadcastTimer.current) window.clearTimeout(formBroadcastTimer.current);
-      formBroadcastTimer.current = window.setTimeout(() => {
-        broadcastPatch({ form: next });
-      }, 120);
-    },
-    [broadcastPatch],
-  );
-
-  const closeDetachedWindow = useCallback(() => {
-    if (pipWindowRef.current && !pipWindowRef.current.closed) {
-      pipWindowRef.current.close();
-    }
-    pipWindowRef.current = null;
-    setPipWindow(null);
-
-    if (popupRef.current && !popupRef.current.closed) {
-      popupRef.current.close();
-    }
-    popupRef.current = null;
-  }, []);
-
-  const closePopupWindow = useCallback(() => {
-    closeDetachedWindow();
-  }, [closeDetachedWindow]);
-
-  const clearAll = useCallback(() => {
-    closePopupWindow();
-    setPhase("browse");
-    setCustomer(null);
-    setProperty(null);
-    setIssue(null);
-    setChecked({});
-    setVerificationChecked({});
-    setOutcome(null);
-    setFormState(emptyForm());
-    setComposeMode("closed");
-    syncRef.current.post({ type: "SUBMIT_SUCCESS" });
-    if (isPopupWindow) {
-      window.close();
-    }
-  }, [closePopupWindow, isPopupWindow]);
-
-  const createIncident = useCreateIncidentMutation({ onSuccess: clearAll });
-
-  const attachCompose = useCallback(() => {
-    closeDetachedWindow();
-    setComposeMode("expanded");
-    syncRef.current.post({ type: "ATTACH" });
-    broadcastFull({ composeMode: "expanded", detached: false });
-  }, [broadcastFull, closeDetachedWindow]);
-
-  const detachCompose = useCallback(() => {
-    if (composeMode === "detached") {
-      attachCompose();
-      return;
-    }
-
-    void (async () => {
-      try {
-        const pip = await openComposePipWindow();
-        pipWindowRef.current = pip;
-        setPipWindow(pip);
-        setComposeMode("detached");
-
-        watchPipClosed(pip, () => {
-          pipWindowRef.current = null;
-          setPipWindow(null);
-          if (isPopupWindow) return;
-          setComposeMode((mode) => (mode === "detached" ? "expanded" : mode));
-        });
-        return;
-      } catch {
-        // Fall back to a separate browser window when PiP is unavailable.
-      }
-
-      const popup = openComposePopup();
-      if (!popup) return;
-
-      popupRef.current = popup;
-      setComposeMode("detached");
-      syncRef.current.post({ type: "DETACH" });
-      broadcastFull({ composeMode: "detached", detached: true });
-
-      watchPopupClosed(popup, () => {
-        popupRef.current = null;
-        if (isPopupWindow) return;
-        setComposeMode("expanded");
-        syncRef.current.post({ type: "ATTACH" });
-      });
-    })();
-  }, [attachCompose, broadcastFull, composeMode, isPopupWindow]);
-
   const selectCustomer = useCallback(
     (next: Customer) => {
-      setCustomer(next);
-      setProperty(null);
-      setIssue(null);
-      setChecked({});
-      setVerificationChecked({});
-      setOutcome(null);
-      setPhase("customer");
+      dispatchSelection({
+        type: "SET",
+        payload: {
+          phase: "customer",
+          customer: next,
+          property: null,
+          issue: null,
+        },
+      });
+      dispatchChecklist({ type: "RESET" });
       broadcastPatch({
         customerId: next.id,
         propertyId: null,
@@ -334,12 +242,11 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
 
   const selectProperty = useCallback(
     (next: Property) => {
-      setProperty(next);
-      setIssue(null);
-      setChecked({});
-      setVerificationChecked({});
-      setOutcome(null);
-      setPhase("property");
+      dispatchSelection({
+        type: "PATCH",
+        payload: { property: next, issue: null, phase: "property" },
+      });
+      dispatchChecklist({ type: "RESET" });
       broadcastPatch({
         propertyId: next.id,
         issueId: null,
@@ -354,32 +261,27 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
 
   const selectIssue = useCallback(
     (next: Issue) => {
-      setIssue(next);
-      setFormState((current) => {
-        const synced = syncFormFromIssue(current, next);
-        broadcastPatch({
-          issueId: next.id,
-          phase: "protocol",
-          checked: {},
-          verificationChecked: {},
-          outcome: null,
-          form: synced,
-        });
-        return synced;
+      dispatchSelection({
+        type: "PATCH",
+        payload: { issue: next, phase: "protocol" },
       });
-      setChecked({});
-      setVerificationChecked({});
-      setOutcome(null);
-      setPhase("protocol");
+      dispatchChecklist({ type: "RESET" });
+      broadcastPatch({
+        issueId: next.id,
+        phase: "protocol",
+        checked: {},
+        verificationChecked: {},
+        outcome: null,
+      });
     },
     [broadcastPatch],
   );
 
   const changeCustomer = useCallback(() => {
-    setCustomer(null);
-    setProperty(null);
-    setIssue(null);
-    setPhase("browse");
+    dispatchSelection({
+      type: "SET",
+      payload: { phase: "browse", customer: null, property: null, issue: null },
+    });
     broadcastPatch({
       customerId: null,
       propertyId: null,
@@ -389,383 +291,73 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
   }, [broadcastPatch]);
 
   const changeProperty = useCallback(() => {
-    setProperty(null);
-    setIssue(null);
-    setPhase("customer");
+    dispatchSelection({
+      type: "PATCH",
+      payload: { property: null, issue: null, phase: "customer" },
+    });
     broadcastPatch({ propertyId: null, issueId: null, phase: "customer" });
   }, [broadcastPatch]);
 
   const changeIssue = useCallback(() => {
-    setIssue(null);
-    setPhase("property");
-    broadcastPatch({ issueId: null, phase: "property" });
-  }, [broadcastPatch]);
-
-  const resetWorkspaceSelection = useCallback(() => {
-    setPhase("browse");
-    setCustomer(null);
-    setProperty(null);
-    setIssue(null);
-    setChecked({});
-    setVerificationChecked({});
-    setOutcome(null);
-    broadcastPatch({
-      customerId: null,
-      propertyId: null,
-      issueId: null,
-      phase: "browse",
-      checked: {},
-      verificationChecked: {},
-      outcome: null,
+    dispatchSelection({
+      type: "PATCH",
+      payload: { issue: null, phase: "property" },
     });
+    broadcastPatch({ issueId: null, phase: "property" });
   }, [broadcastPatch]);
 
   const hydrateFromSearch = useCallback(
     async (search: WorkspaceSearch) => {
-      if (!search.customerId) {
-        resetWorkspaceSelection();
-        return;
-      }
+      const resolution = await resolveWorkspaceFromUrl(search);
 
-      const nextCustomer = CUSTOMERS.find((c) => c.id === search.customerId) ?? null;
-      if (!nextCustomer) {
-        resetWorkspaceSelection();
-        return;
-      }
-
-      if (!search.propertyId) {
-        setCustomer(nextCustomer);
-        setProperty(null);
-        setIssue(null);
-        setChecked({});
-        setVerificationChecked({});
-        setOutcome(null);
-        setPhase("customer");
-        broadcastPatch({
-          customerId: nextCustomer.id,
-          propertyId: null,
-          issueId: null,
-          phase: "customer",
-          checked: {},
-          verificationChecked: {},
-          outcome: null,
-        });
-        return;
-      }
-
-      const nextProperty = PROPERTIES.find((p) => p.id === search.propertyId) ?? null;
-      if (!nextProperty || !nextCustomer.propertyIds.includes(nextProperty.id)) {
-        setCustomer(nextCustomer);
-        setProperty(null);
-        setIssue(null);
-        setChecked({});
-        setVerificationChecked({});
-        setOutcome(null);
-        setPhase("customer");
-        broadcastPatch({
-          customerId: nextCustomer.id,
-          propertyId: null,
-          issueId: null,
-          phase: "customer",
-          checked: {},
-          verificationChecked: {},
-          outcome: null,
-        });
-        return;
-      }
-
-      if (!search.issueId) {
-        setCustomer(nextCustomer);
-        setProperty(nextProperty);
-        setIssue(null);
-        setChecked({});
-        setVerificationChecked({});
-        setOutcome(null);
-        setPhase("property");
-        broadcastPatch({
-          customerId: nextCustomer.id,
-          propertyId: nextProperty.id,
-          issueId: null,
-          phase: "property",
-          checked: {},
-          verificationChecked: {},
-          outcome: null,
-        });
-        return;
-      }
-
-      const nextIssue = await getIssueById(search.issueId);
-      if (!nextIssue) {
-        setCustomer(nextCustomer);
-        setProperty(nextProperty);
-        setIssue(null);
-        setChecked({});
-        setVerificationChecked({});
-        setOutcome(null);
-        setPhase("property");
-        broadcastPatch({
-          customerId: nextCustomer.id,
-          propertyId: nextProperty.id,
-          issueId: null,
-          phase: "property",
-          checked: {},
-          verificationChecked: {},
-          outcome: null,
-        });
-        return;
-      }
-
-      setCustomer(nextCustomer);
-      setProperty(nextProperty);
-      setIssue(nextIssue);
-      setChecked({});
-      setVerificationChecked({});
-      setOutcome(null);
-      setPhase("protocol");
-      setFormState((current) => {
-        const synced = syncFormFromIssue(current, nextIssue);
-        broadcastFull({
-          customerId: nextCustomer.id,
-          propertyId: nextProperty.id,
-          issueId: nextIssue.id,
-          phase: "protocol",
-          form: synced,
-          checked: {},
-          verificationChecked: {},
-          outcome: null,
-        });
-        return synced;
+      dispatchSelection({
+        type: "SET",
+        payload: {
+          phase: resolution.phase,
+          customer: resolution.customer,
+          property: resolution.property,
+          issue: resolution.issue,
+        },
       });
-    },
-    [broadcastFull, broadcastPatch, resetWorkspaceSelection],
-  );
-
-  const clearForm = useCallback(() => {
-    setChecked({});
-    setVerificationChecked({});
-    setOutcome(null);
-    const nextForm = baselineForm(issue);
-    setFormState(nextForm);
-    broadcastPatch({
-      form: nextForm,
-      checked: {},
-      verificationChecked: {},
-      outcome: null,
-    });
-  }, [broadcastPatch, issue]);
-
-  const openCompose = useCallback(
-    (mode: Exclude<ComposeMode, "closed"> = "expanded") => {
-      setComposeMode(mode);
-      broadcastPatch({ composeMode: mode, detached: mode === "detached" });
+      dispatchChecklist({ type: "RESET" });
+      broadcastPatch(resolution.syncPatch);
     },
     [broadcastPatch],
   );
-
-  const closeCompose = useCallback(() => {
-    if (composeMode === "detached" && !isPopupWindow) {
-      closeDetachedWindow();
-    }
-    setComposeMode("closed");
-    broadcastPatch({ composeMode: "closed", detached: false });
-    if (isPopupWindow) {
-      window.close();
-    }
-  }, [broadcastPatch, closeDetachedWindow, composeMode, isPopupWindow]);
-
-  const minimizeCompose = useCallback(() => {
-    setComposeMode("minimized");
-    broadcastPatch({ composeMode: "minimized", detached: false });
-  }, [broadcastPatch]);
-
-  const expandCompose = useCallback(() => {
-    setComposeMode("expanded");
-    broadcastPatch({ composeMode: "expanded", detached: false });
-  }, [broadcastPatch]);
-
-  useEffect(() => {
-    if (!issue) return;
-    setFormState((current) => syncFormFromIssue(current, issue));
-    setChecked({});
-    setVerificationChecked({});
-    setOutcome(null);
-  }, [issue]);
-
-  useEffect(() => {
-    if (!issue) return;
-    setFormState((current) => syncNotesFromSteps(current, issue, checked));
-  }, [checked, issue]);
-
-  useEffect(() => {
-    if (!outcome) return;
-    setFormState((current) => ({
-      ...current,
-      status: outcome === "resolve" ? "Resolved" : "Unresolved - Escalation Handover",
-    }));
-  }, [outcome]);
-
-  const applyPatchRef = useRef(applyPatch);
-  const applySnapshotRef = useRef(applySnapshot);
-  const buildSnapshotRef = useRef(buildSnapshot);
-  const closePopupWindowRef = useRef(closePopupWindow);
-
-  useEffect(() => {
-    applyPatchRef.current = applyPatch;
-  }, [applyPatch]);
-
-  useEffect(() => {
-    applySnapshotRef.current = applySnapshot;
-  }, [applySnapshot]);
-
-  useEffect(() => {
-    buildSnapshotRef.current = buildSnapshot;
-  }, [buildSnapshot]);
-
-  useEffect(() => {
-    closePopupWindowRef.current = closePopupWindow;
-  }, [closePopupWindow]);
-
-  useEffect(() => {
-    const sync = syncRef.current;
-    const unsubscribe = sync.subscribe((message) => {
-      if (message.type === "SYNC_FULL") {
-        void applySnapshotRef.current(message.snapshot);
-        return;
-      }
-      if (message.type === "SYNC_PATCH") {
-        void applyPatchRef.current(message.patch);
-        return;
-      }
-      if (message.type === "REQUEST_FULL") {
-        if (!isPopupWindow) {
-          sync.post({ type: "SYNC_FULL", snapshot: buildSnapshotRef.current() });
-        }
-        return;
-      }
-      if (message.type === "DETACH") {
-        if (!isPopupWindow) {
-          setComposeMode("detached");
-        }
-        return;
-      }
-      if (message.type === "ATTACH") {
-        if (isPopupWindow) {
-          window.close();
-          return;
-        }
-        setComposeMode("expanded");
-        closePopupWindowRef.current();
-        return;
-      }
-      if (message.type === "SUBMIT_SUCCESS") {
-        if (isPopupWindow) {
-          window.close();
-          return;
-        }
-        closePopupWindowRef.current();
-        setPhase("browse");
-        setCustomer(null);
-        setProperty(null);
-        setIssue(null);
-        setChecked({});
-        setVerificationChecked({});
-        setOutcome(null);
-        setFormState(emptyForm());
-        setComposeMode("closed");
-      }
-    });
-
-    if (isPopupWindow) {
-      sync.post({ type: "REQUEST_FULL" });
-    }
-
-    return () => {
-      unsubscribe();
-    };
-  }, [isPopupWindow]);
-
-  useEffect(() => {
-    return () => {
-      syncRef.current.close();
-    };
-  }, []);
-
-  const submitIncident = useCallback(() => {
-    createIncident.mutate({
-      callerName: form.callerName,
-      callerContact: form.callerContact,
-      reservation: form.reservation,
-      nameOnBooking: form.nameOnBooking,
-      incidentType: form.incidentType,
-      issueSummary: form.issueSummary,
-      actions: form.actions,
-      priority: form.priority,
-      status: form.status,
-      callNotes: form.callNotes,
-      customerId: customer?.id,
-      propertyId: property?.id,
-      propertyLabel: property?.name,
-      protocolIssueId: issue?.id,
-    });
-  }, [createIncident, form, customer, property, issue]);
 
   const toggleStep = useCallback(
     (id: string) => {
-      setChecked((current) => {
-        const next = { ...current, [id]: !current[id] };
-        broadcastPatch({ checked: next });
-        return next;
+      dispatchChecklist({
+        type: "PATCH",
+        payload: {
+          checked: { ...checklist.checked, [id]: !checklist.checked[id] },
+        },
       });
+      const next = { ...checklist.checked, [id]: !checklist.checked[id] };
+      broadcastPatch({ checked: next });
     },
-    [broadcastPatch],
+    [broadcastPatch, checklist.checked],
   );
 
   const toggleVerification = useCallback(
     (id: string) => {
-      setVerificationChecked((current) => {
-        const next = { ...current, [id]: !current[id] };
-        broadcastPatch({ verificationChecked: next });
-        return next;
-      });
+      const next = { ...checklist.verificationChecked, [id]: !checklist.verificationChecked[id] };
+      dispatchChecklist({ type: "PATCH", payload: { verificationChecked: next } });
+      broadcastPatch({ verificationChecked: next });
     },
-    [broadcastPatch],
+    [broadcastPatch, checklist.verificationChecked],
   );
 
-  const setOutcomeWithSync = useCallback(
+  const setOutcome = useCallback(
     (next: "resolve" | "escalate") => {
-      setOutcome(next);
+      dispatchChecklist({ type: "PATCH", payload: { outcome: next } });
       broadcastPatch({ outcome: next });
     },
     [broadcastPatch],
   );
 
-  const formDirty = isFormDirty(form, issue);
-  const isDetached = composeMode === "detached";
-
-  const value = useMemo(
-    (): WorkspaceContextValue => ({
-      phase,
-      customer,
-      property,
-      issue,
-      checked,
-      verificationChecked,
-      outcome,
-      form,
-      composeMode,
-      isDetached,
-      isPopupWindow,
-      pipWindow,
-      isFormDirty: formDirty,
-      setForm,
-      setOutcome: setOutcomeWithSync,
-      setComposeMode,
-      openCompose,
-      closeCompose,
-      minimizeCompose,
-      detachCompose,
-      attachCompose,
-      expandCompose,
+  const actions = useMemo(
+    (): WorkspaceInternalActions => ({
       selectCustomer,
       selectProperty,
       selectIssue,
@@ -773,35 +365,15 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
       changeProperty,
       changeIssue,
       hydrateFromSearch,
-      clearAll,
-      clearForm,
-      submitIncident,
+      resetAfterSubmit,
       toggleStep,
       toggleVerification,
-      isSubmitting: createIncident.isPending,
+      setOutcome,
+      resetChecklist,
+      applyRemotePatch,
+      applyRemoteSnapshot,
     }),
     [
-      phase,
-      customer,
-      property,
-      issue,
-      checked,
-      verificationChecked,
-      outcome,
-      form,
-      composeMode,
-      isDetached,
-      isPopupWindow,
-      pipWindow,
-      formDirty,
-      setForm,
-      setOutcomeWithSync,
-      openCompose,
-      closeCompose,
-      minimizeCompose,
-      detachCompose,
-      attachCompose,
-      expandCompose,
       selectCustomer,
       selectProperty,
       selectIssue,
@@ -809,24 +381,39 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
       changeProperty,
       changeIssue,
       hydrateFromSearch,
-      clearAll,
-      clearForm,
-      submitIncident,
+      resetAfterSubmit,
       toggleStep,
       toggleVerification,
-      createIncident.isPending,
+      setOutcome,
+      resetChecklist,
+      applyRemotePatch,
+      applyRemoteSnapshot,
     ],
   );
 
-  return <WorkspaceContext.Provider value={value}>{children}</WorkspaceContext.Provider>;
+  const value = useMemo(
+    (): WorkspaceInternalContextValue => ({
+      state: { selection, checklist },
+      actions,
+      broadcastPatch,
+    }),
+    [selection, checklist, actions, broadcastPatch],
+  );
+
+  return (
+    <WorkspaceContext.Provider value={value}>
+      <IncidentComposeProvider syncRef={syncRef}>{children}</IncidentComposeProvider>
+    </WorkspaceContext.Provider>
+  );
 }
 
+/** Call flow: customer/property/issue selection and protocol checklist. */
 export function useWorkspaceContext() {
-  const ctx = useContext(WorkspaceContext);
+  const ctx = use(WorkspaceContext);
   if (!ctx) {
     throw new Error("useWorkspaceContext must be used within WorkspaceProvider.");
   }
   return ctx;
 }
 
-export type WorkspaceState = ReturnType<typeof useWorkspaceContext>;
+export { isIncidentFormDirty } from "@/features/incidents/lib/incident-form-baseline";
