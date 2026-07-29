@@ -32,7 +32,7 @@
   --color-input-border: #d7dde5;
   --color-input-border-focus: #1a73e8;
   --color-grid-divider: #eef0f4;
-  --color-grid-header-bg: #f7f8fa;
+  --color-grid-header-bg: #eceff4;
 
   /* Semantic (AiGency + shadcn aliases) */
   --color-success: var(--success);

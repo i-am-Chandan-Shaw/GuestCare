@@ -18,8 +18,8 @@ function IssueCell({ data }: ICellRendererParams<IncidentLog>) {
   if (!data) return null;
   return (
     <div className="flex min-w-0 flex-col justify-center py-1">
-      <p className="truncate text-[13px] font-semibold text-text-primary">{data.issueSummary}</p>
-      <p className="truncate text-[12px] text-text-secondary">{data.incidentType}</p>
+      <p className="truncate text-[13px] text-text-primary">{data.issueSummary}</p>
+      <p className="truncate text-[13px] text-text-secondary">{data.incidentType}</p>
     </div>
   );
 }
@@ -38,7 +38,7 @@ export const reportsTableColumnDefs: ColDef<IncidentLog>[] = [
     colId: "reportId",
     width: 120,
     minWidth: 100,
-    cellClass: "font-mono text-[12px] tabular-nums text-text-secondary",
+    cellClass: "tabular-nums text-text-secondary",
     suppressSizeToFit: true,
   },
   {
