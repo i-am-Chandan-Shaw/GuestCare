@@ -1,6 +1,5 @@
 import { LifeBuoy } from "lucide-react";
 import { useState } from "react";
-import { useRouter } from "@tanstack/react-router";
 import { Button } from "@/components/ui/Button";
 import { login } from "@/features/auth/api/auth.api";
 import { loginSchema } from "@/features/auth/lib/login-schema";
@@ -8,7 +7,6 @@ import { safeRedirectPath } from "@/features/auth/lib/require-auth";
 import { Field, Input } from "@/features/incidents/components/incident-form-controls";
 
 export function LoginPage({ redirectTo }: { redirectTo?: string }) {
-  const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -27,8 +25,7 @@ export function LoginPage({ redirectTo }: { redirectTo?: string }) {
     setIsSubmitting(true);
     try {
       await login(parsed.data);
-      await router.invalidate();
-      await router.navigate({ href: safeRedirectPath(redirectTo) });
+      window.location.assign(safeRedirectPath(redirectTo));
     } catch (err) {
       setError(err instanceof Error ? err.message : "Sign in failed");
     } finally {

@@ -8,7 +8,7 @@ import { useWorkspace } from "@/features/workspace/hooks/useWorkspace";
 import type { WorkspaceSearch } from "@/features/workspace/lib/workspace-url";
 import type { Customer, Issue, Property } from "@/shared/types";
 
-const workspaceRoute = getRouteApi("/");
+const workspaceRoute = getRouteApi("/_authenticated/");
 
 export function CallWorkspace() {
   const navigate = useNavigate();

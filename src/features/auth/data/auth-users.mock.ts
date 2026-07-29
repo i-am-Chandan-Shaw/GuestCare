@@ -1,15 +1,14 @@
 import { AGENTS } from "@/shared/constants/agent";
 
-const DEV_PASSWORD = process.env.AUTH_DEV_PASSWORD ?? "guestcare";
+const MOCK_EMAIL = "chandan@guestcare.com";
+const MOCK_PASSWORD = process.env.AUTH_DEV_PASSWORD ?? "admin";
+const MOCK_AGENT = AGENTS.find((agent) => agent.id === "agent-chandan");
 
 export function findMockAuthUser(email: string, password: string) {
-  if (password !== DEV_PASSWORD) return null;
-
   const normalized = email.trim().toLowerCase();
-  const agent = AGENTS.find(
-    (entry) => `${entry.handle.replace("@", "")}@guestcare.io` === normalized,
-  );
-  if (!agent) return null;
+  if (normalized !== MOCK_EMAIL || password !== MOCK_PASSWORD || !MOCK_AGENT) {
+    return null;
+  }
 
-  return { email: normalized, agent };
+  return { email: MOCK_EMAIL, agent: MOCK_AGENT };
 }

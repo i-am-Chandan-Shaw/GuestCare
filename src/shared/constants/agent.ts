@@ -12,6 +12,14 @@ export const CURRENT_AGENT: AgentProfile = {
 export const AGENTS: AgentProfile[] = [
   CURRENT_AGENT,
   {
+    id: "agent-chandan",
+    name: "Chandan Shaw",
+    handle: "@chandan",
+    initials: "CS",
+    role: "Support Agent",
+    shift: "IN · 09:00–18:00",
+  },
+  {
     id: "agent-james",
     name: "James Okonkwo",
     handle: "@james",

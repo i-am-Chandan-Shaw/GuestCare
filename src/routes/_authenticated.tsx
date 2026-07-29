@@ -4,7 +4,7 @@ import { WorkspaceProvider } from "@/features/workspace/context/WorkspaceProvide
 
 export const Route = createFileRoute("/_authenticated")({
   beforeLoad: ({ context, location }) => {
-    requireAuth(context.auth, location.pathname + location.search);
+    requireAuth(context.auth, location.href);
   },
   component: AuthenticatedLayout,
 });
