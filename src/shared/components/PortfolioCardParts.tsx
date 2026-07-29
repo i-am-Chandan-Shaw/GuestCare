@@ -8,7 +8,8 @@ export const PORTFOLIO_CARD_TITLE_CLASS =
 export function portfolioCardClassName() {
   return cn(
     "group w-full cursor-pointer rounded-md border border-border-color bg-card-bg text-left shadow-none",
-    "transition-colors hover:border-border-color hover:bg-app-bg/60",
+    "transition-[border-color,background-color,box-shadow] duration-200",
+    "hover:border-input-border hover:bg-app-bg hover:shadow-[0_1px_3px_rgba(27,37,89,0.06),0_4px_12px_rgba(27,37,89,0.06)]",
   );
 }
 

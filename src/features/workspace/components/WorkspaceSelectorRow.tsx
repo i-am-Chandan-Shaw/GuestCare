@@ -46,13 +46,13 @@ export function WorkspaceSelectorRow({
 
   return (
     <nav
-      className="flex w-full min-w-0 items-center gap-1 rounded-lg border border-[#E5E7EB] bg-white px-4 py-2"
+      className="flex w-full min-w-0 items-center gap-1 rounded-lg  bg-white px-4 pl-0 py-2"
       aria-label="Workspace steps"
     >
       <div className="flex min-w-0 flex-1 basis-0 justify-start overflow-hidden">
         <WorkspaceStep
           stepNumber={1}
-          label="Customer"
+          label="Select customer"
           value={customer?.name}
           icon={<User strokeWidth={1.75} />}
           state={states.customer}
@@ -65,7 +65,7 @@ export function WorkspaceSelectorRow({
       <div className="flex min-w-0 flex-1 basis-0 justify-center overflow-hidden">
         <WorkspaceStep
           stepNumber={2}
-          label="Property"
+          label="Select property"
           value={property?.name}
           icon={<Building2 strokeWidth={1.75} />}
           state={states.property}
@@ -78,7 +78,7 @@ export function WorkspaceSelectorRow({
       <div className="flex min-w-0 flex-1 basis-0 justify-center overflow-hidden">
         <WorkspaceStep
           stepNumber={3}
-          label="Issue"
+          label="Select issue"
           value={issue?.name}
           icon={<ClipboardList strokeWidth={1.75} />}
           state={states.issue}

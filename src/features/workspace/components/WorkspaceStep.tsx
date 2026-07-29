@@ -20,7 +20,7 @@ export function WorkspaceStep({
   onClear,
 }: {
   stepNumber: 1 | 2 | 3;
-  label: "Customer" | "Property" | "Issue";
+  label: "Select customer" | "Select property" | "Select issue";
   value?: string | null;
   icon: ReactNode;
   state: WorkspaceStepState;

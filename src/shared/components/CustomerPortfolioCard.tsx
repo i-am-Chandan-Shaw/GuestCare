@@ -108,7 +108,7 @@ export function CustomerPortfolioCard({
       </div>
 
       <ChevronRight
-        className="ml-6 mr-1 h-4 w-4 shrink-0 text-text-muted transition-colors group-hover:text-text-secondary"
+        className="ml-6 mr-1 h-4 w-4 shrink-0 text-text-muted transition-[color,transform] duration-200 group-hover:translate-x-1 group-hover:text-text-secondary"
         strokeWidth={1.75}
         aria-hidden
       />

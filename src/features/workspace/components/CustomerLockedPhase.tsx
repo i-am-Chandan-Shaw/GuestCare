@@ -34,10 +34,10 @@ export function CustomerLockedPhase({
   }
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
-      <div className="shrink-0 bg-app-bg px-5 pt-3 pb-4">
+    <div className="flex min-h-0 flex-1 flex-col overflow-hidden bg-white">
+      <div className="shrink-0 bg-white px-5 pt-3 pb-4">
         <SearchToolbar
-          className="max-w-md"
+          className="w-full max-w-[250px]"
           value={search}
           onChange={setSearch}
           placeholder="Search properties…"
@@ -49,7 +49,7 @@ export function CustomerLockedPhase({
           }
         />
       </div>
-      <div className="flex min-h-0 flex-1 flex-col overflow-y-auto p-0">
+      <div className="flex min-h-0 flex-1 flex-col overflow-y-auto bg-white p-0">
         {filtered.length === 0 ? (
           <p className="m-5 rounded-md border border-dashed border-border bg-card p-10 text-center text-[13px] text-card-subtext">
             No properties match your search.
