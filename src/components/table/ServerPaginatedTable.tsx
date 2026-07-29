@@ -50,16 +50,12 @@ export function ServerPaginatedTable<TData>({
   className,
   gridRef: externalGridRef,
 }: ServerPaginatedTableProps<TData>) {
-  const [mounted, setMounted] = useState(false);
+  const [mounted] = useState(() => typeof window !== "undefined");
   const internalGridRef = useRef<AgGridReact<TData>>(null);
   const gridRef = externalGridRef ?? internalGridRef;
   const fetchDataRef = useRef(fetchData);
   const isFirstBlockRef = useRef(true);
   const apiRef = useRef<GridApi<TData> | null>(null);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
 
   useEffect(() => {
     fetchDataRef.current = fetchData;

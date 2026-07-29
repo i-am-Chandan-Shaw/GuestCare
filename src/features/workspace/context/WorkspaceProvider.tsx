@@ -316,6 +316,18 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
 
   const hydrateFromSearch = useCallback(
     async (search: WorkspaceSearch) => {
+      const urlCustomerId = search.customerId ?? null;
+      const urlPropertyId = search.propertyId ?? null;
+      const urlIssueId = search.issueId ?? null;
+
+      if (
+        urlCustomerId === (selection.customer?.id ?? null) &&
+        urlPropertyId === (selection.property?.id ?? null) &&
+        urlIssueId === (selection.issue?.id ?? null)
+      ) {
+        return;
+      }
+
       if (!search.customerId) {
         const persisted = readPersistedWorkspace();
         if (persisted?.customerId) {
