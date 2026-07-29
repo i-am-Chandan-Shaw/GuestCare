@@ -1,15 +1,17 @@
-import { useMemo, useState } from "react";
 import { Link } from "@tanstack/react-router";
-import { useIncidentLogs } from "@/features/incidents/hooks/useIncidents";
-import { ReportRow } from "@/features/incidents/components/ReportRow";
+import { useCallback, useEffect, useRef, useState } from "react";
+import type { IGetRowsParams } from "ag-grid-community";
+import type { AgGridReact } from "ag-grid-react";
+import { getIncidentLogsPaginated } from "@/features/incidents/api/incidents.api";
+import { reportsTableColumnDefs } from "@/features/incidents/components/reports-table-columns";
+import { type ReportStatusFilter } from "@/features/incidents/lib/filter-incident-reports";
 import {
-  filterIncidentReports,
-  type ReportStatusFilter,
-} from "@/features/incidents/lib/filter-incident-reports";
-import { LoadingState } from "@/shared/components/LoadingState";
-import { QueryErrorState } from "@/shared/components/QueryErrorState";
+  ServerPaginatedTable,
+  computeInfiniteScrollLastRow,
+} from "@/components/table/ServerPaginatedTable";
 import { SearchToolbar } from "@/shared/components/SearchToolbar";
 import { cn } from "@/lib/utils";
+import type { IncidentLog } from "@/shared/types";
 
 const STATUS_FILTERS: { id: ReportStatusFilter; label: string }[] = [
   { id: "all", label: "All" },
@@ -17,92 +19,123 @@ const STATUS_FILTERS: { id: ReportStatusFilter; label: string }[] = [
   { id: "resolved", label: "Resolved" },
 ];
 
+function useDebouncedValue<T>(value: T, delayMs: number): T {
+  const [debounced, setDebounced] = useState(value);
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => setDebounced(value), delayMs);
+    return () => window.clearTimeout(timer);
+  }, [value, delayMs]);
+
+  return debounced;
+}
+
 export function IncidentReportsPage({ customerId }: { customerId?: string }) {
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState<ReportStatusFilter>("all");
-  const filters = useMemo(() => ({ customerId }), [customerId]);
-  const { data, isLoading, isError, refetch } = useIncidentLogs(filters);
+  const debouncedSearch = useDebouncedValue(search, 300);
+  const gridRef = useRef<AgGridReact<IncidentLog>>(null);
+  const isMounted = useRef(false);
 
-  const filtered = useMemo(
-    () => filterIncidentReports(data ?? [], search, status),
-    [data, search, status],
+  const handleFetchData = useCallback(
+    async (params: IGetRowsParams) => {
+      const startRow = params.startRow ?? 0;
+      const limit = Math.max(1, (params.endRow ?? startRow + 50) - startRow);
+      const page = Math.floor(startRow / limit) + 1;
+
+      const result = await getIncidentLogsPaginated({
+        page,
+        limit,
+        search: debouncedSearch,
+        status,
+        customerId,
+      });
+
+      const lastRow = computeInfiniteScrollLastRow({
+        startRow,
+        rows: result.data,
+        pageSize: limit,
+        totalCountFromApi: result.pagination.total,
+      });
+
+      return { data: result.data, lastRow };
+    },
+    [customerId, debouncedSearch, status],
   );
 
+  useEffect(() => {
+    if (!isMounted.current) {
+      isMounted.current = true;
+      return;
+    }
+    gridRef.current?.api?.purgeInfiniteCache();
+  }, [debouncedSearch, status, customerId]);
+
   return (
-    <div className="flex h-full w-full flex-col gap-5 overflow-y-auto p-4 md:p-4">
-      <div className="rounded-2xl border border-border-color bg-card-bg p-5 shadow-sm">
+    <div className="flex h-full min-h-0 w-full flex-col gap-5 p-4">
+      <div className="shrink-0">
         <h1 className="text-lg font-black uppercase tracking-tight text-text-primary">Reports</h1>
-        <p className="mt-1.5 text-[13px] text-text-secondary">
+        <p className="mt-1 text-[13px] text-text-secondary">
           {customerId
             ? "Incidents for the selected customer."
             : "All logged incidents across customers."}
         </p>
-      </div>
 
-      <div className="rounded-2xl border border-border-color bg-card-bg p-5 shadow-sm space-y-5">
-      {customerId && (
-        <div className="flex items-center justify-between gap-3 rounded-lg border border-border-color bg-app-bg/50 px-4 py-2.5">
-          <p className="text-[13px] text-text-secondary">Showing reports for one customer.</p>
-          <div className="flex items-center gap-4">
+        {customerId && (
+          <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-[13px]">
+            <span className="text-text-secondary">Filtered to one customer.</span>
             <Link
               to="/"
               search={{ customerId }}
-              className="text-[13px] font-medium text-brand-primary hover:underline"
+              className="font-medium text-brand-primary hover:underline"
             >
               Back to workspace
             </Link>
-            <Link to="/reports" className="text-[13px] font-medium text-brand-primary hover:underline">
+            <Link to="/reports" className="font-medium text-brand-primary hover:underline">
               View all reports
             </Link>
           </div>
-        </div>
-      )}
-
-      <SearchToolbar
-        value={search}
-        onChange={setSearch}
-        placeholder="Search reports…"
-        onClear={() => setSearch("")}
-        resultLabel={
-          search.trim() || status !== "all"
-            ? `Showing ${filtered.length} of ${data?.length ?? 0} reports`
-            : undefined
-        }
-      />
-
-      <div className="flex flex-wrap gap-2">
-        {STATUS_FILTERS.map((item) => (
-          <button
-            key={item.id}
-            type="button"
-            onClick={() => setStatus(item.id)}
-            className={cn(
-              "rounded-full border px-3 py-1 text-[12px] font-semibold transition-colors",
-              status === item.id
-                ? "border-brand-primary/20 bg-brand-primary/10 text-brand-primary"
-                : "border-border-color bg-card-bg text-text-secondary hover:bg-app-bg",
-            )}
-          >
-            {item.label}
-          </button>
-        ))}
+        )}
       </div>
 
-      {isLoading && <LoadingState label="Loading reports…" />}
-      {isError && <QueryErrorState onRetry={() => refetch()} />}
+      <div className="flex shrink-0 flex-wrap items-center gap-3">
+        <SearchToolbar
+          layout="inline"
+          className="min-w-[200px] flex-1"
+          value={search}
+          onChange={setSearch}
+          placeholder="Search reports…"
+          onClear={() => setSearch("")}
+        />
 
-      {!isLoading && !isError && (
-        <div className="flex w-full flex-col gap-2">
-          {filtered.map((log) => (
-            <ReportRow key={log.id} log={log} />
+        <div className="flex shrink-0 flex-wrap gap-2">
+          {STATUS_FILTERS.map((item) => (
+            <button
+              key={item.id}
+              type="button"
+              onClick={() => setStatus(item.id)}
+              className={cn(
+                "rounded-full border px-3 py-1 text-[12px] font-semibold transition-colors",
+                status === item.id
+                  ? "border-brand-primary/20 bg-brand-primary/10 text-brand-primary"
+                  : "border-border-color bg-card-bg text-text-secondary hover:bg-app-bg",
+              )}
+            >
+              {item.label}
+            </button>
           ))}
-          {filtered.length === 0 && (
-            <p className="rounded-xl border border-dashed border-border-color bg-app-bg p-10 text-center text-[13px] text-text-secondary">
-              No reports match your filters.
-            </p>
-          )}
         </div>
-      )}
+      </div>
+
+      <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-2xl border border-border-color bg-card-bg shadow-sm">
+        <ServerPaginatedTable<IncidentLog>
+          gridRef={gridRef}
+          columnDefs={reportsTableColumnDefs}
+          fetchData={handleFetchData}
+          getRowId={({ data }) => data.id}
+          emptyMessage="No reports match your filters."
+          height="100%"
+        />
       </div>
     </div>
   );

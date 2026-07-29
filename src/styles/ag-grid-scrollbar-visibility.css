@@ -1,0 +1,32 @@
+.ag-grid-guestcare .ag-body-horizontal-scroll-viewport,
+.ag-grid-guestcare .ag-body-vertical-scroll-viewport,
+.ag-grid-guestcare .ag-center-cols-viewport {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-scroll-thumb) var(--color-scroll-track);
+}
+
+.ag-grid-guestcare .ag-body-horizontal-scroll-viewport::-webkit-scrollbar,
+.ag-grid-guestcare .ag-body-vertical-scroll-viewport::-webkit-scrollbar,
+.ag-grid-guestcare .ag-center-cols-viewport::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+.ag-grid-guestcare .ag-body-horizontal-scroll-viewport::-webkit-scrollbar-track,
+.ag-grid-guestcare .ag-body-vertical-scroll-viewport::-webkit-scrollbar-track,
+.ag-grid-guestcare .ag-center-cols-viewport::-webkit-scrollbar-track {
+  background: var(--color-scroll-track);
+}
+
+.ag-grid-guestcare .ag-body-horizontal-scroll-viewport::-webkit-scrollbar-thumb,
+.ag-grid-guestcare .ag-body-vertical-scroll-viewport::-webkit-scrollbar-thumb,
+.ag-grid-guestcare .ag-center-cols-viewport::-webkit-scrollbar-thumb {
+  background: var(--color-scroll-thumb);
+  border-radius: 999px;
+}
+
+.ag-grid-guestcare .ag-body-horizontal-scroll-viewport::-webkit-scrollbar-thumb:hover,
+.ag-grid-guestcare .ag-body-vertical-scroll-viewport::-webkit-scrollbar-thumb:hover,
+.ag-grid-guestcare .ag-center-cols-viewport::-webkit-scrollbar-thumb:hover {
+  background: var(--color-scroll-thumb-hover);
+}

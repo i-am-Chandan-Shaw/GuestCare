@@ -1,7 +1,14 @@
 import { z } from "zod";
 import { CUSTOMERS } from "@/data/mock";
 import { INCIDENT_LOGS as SEED_INCIDENT_LOGS } from "@/data/incidents";
-import type { CreateIncidentInput, IncidentLog, IncidentLogFilters } from "@/shared/types";
+import { filterIncidentReports } from "@/features/incidents/lib/filter-incident-reports";
+import type {
+  CreateIncidentInput,
+  IncidentLog,
+  IncidentLogFilters,
+  IncidentLogsQuery,
+  PaginatedIncidentLogs,
+} from "@/shared/types";
 
 const incidentStore: IncidentLog[] = SEED_INCIDENT_LOGS.map((log) => ({
   ...log,
@@ -62,6 +69,44 @@ export async function getIncidentLogs(filters: IncidentLogFilters = {}): Promise
   }
 
   return results;
+}
+
+export async function getIncidentLogsPaginated(
+  query: IncidentLogsQuery,
+): Promise<PaginatedIncidentLogs> {
+  const { page, limit, search = "", status = "all", customerId } = query;
+
+  let results = [...incidentStore];
+
+  if (customerId) {
+    const propertyIds = new Set(
+      CUSTOMERS.find((c) => c.id === customerId)?.propertyIds ?? [],
+    );
+    results = results.filter(
+      (log) =>
+        log.customerId === customerId ||
+        (log.propertyId && propertyIds.has(log.propertyId)),
+    );
+  }
+
+  results.sort((a, b) => (a.timestamp < b.timestamp ? 1 : -1));
+  results = filterIncidentReports(results, search, status);
+
+  const total = results.length;
+  const totalPages = Math.max(1, Math.ceil(total / limit));
+  const safePage = Math.max(1, Math.min(page, totalPages));
+  const start = (safePage - 1) * limit;
+  const data = results.slice(start, start + limit);
+
+  return {
+    data,
+    pagination: {
+      page: safePage,
+      limit,
+      total,
+      totalPages,
+    },
+  };
 }
 
 export async function countOpenIncidents(filters: IncidentLogFilters = {}): Promise<number> {

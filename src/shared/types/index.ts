@@ -203,6 +203,26 @@ export interface IncidentLogFilters {
   limit?: number;
 }
 
+export type IncidentReportStatusFilter = "all" | "open" | "resolved";
+
+export interface IncidentLogsQuery {
+  page: number;
+  limit: number;
+  search?: string;
+  status?: IncidentReportStatusFilter;
+  customerId?: string;
+}
+
+export interface PaginatedIncidentLogs {
+  data: IncidentLog[];
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+  };
+}
+
 export interface AgentProfile {
   id: string;
   name: string;

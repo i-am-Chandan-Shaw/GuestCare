@@ -1,0 +1,54 @@
+.ag-grid-guestcare {
+  --ag-header-height: 44px;
+  --ag-row-height: 48px;
+  --ag-header-foreground-color: var(--color-text-secondary);
+  --ag-foreground-color: var(--color-text-primary);
+  --ag-background-color: var(--color-card-bg);
+  --ag-odd-row-background-color: rgba(247, 248, 250, 0.55);
+  --ag-row-hover-color: rgba(0, 123, 255, 0.04);
+  --ag-border-color: var(--color-grid-divider);
+  --ag-header-background-color: var(--color-grid-header-bg);
+  width: 100%;
+  height: 100%;
+}
+
+.ag-grid-guestcare .ag-root-wrapper {
+  border: none;
+  border-radius: 0;
+  overflow: hidden;
+  background: var(--color-card-bg);
+}
+
+.ag-grid-guestcare .ag-header-cell-label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.ag-grid-guestcare .ag-cell {
+  display: flex;
+  align-items: center;
+  font-size: 13px;
+  line-height: 1.35;
+}
+
+.ag-grid-guestcare .ag-cell-wrap-text {
+  white-space: normal;
+}
+
+.ag-grid-guestcare .ag-overlay-no-rows-center {
+  font-size: 13px;
+  color: var(--color-text-secondary);
+}
+
+.ag-grid-guestcare .ag-overlay-loading-center {
+  font-size: 13px;
+  color: var(--color-text-secondary);
+}
+
+.ag-grid-guestcare .ag-infinite-loading-footer {
+  font-size: 12px;
+  color: var(--color-text-muted);
+  padding: 8px 0;
+}
