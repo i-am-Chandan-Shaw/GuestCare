@@ -104,6 +104,9 @@ export function ReportDetailPanel({ reportId }: { reportId: string }) {
     );
   };
 
+  const isBusy =
+    updateReport.isPending || assignReport.isPending || addComment.isPending;
+
   const handleSave = () => {
     updateReport.mutate({
       callerName: form.callerName,
@@ -145,7 +148,13 @@ export function ReportDetailPanel({ reportId }: { reportId: string }) {
   };
 
   return (
-    <div className="space-y-6 p-5">
+    <div className="relative space-y-6 p-5">
+      {isBusy && (
+        <div
+          className="absolute inset-0 z-10 cursor-wait"
+          aria-hidden
+        />
+      )}
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <p className="font-mono text-[12px] text-text-secondary">{report.id}</p>
@@ -286,7 +295,7 @@ export function ReportDetailPanel({ reportId }: { reportId: string }) {
               type="button"
               variant="secondary"
               onClick={handleAssign}
-              disabled={assignReport.isPending}
+              loading={assignReport.isPending}
             >
               Reassign
             </Button>
@@ -295,7 +304,7 @@ export function ReportDetailPanel({ reportId }: { reportId: string }) {
       </section>
 
       {canEdit && (
-        <Button type="button" onClick={handleSave} disabled={updateReport.isPending}>
+        <Button type="button" onClick={handleSave} loading={updateReport.isPending}>
           Save changes
         </Button>
       )}
@@ -312,7 +321,8 @@ export function ReportDetailPanel({ reportId }: { reportId: string }) {
           type="button"
           variant="secondary"
           onClick={handleComment}
-          disabled={addComment.isPending || !comment.trim()}
+          loading={addComment.isPending}
+          disabled={!comment.trim()}
         >
           Post comment
         </Button>
