@@ -1,7 +1,7 @@
 import { Hash, MessageSquare } from "lucide-react";
 import { useMemo } from "react";
 import { StatusChip } from "@/components/ui/StatusChip";
-import { CURRENT_AGENT } from "@/shared/constants/agent";
+import { useAuth } from "@/features/auth/hooks/useAuth";
 import type { Customer, Issue, Property } from "@/shared/types";
 import type { FormState } from "./incident-form.types";
 
@@ -16,6 +16,7 @@ export function IncidentPreview({
   property: Property | null;
   issue: Issue | null;
 }) {
+  const { agent } = useAuth();
   const timestamp = useMemo(
     () =>
       new Date().toLocaleString("en-GB", {
@@ -99,7 +100,7 @@ export function IncidentPreview({
                 alt="Priya"
                 className="h-4 w-4 rounded-full"
               />
-              {timestamp} · {CURRENT_AGENT.name} ({CURRENT_AGENT.handle})
+              {timestamp} · {agent.name} ({agent.handle})
             </div>
           </div>
         </div>

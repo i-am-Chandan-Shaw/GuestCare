@@ -28,6 +28,7 @@ import {
   watchIncidentPopupClosed,
 } from "@/features/incidents/lib/incident-window-sync";
 import { useCreateIncidentMutation } from "@/features/incidents/hooks/useIncidents";
+import { useAuth } from "@/features/auth/hooks/useAuth";
 import { useWorkspaceContext } from "@/features/workspace/context/WorkspaceProvider";
 import { syncFormFromIssue, syncNotesFromSteps } from "@/features/workspace/lib/workspace-state";
 
@@ -40,6 +41,7 @@ const IncidentComposeContext = createContext<IncidentComposeContextValue | null>
 
 export function IncidentComposeProvider({ children, syncRef }: IncidentComposeProviderProps) {
   const workspace = useWorkspaceContext();
+  const { agent } = useAuth();
   const { selection, checklist } = workspace.state;
   const { customer, property, issue } = selection;
   const { checked, outcome } = checklist;
@@ -236,8 +238,10 @@ export function IncidentComposeProvider({ children, syncRef }: IncidentComposePr
       propertyId: property?.id,
       propertyLabel: property?.name,
       protocolIssueId: issue?.id,
+      agentName: agent.name,
+      submittedBy: agent.handle,
     });
-  }, [createIncident, form, customer, property, issue]);
+  }, [createIncident, form, customer, property, issue, agent]);
 
   useEffect(() => {
     if (!issue) return;

@@ -1,23 +1,22 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod";
 import { AppLayout } from "@/shared/components/AppLayout";
-import { CallWorkspace } from "@/features/workspace";
+import { IncidentReportsPage } from "@/features/incidents";
 
 const searchSchema = z.object({
   customerId: z.string().optional(),
-  propertyId: z.string().optional(),
-  issueId: z.string().optional(),
 });
 
-export const Route = createFileRoute("/")({
+export const Route = createFileRoute("/_authenticated/reports")({
   validateSearch: searchSchema,
-  component: CustomersRoute,
+  component: ReportsRoute,
 });
 
-function CustomersRoute() {
+function ReportsRoute() {
+  const { customerId } = Route.useSearch();
   return (
     <AppLayout>
-      <CallWorkspace />
+      <IncidentReportsPage customerId={customerId} />
     </AppLayout>
   );
 }

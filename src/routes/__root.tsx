@@ -11,7 +11,13 @@ import { useEffect, type ReactNode } from "react";
 import appCss from "../styles.css?url";
 import { Button } from "@/components/ui/Button";
 import { Toaster } from "@/components/ui/sonner";
-import { WorkspaceProvider } from "@/features/workspace/context/WorkspaceProvider";
+import { getSession } from "@/features/auth/api/auth.api";
+import type { AuthSession } from "@/features/auth/types";
+
+export interface RouterContext {
+  queryClient: QueryClient;
+  auth: AuthSession | null;
+}
 
 function NotFoundComponent() {
   return (
@@ -48,15 +54,26 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
   );
 }
 
-export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()({
+export const Route = createRootRouteWithContext<RouterContext>()({
+  beforeLoad: async () => {
+    const auth = await getSession();
+    return { auth };
+  },
   head: () => ({
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
       { title: "GuestCare Live Copilot" },
-      { name: "description", content: "Real-time support workspace for GuestCare agents — property intel, guided protocols, and one-click incident reports." },
+      {
+        name: "description",
+        content:
+          "Real-time support workspace for GuestCare agents — property intel, guided protocols, and one-click incident reports.",
+      },
       { property: "og:title", content: "GuestCare Live Copilot" },
-      { property: "og:description", content: "Real-time support workspace for GuestCare agents." },
+      {
+        property: "og:description",
+        content: "Real-time support workspace for GuestCare agents.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
@@ -66,7 +83,10 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { rel: "icon", href: "/favicon.ico", type: "image/x-icon" },
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
-      { rel: "stylesheet", href: "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&family=JetBrains+Mono:wght@400;500&display=swap" },
+      {
+        rel: "stylesheet",
+        href: "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&family=JetBrains+Mono:wght@400;500&display=swap",
+      },
     ],
   }),
   shellComponent: RootShell,
@@ -78,8 +98,13 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 function RootShell({ children }: { children: ReactNode }) {
   return (
     <html lang="en">
-      <head><HeadContent /></head>
-      <body>{children}<Scripts /></body>
+      <head>
+        <HeadContent />
+      </head>
+      <body>
+        {children}
+        <Scripts />
+      </body>
     </html>
   );
 }
@@ -88,10 +113,8 @@ function RootComponent() {
   const { queryClient } = Route.useRouteContext();
   return (
     <QueryClientProvider client={queryClient}>
-      <WorkspaceProvider>
-        <Outlet />
-        <Toaster />
-      </WorkspaceProvider>
+      <Outlet />
+      <Toaster />
     </QueryClientProvider>
   );
 }

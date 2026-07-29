@@ -56,6 +56,7 @@ export function Input({
   placeholder,
   mono,
   readOnly,
+  type = "text",
   className,
 }: {
   value: string;
@@ -63,10 +64,12 @@ export function Input({
   placeholder?: string;
   mono?: boolean;
   readOnly?: boolean;
+  type?: React.HTMLInputTypeAttribute;
   className?: string;
 }) {
   return (
     <input
+      type={type}
       value={value}
       onChange={onChange ? (e) => onChange(e.target.value) : undefined}
       placeholder={placeholder}

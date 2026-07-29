@@ -1,7 +1,6 @@
 import { z } from "zod";
 import { CUSTOMERS } from "@/data/mock";
 import { INCIDENT_LOGS as SEED_INCIDENT_LOGS } from "@/data/incidents";
-import { CURRENT_AGENT } from "@/shared/constants/agent";
 import type { CreateIncidentInput, IncidentLog, IncidentLogFilters } from "@/shared/types";
 
 const incidentStore: IncidentLog[] = SEED_INCIDENT_LOGS.map((log) => ({
@@ -30,6 +29,8 @@ const createIncidentSchema = z.object({
   propertyId: z.string().optional(),
   propertyLabel: z.string().optional(),
   protocolIssueId: z.string().optional(),
+  agentName: z.string().min(1),
+  submittedBy: z.string().min(1),
 });
 
 export async function getIncidentLogs(filters: IncidentLogFilters = {}): Promise<IncidentLog[]> {
@@ -93,8 +94,8 @@ export async function createIncident(input: CreateIncidentInput): Promise<Incide
     protocolIssueId: parsed.protocolIssueId,
     status: parsed.status as IncidentLog["status"],
     callNotes: parsed.callNotes,
-    agent: CURRENT_AGENT.name,
-    submittedBy: CURRENT_AGENT.handle,
+    agent: parsed.agentName,
+    submittedBy: parsed.submittedBy,
     timestamp,
     priority: parsed.priority,
   };

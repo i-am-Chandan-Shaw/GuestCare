@@ -1,5 +1,5 @@
 import { cn } from "@/lib/utils";
-import { CURRENT_AGENT } from "@/shared/constants/agent";
+import { useAuth } from "@/features/auth/hooks/useAuth";
 import { PORTFOLIO_CARD_TITLE_CLASS } from "@/shared/components/PortfolioCardParts";
 import type { AgentProfile } from "@/shared/types";
 import { Clock, AtSign, Briefcase } from "lucide-react";
@@ -29,7 +29,8 @@ function DataField({
 }
 
 export function AgentRow({ agent }: { agent: AgentProfile }) {
-  const isCurrent = agent.id === CURRENT_AGENT.id;
+  const { agent: sessionAgent } = useAuth();
+  const isCurrent = agent.id === sessionAgent.id;
 
   return (
     <article className="flex w-full gap-4 rounded-sm border border-border/60 bg-card px-4 py-3 text-left">

@@ -192,6 +192,8 @@ export interface CreateIncidentInput {
   propertyId?: string;
   propertyLabel?: string;
   protocolIssueId?: string;
+  agentName: string;
+  submittedBy: string;
 }
 
 export interface IncidentLogFilters {

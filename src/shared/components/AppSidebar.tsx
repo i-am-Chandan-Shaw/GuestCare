@@ -1,7 +1,8 @@
-import { Link, useRouterState } from "@tanstack/react-router";
+import { Link, useRouter, useRouterState } from "@tanstack/react-router";
 import { cn } from "@/lib/utils";
-import { CURRENT_AGENT } from "@/shared/constants/agent";
-import { BarChart3, Users, UserCircle, LifeBuoy } from "lucide-react";
+import { logout } from "@/features/auth/api/auth.api";
+import { useAuth } from "@/features/auth/hooks/useAuth";
+import { BarChart3, Users, UserCircle, LifeBuoy, LogOut } from "lucide-react";
 
 const nav = [
   { id: "customers" as const, label: "Customers", href: "/", icon: Users },
@@ -17,7 +18,15 @@ function useActiveNav() {
 }
 
 export function AppSidebar() {
+  const router = useRouter();
+  const { agent } = useAuth();
   const active = useActiveNav();
+
+  const handleLogout = async () => {
+    await logout();
+    await router.invalidate();
+    await router.navigate({ to: "/login" });
+  };
 
   return (
     <aside className="flex h-full w-[var(--sidebar-width)] shrink-0 flex-col bg-sidebar-bg">
@@ -62,14 +71,23 @@ export function AppSidebar() {
         <div className="flex items-center gap-3 rounded-lg px-2 py-2">
           <div className="relative shrink-0">
             <span className="inline-flex h-8 w-8 items-center justify-center rounded-full btn-primary-gradient text-[10px] font-bold text-white">
-              {CURRENT_AGENT.initials}
+              {agent.initials}
             </span>
             <span className="absolute bottom-0 right-0 h-2 w-2 rounded-full border-2 border-sidebar-bg bg-success" />
           </div>
           <div className="min-w-0 flex-1">
-            <div className="truncate text-[13px] font-medium text-white">{CURRENT_AGENT.name}</div>
-            <div className="truncate text-[11px] text-sidebar-text">{CURRENT_AGENT.role}</div>
+            <div className="truncate text-[13px] font-medium text-white">{agent.name}</div>
+            <div className="truncate text-[11px] text-sidebar-text">{agent.role}</div>
           </div>
+          <button
+            type="button"
+            onClick={handleLogout}
+            className="shrink-0 rounded-lg p-1.5 text-sidebar-text transition-colors hover:bg-white/[0.05] hover:text-white"
+            aria-label="Sign out"
+            title="Sign out"
+          >
+            <LogOut className="h-4 w-4" strokeWidth={1.75} />
+          </button>
         </div>
       </div>
     </aside>
