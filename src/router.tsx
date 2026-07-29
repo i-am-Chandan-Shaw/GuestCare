@@ -20,6 +20,7 @@ export const getRouter = () => {
       auth: null,
     } satisfies RouterContext,
     scrollRestoration: true,
+    defaultPreload: "intent",
     defaultPreloadStaleTime: 0,
   });
 

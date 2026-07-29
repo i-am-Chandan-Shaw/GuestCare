@@ -11,10 +11,11 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as LoginRouteImport } from './routes/login'
-import { Route as AuthenticatedIndexRouteImport } from './routes/_authenticated/index'
-import { Route as AuthenticatedAgentsRouteImport } from './routes/_authenticated/agents'
+import { Route as AuthenticatedShellRouteImport } from './routes/_authenticated/_shell'
 import { Route as AuthenticatedIncidentComposeRouteImport } from './routes/_authenticated/incident-compose'
-import { Route as AuthenticatedReportsRouteImport } from './routes/_authenticated/reports'
+import { Route as AuthenticatedShellIndexRouteImport } from './routes/_authenticated/_shell/index'
+import { Route as AuthenticatedShellAgentsRouteImport } from './routes/_authenticated/_shell/agents'
+import { Route as AuthenticatedShellReportsRouteImport } from './routes/_authenticated/_shell/reports'
 
 const AuthenticatedRoute = AuthenticatedRouteImport.update({
   id: '/_authenticated',
@@ -25,14 +26,8 @@ const LoginRoute = LoginRouteImport.update({
   path: '/login',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AuthenticatedIndexRoute = AuthenticatedIndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => AuthenticatedRoute,
-} as any)
-const AuthenticatedAgentsRoute = AuthenticatedAgentsRouteImport.update({
-  id: '/agents',
-  path: '/agents',
+const AuthenticatedShellRoute = AuthenticatedShellRouteImport.update({
+  id: '/_shell',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
 const AuthenticatedIncidentComposeRoute =
@@ -41,48 +36,62 @@ const AuthenticatedIncidentComposeRoute =
     path: '/incident-compose',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
-const AuthenticatedReportsRoute = AuthenticatedReportsRouteImport.update({
-  id: '/reports',
-  path: '/reports',
-  getParentRoute: () => AuthenticatedRoute,
+const AuthenticatedShellIndexRoute = AuthenticatedShellIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AuthenticatedShellRoute,
 } as any)
+const AuthenticatedShellAgentsRoute =
+  AuthenticatedShellAgentsRouteImport.update({
+    id: '/agents',
+    path: '/agents',
+    getParentRoute: () => AuthenticatedShellRoute,
+  } as any)
+const AuthenticatedShellReportsRoute =
+  AuthenticatedShellReportsRouteImport.update({
+    id: '/reports',
+    path: '/reports',
+    getParentRoute: () => AuthenticatedShellRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
-  '/': typeof AuthenticatedIndexRoute
+  '/': typeof AuthenticatedShellIndexRoute
   '/login': typeof LoginRoute
-  '/agents': typeof AuthenticatedAgentsRoute
   '/incident-compose': typeof AuthenticatedIncidentComposeRoute
-  '/reports': typeof AuthenticatedReportsRoute
+  '/agents': typeof AuthenticatedShellAgentsRoute
+  '/reports': typeof AuthenticatedShellReportsRoute
 }
 export interface FileRoutesByTo {
+  '/': typeof AuthenticatedShellIndexRoute
   '/login': typeof LoginRoute
-  '/agents': typeof AuthenticatedAgentsRoute
   '/incident-compose': typeof AuthenticatedIncidentComposeRoute
-  '/reports': typeof AuthenticatedReportsRoute
-  '/': typeof AuthenticatedIndexRoute
+  '/agents': typeof AuthenticatedShellAgentsRoute
+  '/reports': typeof AuthenticatedShellReportsRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/_authenticated': typeof AuthenticatedRouteWithChildren
   '/login': typeof LoginRoute
-  '/_authenticated/agents': typeof AuthenticatedAgentsRoute
+  '/_authenticated/_shell': typeof AuthenticatedShellRouteWithChildren
   '/_authenticated/incident-compose': typeof AuthenticatedIncidentComposeRoute
-  '/_authenticated/reports': typeof AuthenticatedReportsRoute
-  '/_authenticated/': typeof AuthenticatedIndexRoute
+  '/_authenticated/_shell/agents': typeof AuthenticatedShellAgentsRoute
+  '/_authenticated/_shell/reports': typeof AuthenticatedShellReportsRoute
+  '/_authenticated/_shell/': typeof AuthenticatedShellIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/login' | '/agents' | '/incident-compose' | '/reports'
+  fullPaths: '/' | '/login' | '/incident-compose' | '/agents' | '/reports'
   fileRoutesByTo: FileRoutesByTo
-  to: '/login' | '/agents' | '/incident-compose' | '/reports' | '/'
+  to: '/' | '/login' | '/incident-compose' | '/agents' | '/reports'
   id:
     | '__root__'
     | '/_authenticated'
     | '/login'
-    | '/_authenticated/agents'
+    | '/_authenticated/_shell'
     | '/_authenticated/incident-compose'
-    | '/_authenticated/reports'
-    | '/_authenticated/'
+    | '/_authenticated/_shell/agents'
+    | '/_authenticated/_shell/reports'
+    | '/_authenticated/_shell/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -106,18 +115,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LoginRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/_authenticated/': {
-      id: '/_authenticated/'
-      path: '/'
+    '/_authenticated/_shell': {
+      id: '/_authenticated/_shell'
+      path: ''
       fullPath: '/'
-      preLoaderRoute: typeof AuthenticatedIndexRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
-    '/_authenticated/agents': {
-      id: '/_authenticated/agents'
-      path: '/agents'
-      fullPath: '/agents'
-      preLoaderRoute: typeof AuthenticatedAgentsRouteImport
+      preLoaderRoute: typeof AuthenticatedShellRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/incident-compose': {
@@ -127,28 +129,53 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedIncidentComposeRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
-    '/_authenticated/reports': {
-      id: '/_authenticated/reports'
+    '/_authenticated/_shell/': {
+      id: '/_authenticated/_shell/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof AuthenticatedShellIndexRouteImport
+      parentRoute: typeof AuthenticatedShellRoute
+    }
+    '/_authenticated/_shell/agents': {
+      id: '/_authenticated/_shell/agents'
+      path: '/agents'
+      fullPath: '/agents'
+      preLoaderRoute: typeof AuthenticatedShellAgentsRouteImport
+      parentRoute: typeof AuthenticatedShellRoute
+    }
+    '/_authenticated/_shell/reports': {
+      id: '/_authenticated/_shell/reports'
       path: '/reports'
       fullPath: '/reports'
-      preLoaderRoute: typeof AuthenticatedReportsRouteImport
-      parentRoute: typeof AuthenticatedRoute
+      preLoaderRoute: typeof AuthenticatedShellReportsRouteImport
+      parentRoute: typeof AuthenticatedShellRoute
     }
   }
 }
 
+interface AuthenticatedShellRouteChildren {
+  AuthenticatedShellAgentsRoute: typeof AuthenticatedShellAgentsRoute
+  AuthenticatedShellReportsRoute: typeof AuthenticatedShellReportsRoute
+  AuthenticatedShellIndexRoute: typeof AuthenticatedShellIndexRoute
+}
+
+const AuthenticatedShellRouteChildren: AuthenticatedShellRouteChildren = {
+  AuthenticatedShellAgentsRoute: AuthenticatedShellAgentsRoute,
+  AuthenticatedShellReportsRoute: AuthenticatedShellReportsRoute,
+  AuthenticatedShellIndexRoute: AuthenticatedShellIndexRoute,
+}
+
+const AuthenticatedShellRouteWithChildren =
+  AuthenticatedShellRoute._addFileChildren(AuthenticatedShellRouteChildren)
+
 interface AuthenticatedRouteChildren {
-  AuthenticatedAgentsRoute: typeof AuthenticatedAgentsRoute
+  AuthenticatedShellRoute: typeof AuthenticatedShellRouteWithChildren
   AuthenticatedIncidentComposeRoute: typeof AuthenticatedIncidentComposeRoute
-  AuthenticatedReportsRoute: typeof AuthenticatedReportsRoute
-  AuthenticatedIndexRoute: typeof AuthenticatedIndexRoute
 }
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
-  AuthenticatedAgentsRoute: AuthenticatedAgentsRoute,
+  AuthenticatedShellRoute: AuthenticatedShellRouteWithChildren,
   AuthenticatedIncidentComposeRoute: AuthenticatedIncidentComposeRoute,
-  AuthenticatedReportsRoute: AuthenticatedReportsRoute,
-  AuthenticatedIndexRoute: AuthenticatedIndexRoute,
 }
 
 const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(
