@@ -9,7 +9,7 @@ export function PortfolioCardList({
   className?: string;
 }) {
   return (
-    <div className={cn("flex w-full flex-col gap-3 bg-[#f7f7f5] px-4 pb-4 pt-0", className)}>
+    <div className={cn("flex w-full flex-col gap-3 bg-app-bg px-4 pb-4 pt-0", className)}>
       {children}
     </div>
   );

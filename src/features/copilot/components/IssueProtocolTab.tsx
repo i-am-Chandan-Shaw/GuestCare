@@ -108,7 +108,7 @@ export function IssueProtocolTab({
                 key={step.id}
                 className={cn(
                   "relative flex items-start justify-between gap-4 p-4 rounded-sm border transition-all mb-2",
-                  isCurrent ? "bg-[#f4f7fe] border-primary/20" : "bg-white border-transparent",
+                  isCurrent ? "bg-brand-primary/8 border-brand-primary/20" : "bg-card-bg border-transparent",
                 )}
               >
                 {idx < issue.steps.length - 1 && (
@@ -177,7 +177,7 @@ export function IssueProtocolTab({
                   {isCurrent ? (
                     <button
                       onClick={() => onToggle(step.id)}
-                      className="cursor-pointer flex items-center gap-1.5 rounded-md bg-[#eef3ff] border border-primary/10 px-3.5 py-2 text-[12px] font-bold text-primary hover:bg-[#e4ebfc] transition-colors shadow-sm"
+                      className="flex cursor-pointer items-center gap-1.5 rounded-lg border border-brand-primary/15 bg-brand-primary/10 px-3.5 py-2 text-[12px] font-bold text-brand-primary shadow-sm transition-colors hover:bg-brand-primary/15"
                     >
                       <Check className="h-3.5 w-3.5" strokeWidth={3} /> Done{" "}
                       <ArrowUpRight className="h-3.5 w-3.5 rotate-45" />
@@ -210,8 +210,8 @@ export function IssueProtocolTab({
               incidentActions.openIncidentPanel("expanded");
             }}
             className={cn(
-              "cursor-pointer flex-1 rounded-md bg-[#ebf8f1] border border-[#a3e2c3] px-4 py-2.5 text-[13.5px] font-bold text-[#1f874c] hover:bg-[#dcf3e7] transition-colors flex items-center justify-center gap-2 shadow-sm",
-              outcome === "resolve" && "ring-2 ring-[#1f874c]/40",
+              "flex flex-1 cursor-pointer items-center justify-center gap-2 rounded-lg border border-success/20 bg-success/10 px-4 py-2.5 text-[13px] font-bold text-success shadow-sm transition-colors hover:bg-success/15",
+              outcome === "resolve" && "ring-2 ring-success/40",
             )}
           >
             <Check className="h-4 w-4" strokeWidth={3} />
@@ -223,8 +223,8 @@ export function IssueProtocolTab({
               incidentActions.openIncidentPanel("expanded");
             }}
             className={cn(
-              "cursor-pointer flex-1 rounded-md bg-[#feeeee] border border-[#f5b8b8] px-4 py-2.5 text-[13.5px] font-bold text-[#d83b3b] hover:bg-[#fde2e2] transition-colors flex items-center justify-center gap-2 shadow-sm",
-              outcome === "escalate" && "ring-2 ring-[#d83b3b]/40",
+              "flex flex-1 cursor-pointer items-center justify-center gap-2 rounded-lg border border-danger/20 bg-danger/10 px-4 py-2.5 text-[13px] font-bold text-danger shadow-sm transition-colors hover:bg-danger/15",
+              outcome === "escalate" && "ring-2 ring-danger/40",
             )}
           >
             <AlertTriangle className="h-4 w-4" strokeWidth={3} />

@@ -23,17 +23,17 @@ export function Chip({
   className?: string;
 }) {
   const tones = {
-    default: "bg-muted text-muted-foreground",
-    success: "bg-success/15 text-success",
-    warning: "bg-warning/20 text-warning",
-    danger: "bg-destructive/15 text-destructive",
-    info: "bg-info/15 text-info",
-    outline: "bg-surface text-foreground border-border",
+    default: "bg-muted/80 text-text-secondary border-text-secondary/20",
+    success: "bg-success/10 text-success border-success/20",
+    warning: "bg-warning/10 text-warning border-warning/20",
+    danger: "bg-danger/10 text-danger border-danger/20",
+    info: "bg-info/10 text-info border-info/20",
+    outline: "bg-card-bg text-text-primary border-border-color",
   };
   return (
     <span
       className={cn(
-        "inline-flex items-center gap-1.5 rounded-md px-2 py-0.5 text-[11.5px] font-medium tracking-wide border border-transparent",
+        "inline-flex h-[24px] items-center gap-1.5 rounded-full border px-2 text-[11px] font-semibold backdrop-blur-[2px]",
         tones[tone],
         className,
       )}
@@ -62,13 +62,13 @@ export function SectionCard({
   return (
     <section
       className={cn(
-        "rounded-sm border border-border bg-card shadow-elegant",
+        "rounded-xl border border-border-color bg-card-bg shadow-sm",
         className,
       )}
     >
       {title && (
         <header className="flex items-center justify-between border-b border-border/50 px-4 py-3">
-          <h3 className="min-w-0 flex-1 text-[13.5px] font-semibold text-foreground">{title}</h3>
+          <h3 className="min-w-0 flex-1 text-[13.5px] font-semibold text-text-primary">{title}</h3>
           {action}
         </header>
       )}
@@ -116,7 +116,7 @@ export function Avatar({ initials, size = "md" }: { initials: string; size?: "sm
   return (
     <span
       className={cn(
-        "inline-flex items-center justify-center rounded-full bg-gradient-to-br from-primary/80 to-info/80 font-semibold text-primary-foreground",
+        "inline-flex items-center justify-center rounded-full bg-gradient-to-br from-brand-primary-strong to-brand-primary-soft font-semibold text-white",
         size === "sm" ? "h-6 w-6 text-[10px]" : "h-8 w-8 text-[11px]",
       )}
     >
@@ -129,7 +129,7 @@ export function Avatar({ initials, size = "md" }: { initials: string; size?: "sm
 /*  Shell frame (root layout wrapper)                                  */
 /* ------------------------------------------------------------------ */
 export function ShellFrame({ children }: { children: ReactNode }) {
-  return <div className="flex h-screen w-full flex-row overflow-hidden bg-background text-foreground">{children}</div>;
+  return <div className="flex h-screen w-full flex-row overflow-hidden bg-app-bg text-text-primary">{children}</div>;
 }
 
 /* ------------------------------------------------------------------ */
@@ -150,16 +150,16 @@ export function Tabs<T extends string>({
 }) {
   if (variant === "underline") {
     return (
-      <div className={cn("flex gap-6 border-b border-border/60", className)}>
+      <div className={cn("flex gap-6 border-b border-border-color/60", className)}>
         {tabs.map((t) => (
           <button
             key={t.id}
             onClick={() => onChange(t.id)}
             className={cn(
-              "flex items-center gap-2 border-b-2 px-1 py-3 text-[13px] font-medium transition-colors -mb-[1px]",
+              "flex items-center gap-2 border-b-2 px-1 py-3 text-[13px] font-medium transition-colors -mb-px",
               active === t.id
-                ? "border-primary text-primary"
-                : "border-transparent text-muted-foreground hover:border-border hover:text-foreground",
+                ? "border-brand-primary text-brand-primary"
+                : "border-transparent text-text-secondary hover:border-border-color hover:text-text-primary",
             )}
           >
             {t.icon}
@@ -173,13 +173,9 @@ export function Tabs<T extends string>({
   return (
     <div
       className={cn(
-        "grid w-full grid-cols-[repeat(auto-fit,minmax(0,1fr))] rounded-lg bg-white p-1",
+        "grid h-9 w-full grid-cols-[repeat(auto-fit,minmax(0,1fr))] rounded-lg border border-border-color bg-slate-100/80 p-0.5",
         className,
       )}
-      style={{
-        border: "1px solid #E5E7EB",
-        boxShadow: "0 1px 3px rgba(0,0,0,0.08)",
-      }}
     >
       {tabs.map((t) => {
         const isActive = active === t.id;
@@ -188,12 +184,12 @@ export function Tabs<T extends string>({
             key={t.id}
             type="button"
             onClick={() => onChange(t.id)}
-            className="flex w-full cursor-pointer items-center justify-center gap-1.5 rounded-md px-2 py-[10px] text-[13px] font-bold leading-none transition-colors sm:text-[14px]"
-            style={
+            className={cn(
+              "flex w-full cursor-pointer items-center justify-center gap-1.5 rounded-md px-2 py-1.5 text-[13px] font-semibold leading-none transition-colors",
               isActive
-                ? { backgroundColor: "#50B08B", color: "#ffffff" }
-                : { backgroundColor: "transparent", color: "#111827" }
-            }
+                ? "bg-white text-brand-primary shadow-sm"
+                : "bg-transparent text-text-secondary hover:text-text-primary",
+            )}
           >
             {t.icon}
             {t.label}
@@ -280,7 +276,7 @@ export function Combobox({
     ? createPortal(
         <div
           ref={dropRef}
-          className="popover-enter overflow-hidden rounded-lg border border-border-strong bg-popover shadow-elegant"
+          className="popover-enter overflow-hidden rounded-xl border border-border-color bg-card-bg shadow-lg"
           style={{ position: "fixed", top: pos.top, left: pos.left, width: pos.width, zIndex: 9999 }}
         >
           <div className="flex items-center gap-2 border-b border-border px-4 py-3 bg-surface/50 backdrop-blur">
@@ -334,11 +330,11 @@ export function Combobox({
           setOpen((o) => !o);
         }}
         className={cn(
-          "flex h-11 items-center gap-2.5 rounded-md border border-border bg-surface px-3 text-left text-[13px] transition-colors shadow-sm",
+          "flex h-9 items-center gap-2.5 rounded-lg border border-input-border bg-input-surface px-3 text-left text-xs transition-colors shadow-sm",
           disabled
             ? "opacity-50 cursor-not-allowed"
-            : "hover:border-border-strong hover:bg-surface-2",
-          open && !disabled && "border-primary ring-2 ring-primary/20",
+            : "hover:border-border-color hover:bg-card-bg",
+          open && !disabled && "border-input-border-focus ring-2 ring-brand-primary/20",
           width,
         )}
       >
@@ -413,7 +409,7 @@ export function Drawer({
       {/* Panel */}
       <div
         className={cn(
-          "relative flex h-full flex-col border-l border-border bg-surface",
+          "relative flex h-full flex-col border-l border-border-color bg-card-bg shadow-2xl",
           width,
           exiting ? "drawer-exit" : "drawer-enter",
         )}

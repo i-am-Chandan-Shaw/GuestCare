@@ -24,7 +24,7 @@ export function LockedHeader({
 
   if (showSelector) {
     return (
-      <div className="shrink-0 border-b border-border bg-surface/80 px-5 py-3">
+      <div className="shrink-0 border-b border-border-color bg-white/80 px-5 py-3 backdrop-blur-xl">
         <WorkspaceSelectorRow
           phase={phase}
           customer={customer}
@@ -39,7 +39,7 @@ export function LockedHeader({
   }
 
   return (
-    <div className="shrink-0 border-b border-border bg-surface/80 px-5 py-3">
+    <div className="shrink-0 border-b border-border-color bg-white/80 px-5 py-3 backdrop-blur-xl">
       <div className="flex items-center justify-between gap-3">
         <WorkspaceSelectorRow
           phase={phase}
@@ -54,7 +54,7 @@ export function LockedHeader({
           <Link
             to="/reports"
             search={{ customerId: customer.id }}
-            className="shrink-0 rounded-sm border border-border bg-surface px-2.5 py-1 text-[12px] font-semibold text-primary hover:bg-surface-2"
+            className="shrink-0 rounded-lg border border-border-color bg-card-bg px-2.5 py-1 text-[12px] font-semibold text-brand-primary hover:bg-app-bg"
           >
             View reports
           </Link>

@@ -44,7 +44,7 @@ export function CopyIconButton({ value, label }: { value: string; label: string 
 export function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div className="block">
-      <span className="mb-2 block text-[13.5px] font-semibold text-foreground">{label}</span>
+      <span className="mb-2 block text-[13px] font-semibold text-text-primary">{label}</span>
       {children}
     </div>
   );
@@ -72,10 +72,10 @@ export function Input({
       placeholder={placeholder}
       readOnly={readOnly}
       className={cn(
-        "h-11 w-full rounded-lg border border-border bg-surface px-3 text-[13.5px] text-foreground outline-none transition-all placeholder:text-muted-foreground shadow-sm",
-        "focus:border-primary focus:ring-2 focus:ring-primary/20",
+        "h-11 w-full rounded-lg border border-input-border bg-input-surface px-3 text-[13px] text-text-primary outline-none transition-all placeholder:text-text-secondary shadow-sm",
+        "focus:border-input-border-focus focus:ring-2 focus:ring-brand-primary/20",
         readOnly &&
-          "bg-surface-2/60 text-muted-foreground cursor-default focus:ring-0 focus:border-border",
+          "bg-app-bg/60 text-text-secondary cursor-default focus:ring-0 focus:border-input-border",
         mono && "font-mono",
         className,
       )}
@@ -100,7 +100,7 @@ export function Textarea({
       onChange={(e) => onChange(e.target.value)}
       placeholder={placeholder}
       rows={rows}
-      className="w-full resize-none rounded-lg border border-border bg-surface px-3 py-2.5 text-[13.5px] text-foreground outline-none transition-all placeholder:text-muted-foreground shadow-sm focus:border-primary focus:ring-2 focus:ring-primary/20"
+      className="w-full resize-none rounded-lg border border-input-border bg-input-surface px-3 py-2.5 text-[13px] text-text-primary outline-none transition-all placeholder:text-text-secondary shadow-sm focus:border-input-border-focus focus:ring-2 focus:ring-brand-primary/20"
     />
   );
 }
@@ -121,7 +121,7 @@ export function Select({
       value={value}
       onChange={(e) => onChange(e.target.value)}
       className={cn(
-        "h-11 w-full rounded-lg border border-border bg-surface px-3 text-[13.5px] font-medium text-foreground outline-none transition-all shadow-sm focus:border-primary focus:ring-2 focus:ring-primary/20 appearance-none bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20width%3D%2220%22%20height%3D%2220%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Cpath%20d%3D%22M5%208l5%205%205-5%22%20stroke%3D%22%23666%22%20stroke-width%3D%221.5%22%20fill%3D%22none%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%2F%3E%3C%2Fsvg%3E')] bg-no-repeat bg-[position:right_0.5rem_center] cursor-pointer",
+        "h-11 w-full rounded-lg border border-input-border bg-input-surface px-3 text-[13px] font-medium text-text-primary outline-none transition-all shadow-sm focus:border-input-border-focus focus:ring-2 focus:ring-brand-primary/20 appearance-none bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20width%3D%2220%22%20height%3D%2220%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Cpath%20d%3D%22M5%208l5%205%205-5%22%20stroke%3D%22%23666%22%20stroke-width%3D%221.5%22%20fill%3D%22none%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%2F%3E%3C%2Fsvg%3E')] bg-no-repeat bg-[position:right_0.5rem_center] cursor-pointer",
         className,
       )}
     >

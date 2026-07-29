@@ -22,25 +22,25 @@ export function SearchToolbar({
     <div className={cn("space-y-2", className)}>
       <div className="flex items-center gap-3">
         <div className="relative min-w-0 flex-1">
-          <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-text-secondary" />
           <input
             value={value}
             onChange={(e) => onChange(e.target.value)}
             placeholder={placeholder}
-            className="h-11 w-full rounded-full border border-border/80 bg-white pl-11 pr-4 text-[13.5px] text-foreground shadow-sm outline-none transition-all placeholder:text-muted-foreground focus:border-primary/50 focus:ring-2 focus:ring-primary/15"
+            className="h-9 w-full rounded-lg border border-input-border bg-card-bg pl-10 pr-4 text-xs text-text-primary shadow-sm outline-none transition-all placeholder:text-text-secondary focus:border-input-border-focus focus:ring-2 focus:ring-brand-primary/15"
           />
         </div>
         {hasFilter && onClear && (
           <button
             type="button"
             onClick={onClear}
-            className="shrink-0 text-[13px] font-semibold text-muted-foreground transition-colors hover:text-foreground"
+            className="shrink-0 text-xs font-semibold text-text-secondary transition-colors hover:text-text-primary"
           >
             Clear filters
           </button>
         )}
       </div>
-      {resultLabel && <p className="pl-1 text-[12px] text-muted-foreground">{resultLabel}</p>}
+      {resultLabel && <p className="pl-1 text-[12px] text-text-secondary">{resultLabel}</p>}
     </div>
   );
 }

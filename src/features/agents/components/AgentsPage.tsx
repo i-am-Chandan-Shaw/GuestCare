@@ -18,15 +18,14 @@ export function AgentsPage() {
   );
 
   return (
-    <div className="flex h-full w-full flex-col gap-5 overflow-y-auto p-6">
-      <div>
-        <h1 className="text-[22px] font-bold tracking-tight text-foreground">Agents</h1>
-        <p className="mt-1.5 text-[13.5px] text-muted-foreground">
-          Support team roster and shifts.
-        </p>
+    <div className="flex h-full w-full flex-col gap-5 overflow-y-auto p-4 md:p-4">
+      <div className="rounded-2xl border border-border-color bg-card-bg p-5 shadow-sm">
+        <h1 className="text-lg font-black uppercase tracking-tight text-text-primary">Agents</h1>
+        <p className="mt-1.5 text-[13px] text-text-secondary">Support team roster and shifts.</p>
       </div>
 
-      <SearchToolbar
+      <div className="flex flex-col gap-5 rounded-2xl border border-border-color bg-card-bg p-5 shadow-sm">
+        <SearchToolbar
         value={search}
         onChange={setSearch}
         placeholder="Search agents…"
@@ -45,12 +44,13 @@ export function AgentsPage() {
             <AgentRow key={agent.id} agent={agent} />
           ))}
           {filtered.length === 0 && (
-            <p className="rounded-sm border border-dashed border-border bg-card p-10 text-center text-[13px] text-muted-foreground">
+            <p className="rounded-xl border border-dashed border-border-color bg-app-bg p-10 text-center text-[13px] text-text-secondary">
               No agents match your search.
             </p>
           )}
         </div>
       )}
+      </div>
     </div>
   );
 }

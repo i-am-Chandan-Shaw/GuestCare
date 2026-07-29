@@ -12,7 +12,7 @@ export function PropertyHero({ property }: { property: Property }) {
 
   return (
     <div className="space-y-4">
-      <div className="relative h-40 w-full shrink-0 overflow-hidden rounded-sm bg-muted shadow-sm">
+      <div className="relative h-40 w-full shrink-0 overflow-hidden rounded-xl bg-muted shadow-sm">
         <img src={PROPERTY_HERO_IMAGE} alt={property.name} className="h-full w-full object-cover" />
         <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-black/10 to-transparent" />
         <button
@@ -53,13 +53,13 @@ export function PropertyHero({ property }: { property: Property }) {
         {property.tags.map((t) => (
           <span
             key={t}
-            className="inline-flex items-center rounded-full bg-surface px-2.5 py-1 text-[10.5px] font-semibold uppercase tracking-wide text-muted-foreground border border-border"
+            className="inline-flex items-center rounded-full border border-border-color bg-card-bg px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide text-text-secondary"
           >
             {t}
           </span>
         ))}
         {property.unit && !property.tags.includes(property.unit) && (
-          <span className="inline-flex items-center rounded-full bg-surface px-2.5 py-1 text-[10.5px] font-semibold uppercase tracking-wide text-muted-foreground border border-border">
+          <span className="inline-flex items-center rounded-full border border-border-color bg-card-bg px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide text-text-secondary">
             {property.unit}
           </span>
         )}
@@ -72,7 +72,7 @@ export function PropertyHero({ property }: { property: Property }) {
               href={property.guideUrl}
               target="_blank"
               rel="noreferrer"
-              className="inline-flex items-center justify-center gap-1.5 rounded-sm border border-border bg-white px-2.5 py-2 text-[11.5px] font-semibold text-foreground hover:bg-surface-2 transition-colors shadow-sm"
+              className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-border-color bg-card-bg px-2.5 py-2 text-[11px] font-semibold text-text-primary transition-colors shadow-sm hover:bg-app-bg"
             >
               Property Guide
               <ExternalLink className="h-3 w-3 text-muted-foreground" />
@@ -83,7 +83,7 @@ export function PropertyHero({ property }: { property: Property }) {
               href={property.listingUrl}
               target="_blank"
               rel="noreferrer"
-              className="inline-flex items-center justify-center gap-1.5 rounded-sm border border-border bg-white px-2.5 py-2 text-[11.5px] font-semibold text-foreground hover:bg-surface-2 transition-colors shadow-sm"
+              className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-border-color bg-card-bg px-2.5 py-2 text-[11px] font-semibold text-text-primary transition-colors shadow-sm hover:bg-app-bg"
             >
               Listing
               <ExternalLink className="h-3 w-3 text-muted-foreground" />

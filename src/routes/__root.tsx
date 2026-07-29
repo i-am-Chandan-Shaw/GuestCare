@@ -9,6 +9,7 @@ import {
 import { useEffect, type ReactNode } from "react";
 
 import appCss from "../styles.css?url";
+import { Button } from "@/components/ui/Button";
 import { Toaster } from "@/components/ui/sonner";
 import { WorkspaceProvider } from "@/features/workspace/context/WorkspaceProvider";
 
@@ -33,10 +34,15 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
       <div className="max-w-md text-center">
         <h1 className="text-xl font-semibold text-foreground">Something went wrong</h1>
-        <button
-          onClick={() => { router.invalidate(); reset(); }}
-          className="mt-4 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground"
-        >Try again</button>
+        <Button
+          onClick={() => {
+            router.invalidate();
+            reset();
+          }}
+          className="mt-4"
+        >
+          Try again
+        </Button>
       </div>
     </div>
   );
@@ -60,7 +66,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { rel: "icon", href: "/favicon.ico", type: "image/x-icon" },
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
-      { rel: "stylesheet", href: "https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" },
+      { rel: "stylesheet", href: "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&family=JetBrains+Mono:wght@400;500&display=swap" },
     ],
   }),
   shellComponent: RootShell,

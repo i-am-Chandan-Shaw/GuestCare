@@ -1,5 +1,6 @@
 import { Hash, MessageSquare } from "lucide-react";
 import { useMemo } from "react";
+import { StatusChip } from "@/components/ui/StatusChip";
 import { CURRENT_AGENT } from "@/shared/constants/agent";
 import type { Customer, Issue, Property } from "@/shared/types";
 import type { FormState } from "./incident-form.types";
@@ -29,21 +30,21 @@ export function IncidentPreview({
   );
 
   return (
-    <div className="mt-6 rounded-lg border border-border/80 shadow-sm overflow-hidden">
-      <div className="flex items-center justify-between border-b border-border bg-surface-2/50 px-4 py-3">
-        <div className="flex items-center gap-2.5 font-semibold text-[14px] text-foreground">
-          <div className="flex items-center justify-center h-6 w-6 rounded bg-primary/10 text-primary">
+    <div className="mt-6 overflow-hidden rounded-xl border border-border-color shadow-sm">
+      <div className="flex items-center justify-between border-b border-border-color bg-app-bg/50 px-4 py-3">
+        <div className="flex items-center gap-2.5 text-[14px] font-semibold text-text-primary">
+          <div className="flex h-6 w-6 items-center justify-center rounded bg-brand-primary/10 text-brand-primary">
             <MessageSquare className="h-3.5 w-3.5" />
           </div>
           Slack Preview
         </div>
-        <span className="flex items-center gap-1.5 rounded-full bg-success/10 border border-success/20 px-2.5 py-0.5 text-[11px] font-bold uppercase tracking-wider text-success">
-          <span className="h-1.5 w-1.5 rounded-full bg-success shadow-[0_0_0_2px_rgba(34,197,94,0.2)]" />{" "}
+        <StatusChip tone="success">
+          <span className="h-1.5 w-1.5 rounded-full bg-success" />
           Live
-        </span>
+        </StatusChip>
       </div>
 
-      <div className="bg-surface p-4">
+      <div className="bg-card-bg p-4">
         <div className="flex items-start gap-3">
           <img
             src="https://i.pravatar.cc/150?u=a042581f4e29026704d"

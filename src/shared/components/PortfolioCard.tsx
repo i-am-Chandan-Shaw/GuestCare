@@ -63,13 +63,12 @@ export function PortfolioCard({
       type={onClick ? "button" : undefined}
       onClick={onClick}
       className={cn(
-        "group flex w-full gap-4 rounded-lg border border-border/80 bg-card p-4 text-left shadow-sm transition-all",
-        onClick && "cursor-pointer hover:border-primary/35 hover:shadow-md hover:-translate-y-px",
+        "group flex w-full gap-4 rounded-xl border border-border-color bg-card-bg p-4 text-left shadow-sm transition-all",
+        onClick && "cursor-pointer hover:border-brand-primary/35 hover:shadow-md hover:-translate-y-px",
       )}
     >
       <div
-        className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg text-[15px] font-bold text-white shadow-sm"
-        style={{ background: "linear-gradient(135deg, #2563EB 0%, #1d4ed8 100%)" }}
+        className="btn-primary-gradient flex h-12 w-12 shrink-0 items-center justify-center rounded-lg text-[15px] font-bold text-white shadow-sm"
       >
         {initialsFromName(title)}
       </div>

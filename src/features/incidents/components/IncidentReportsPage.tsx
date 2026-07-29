@@ -29,28 +29,29 @@ export function IncidentReportsPage({ customerId }: { customerId?: string }) {
   );
 
   return (
-    <div className="flex h-full w-full flex-col gap-5 overflow-y-auto p-6">
-      <div>
-        <h1 className="text-[22px] font-bold tracking-tight text-foreground">Reports</h1>
-        <p className="mt-1.5 text-[13.5px] text-muted-foreground">
+    <div className="flex h-full w-full flex-col gap-5 overflow-y-auto p-4 md:p-4">
+      <div className="rounded-2xl border border-border-color bg-card-bg p-5 shadow-sm">
+        <h1 className="text-lg font-black uppercase tracking-tight text-text-primary">Reports</h1>
+        <p className="mt-1.5 text-[13px] text-text-secondary">
           {customerId
             ? "Incidents for the selected customer."
             : "All logged incidents across customers."}
         </p>
       </div>
 
+      <div className="rounded-2xl border border-border-color bg-card-bg p-5 shadow-sm space-y-5">
       {customerId && (
-        <div className="flex items-center justify-between gap-3 rounded-sm border border-border/60 bg-muted/20 px-4 py-2.5">
-          <p className="text-[13px] text-muted-foreground">Showing reports for one customer.</p>
+        <div className="flex items-center justify-between gap-3 rounded-lg border border-border-color bg-app-bg/50 px-4 py-2.5">
+          <p className="text-[13px] text-text-secondary">Showing reports for one customer.</p>
           <div className="flex items-center gap-4">
             <Link
               to="/"
               search={{ customerId }}
-              className="text-[13px] font-medium text-primary hover:underline"
+              className="text-[13px] font-medium text-brand-primary hover:underline"
             >
               Back to workspace
             </Link>
-            <Link to="/reports" className="text-[13px] font-medium text-primary hover:underline">
+            <Link to="/reports" className="text-[13px] font-medium text-brand-primary hover:underline">
               View all reports
             </Link>
           </div>
@@ -76,10 +77,10 @@ export function IncidentReportsPage({ customerId }: { customerId?: string }) {
             type="button"
             onClick={() => setStatus(item.id)}
             className={cn(
-              "rounded-full border px-3 py-1 text-[12px] font-medium transition-colors",
+              "rounded-full border px-3 py-1 text-[12px] font-semibold transition-colors",
               status === item.id
-                ? "border-primary/40 bg-primary/10 text-primary"
-                : "border-border/60 bg-card text-muted-foreground hover:bg-muted/30",
+                ? "border-brand-primary/20 bg-brand-primary/10 text-brand-primary"
+                : "border-border-color bg-card-bg text-text-secondary hover:bg-app-bg",
             )}
           >
             {item.label}
@@ -96,12 +97,13 @@ export function IncidentReportsPage({ customerId }: { customerId?: string }) {
             <ReportRow key={log.id} log={log} />
           ))}
           {filtered.length === 0 && (
-            <p className="rounded-sm border border-dashed border-border bg-card p-10 text-center text-[13px] text-muted-foreground">
+            <p className="rounded-xl border border-dashed border-border-color bg-app-bg p-10 text-center text-[13px] text-text-secondary">
               No reports match your filters.
             </p>
           )}
         </div>
       )}
+      </div>
     </div>
   );
 }

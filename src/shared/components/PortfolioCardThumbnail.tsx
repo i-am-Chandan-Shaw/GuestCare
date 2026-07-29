@@ -27,7 +27,7 @@ export function PortfolioCardThumbnail({
       <img
         src={imageUrl}
         alt=""
-        className={cn(PORTFOLIO_CARD_THUMBNAIL_CLASS, "object-cover bg-[#f3f3f1]", className)}
+        className={cn(PORTFOLIO_CARD_THUMBNAIL_CLASS, "bg-app-bg object-cover", className)}
       />
     );
   }
@@ -36,7 +36,7 @@ export function PortfolioCardThumbnail({
     <div
       className={cn(
         PORTFOLIO_CARD_THUMBNAIL_CLASS,
-        "flex items-center justify-center bg-[#eef1f6] text-[15px] font-semibold text-[#6b7280]",
+        "flex items-center justify-center bg-app-bg text-[15px] font-semibold text-text-secondary",
         className,
       )}
     >

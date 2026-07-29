@@ -31,13 +31,13 @@ function QuickActionPill({
       type="button"
       onClick={onClick}
       className={cn(
-        "inline-flex h-9 items-center gap-1.5 rounded-sm border px-2.5 text-[12px] font-semibold transition-colors shadow-sm",
+        "inline-flex h-9 items-center gap-1.5 rounded-lg border px-2.5 text-xs font-semibold transition-colors shadow-sm",
         active
           ? "border-success/30 bg-success/10 text-success"
-          : "border-border bg-surface text-foreground hover:bg-surface-2",
+          : "border-border-color bg-card-bg text-text-primary hover:bg-app-bg",
       )}
     >
-      <span className={cn(active ? "text-success" : "text-primary")}>{icon}</span>
+      <span className={cn(active ? "text-success" : "text-brand-primary")}>{icon}</span>
       {label}
     </button>
   );
