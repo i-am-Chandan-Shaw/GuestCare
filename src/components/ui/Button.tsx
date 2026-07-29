@@ -1,4 +1,5 @@
 import { cn } from "@/lib/utils";
+import { Loader2 } from "lucide-react";
 import { type ButtonHTMLAttributes, forwardRef } from "react";
 
 type ButtonVariant = "primary" | "secondary" | "cancel" | "danger" | "ghost";
@@ -24,21 +25,47 @@ const sizeClass: Record<ButtonSize, string> = {
 export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: ButtonVariant;
   size?: ButtonSize;
+  /** Shows inline spinner and disables the button without shifting layout. */
+  loading?: boolean;
 }
 
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ className, variant = "primary", size = "default", type = "button", ...props }, ref) => (
+  (
+    {
+      className,
+      variant = "primary",
+      size = "default",
+      type = "button",
+      loading = false,
+      disabled,
+      children,
+      ...props
+    },
+    ref,
+  ) => (
     <button
       ref={ref}
       type={type}
+      disabled={disabled || loading}
+      aria-busy={loading || undefined}
       className={cn(
-        "inline-flex items-center justify-center gap-2 transition-all active:scale-[0.98] disabled:pointer-events-none disabled:opacity-50",
+        "relative inline-flex items-center justify-center gap-2 transition-all active:scale-[0.98] disabled:pointer-events-none disabled:opacity-50",
         variantClass[variant],
         sizeClass[size],
         className,
       )}
       {...props}
-    />
+    >
+      {loading && (
+        <Loader2
+          className="absolute h-4 w-4 animate-spin"
+          aria-hidden
+        />
+      )}
+      <span className={cn("inline-flex items-center justify-center gap-2", loading && "invisible")}>
+        {children}
+      </span>
+    </button>
   ),
 );
 Button.displayName = "Button";

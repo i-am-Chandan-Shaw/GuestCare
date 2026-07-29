@@ -16,13 +16,14 @@ import { IncidentPreview } from "./IncidentPreview";
 import { ACTION_CHIPS, type FormState } from "./incident-form.types";
 import { CopyIconButton, Field, Input, Select, Textarea } from "./incident-form-controls";
 
-function ResetFormButton({ onClear }: { onClear: () => void }) {
+function ResetFormButton({ onClear, disabled }: { onClear: () => void; disabled?: boolean }) {
   return (
     <Button
       type="button"
       variant="secondary"
       size="lg"
       onClick={onClear}
+      disabled={disabled}
       className="shrink-0 bg-white hover:bg-app-bg"
     >
       Clear Form
@@ -219,7 +220,7 @@ export function IncidentForm({
       type="button"
       size="lg"
       onClick={onSubmit}
-      disabled={isSubmitting}
+      loading={isSubmitting}
       className={cn("active:scale-[0.99]", embedded ? "min-w-0 flex-1" : "w-full")}
     >
       {embedded ? "Log Incident" : (
@@ -233,14 +234,17 @@ export function IncidentForm({
 
   if (embedded) {
     return (
-      <div className="flex h-full flex-col bg-surface">
+      <div className="relative flex h-full flex-col bg-surface">
+        {isSubmitting && (
+          <div className="absolute inset-0 z-10 cursor-wait" aria-hidden />
+        )}
         <div className={cn("min-h-0 flex-1 overflow-y-auto scrollbar-thin", scrollPadding)}>
           {formFields}
           <IncidentPreview form={form} customer={customer} property={property} issue={issue} />
         </div>
 
         <footer className="flex shrink-0 items-center gap-3 border-t border-border bg-surface px-4 py-3">
-          <ResetFormButton onClear={onClear} />
+          <ResetFormButton onClear={onClear} disabled={isSubmitting} />
           {submitButton}
         </footer>
       </div>
@@ -248,14 +252,18 @@ export function IncidentForm({
   }
 
   return (
-    <div className="flex h-full flex-col bg-surface">
+    <div className="relative flex h-full flex-col bg-surface">
+      {isSubmitting && (
+        <div className="absolute inset-0 z-10 cursor-wait" aria-hidden />
+      )}
       <div className={cn("flex-1 overflow-y-auto scrollbar-thin", scrollPadding)}>
         <div className="mb-4 flex items-center justify-between">
           <h2 className="text-[18px] font-bold text-foreground">Incident Details</h2>
           <button
             type="button"
             onClick={onClear}
-            className="rounded-lg border border-border px-3 py-1.5 text-[12.5px] font-semibold text-foreground transition-colors hover:bg-surface-2"
+            disabled={isSubmitting}
+            className="rounded-lg border border-border px-3 py-1.5 text-[12.5px] font-semibold text-foreground transition-colors hover:bg-surface-2 disabled:pointer-events-none disabled:opacity-50"
           >
             Clear Form
           </button>

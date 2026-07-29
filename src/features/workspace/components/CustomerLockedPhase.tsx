@@ -37,7 +37,7 @@ export function CustomerLockedPhase({
     <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
       <div className="shrink-0 bg-app-bg px-5 pt-3 pb-4">
         <SearchToolbar
-          className="max-w-xl"
+          className="max-w-md"
           value={search}
           onChange={setSearch}
           placeholder="Search properties…"

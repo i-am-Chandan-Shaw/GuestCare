@@ -2,42 +2,55 @@ import type { ICellRendererParams } from "ag-grid-community";
 import type { ColDef } from "ag-grid-community";
 import { StatusChip } from "@/components/ui/StatusChip";
 import { priorityMeta } from "@/shared/constants/agent";
-import type { IncidentLog } from "@/shared/types";
+import {
+  REPORT_STATUS_LABELS,
+  REPORT_STATUS_TONES,
+} from "@/features/reports/lib/report-status";
+import { formatActivityTimestamp } from "@/shared/lib/datetime";
+import type { ReportListItem } from "@/shared/types/report";
 
-function StatusCell({ data }: ICellRendererParams<IncidentLog>) {
+function StatusCell({ data }: ICellRendererParams<ReportListItem>) {
   if (!data) return null;
-  const isResolved = data.status === "Resolved";
   return (
-    <StatusChip tone={isResolved ? "success" : "warning"}>
-      {isResolved ? "Done" : "Open"}
+    <StatusChip tone={REPORT_STATUS_TONES[data.status]}>
+      {REPORT_STATUS_LABELS[data.status]}
     </StatusChip>
   );
 }
 
-function IssueCell({ data }: ICellRendererParams<IncidentLog>) {
+function IssueCell({ data }: ICellRendererParams<ReportListItem>) {
   if (!data) return null;
   return (
     <div className="flex min-w-0 flex-col justify-center py-1">
-      <p className="truncate text-[13px] text-text-primary">{data.issueSummary}</p>
-      <p className="truncate text-[13px] text-text-secondary">{data.incidentType}</p>
+      <p className="truncate text-[13px] text-text-primary">{data.issueName}</p>
+      <p className="truncate text-[13px] text-text-secondary">{data.issueType}</p>
     </div>
   );
 }
 
-function PriorityCell({ data }: ICellRendererParams<IncidentLog>) {
+function PriorityCell({ data }: ICellRendererParams<ReportListItem>) {
   if (!data?.priority) return null;
   return (
     <span className="text-[13px] text-text-secondary">{priorityMeta[data.priority].label}</span>
   );
 }
 
-export const reportsTableColumnDefs: ColDef<IncidentLog>[] = [
+function LoggedCell({ data }: ICellRendererParams<ReportListItem>) {
+  if (!data) return null;
+  return (
+    <span className="tabular-nums" title={formatActivityTimestamp(data.createdAt)}>
+      {formatActivityTimestamp(data.createdAt)}
+    </span>
+  );
+}
+
+export const reportsTableColumnDefs: ColDef<ReportListItem>[] = [
   {
     headerName: "REPORT ID",
     field: "id",
     colId: "reportId",
-    width: 120,
-    minWidth: 100,
+    width: 140,
+    minWidth: 120,
     cellClass: "tabular-nums text-text-secondary",
     suppressSizeToFit: true,
   },
@@ -59,15 +72,22 @@ export const reportsTableColumnDefs: ColDef<IncidentLog>[] = [
     suppressSizeToFit: true,
   },
   {
+    headerName: "CUSTOMER",
+    field: "customerName",
+    colId: "customer",
+    flex: 1,
+    minWidth: 120,
+  },
+  {
     headerName: "PROPERTY",
-    field: "propertyLabel",
+    field: "propertyName",
     colId: "property",
     flex: 1,
     minWidth: 140,
   },
   {
     headerName: "AGENT",
-    field: "agent",
+    field: "assignedAgentName",
     colId: "agent",
     flex: 1,
     minWidth: 120,
@@ -81,18 +101,17 @@ export const reportsTableColumnDefs: ColDef<IncidentLog>[] = [
   },
   {
     headerName: "LOGGED",
-    field: "timestamp",
     colId: "logged",
     width: 180,
     minWidth: 180,
-    cellClass: "tabular-nums",
+    cellRenderer: LoggedCell,
     suppressSizeToFit: true,
   },
   {
     headerName: "STATUS",
     colId: "status",
-    width: 110,
-    minWidth: 110,
+    width: 120,
+    minWidth: 120,
     cellRenderer: StatusCell,
     suppressSizeToFit: true,
   },

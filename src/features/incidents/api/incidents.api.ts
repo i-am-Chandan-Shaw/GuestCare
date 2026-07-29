@@ -1,26 +1,23 @@
 import { z } from "zod";
 import { CUSTOMERS } from "@/data/mock";
-import { INCIDENT_LOGS as SEED_INCIDENT_LOGS } from "@/data/incidents";
-import { filterIncidentReports } from "@/features/incidents/lib/filter-incident-reports";
+import { findAgentByName, DEFAULT_AGENT_ID, findAgentById } from "@/data/agents.seed";
+import {
+  __getReportStoreSnapshot,
+  createReport,
+  getReportsPaginated,
+} from "@/features/reports/api/reports.api";
+import { reportToIncidentLog } from "@/features/reports/lib/report-legacy";
+import { mapLegacyIncidentStatus } from "@/features/reports/lib/report-status";
+import { toReportActor } from "@/features/reports/lib/report-scope";
 import type {
   CreateIncidentInput,
   IncidentLog,
   IncidentLogFilters,
   IncidentLogsQuery,
+  IncidentStatus,
   PaginatedIncidentLogs,
 } from "@/shared/types";
 
-const incidentStore: IncidentLog[] = SEED_INCIDENT_LOGS.map((log) => ({
-  ...log,
-  customerId: log.customerId ?? resolveCustomerIdForProperty(log.propertyId),
-}));
-
-function resolveCustomerIdForProperty(propertyId?: string): string | undefined {
-  if (!propertyId) return undefined;
-  return CUSTOMERS.find((c) => c.propertyIds.includes(propertyId))?.id;
-}
-
-import { isOpenIncident } from "@/shared/lib/incident-status";
 const createIncidentSchema = z.object({
   callerName: z.string(),
   callerContact: z.string(),
@@ -40,35 +37,46 @@ const createIncidentSchema = z.object({
   submittedBy: z.string().min(1),
 });
 
-export async function getIncidentLogs(filters: IncidentLogFilters = {}): Promise<IncidentLog[]> {
-  let results = [...incidentStore];
+function resolveCustomerIdForProperty(propertyId?: string): string | undefined {
+  if (!propertyId) return undefined;
+  return CUSTOMERS.find((c) => c.propertyIds.includes(propertyId))?.id;
+}
+
+function getIncidentLogsFromStore(filters: IncidentLogFilters = {}): IncidentLog[] {
+  let reports = __getReportStoreSnapshot();
 
   if (filters.customerId) {
     const propertyIds = new Set(
       CUSTOMERS.find((c) => c.id === filters.customerId)?.propertyIds ?? [],
     );
-    results = results.filter(
-      (log) =>
-        log.customerId === filters.customerId ||
-        (log.propertyId && propertyIds.has(log.propertyId)),
+    reports = reports.filter(
+      (r) =>
+        r.customerId === filters.customerId ||
+        (r.propertyId && propertyIds.has(r.propertyId)),
     );
   }
 
   if (filters.propertyId) {
-    results = results.filter((log) => log.propertyId === filters.propertyId);
+    reports = reports.filter((r) => r.propertyId === filters.propertyId);
   }
 
   if (filters.protocolIssueId) {
-    results = results.filter((log) => log.protocolIssueId === filters.protocolIssueId);
+    reports = reports.filter((r) => r.protocolIssueId === filters.protocolIssueId);
   }
 
-  results.sort((a, b) => (a.timestamp < b.timestamp ? 1 : -1));
+  reports.sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1));
+
+  let logs = reports.map(reportToIncidentLog);
 
   if (filters.limit) {
-    results = results.slice(0, filters.limit);
+    logs = logs.slice(0, filters.limit);
   }
 
-  return results;
+  return logs;
+}
+
+export async function getIncidentLogs(filters: IncidentLogFilters = {}): Promise<IncidentLog[]> {
+  return getIncidentLogsFromStore(filters);
 }
 
 export async function getIncidentLogsPaginated(
@@ -76,75 +84,75 @@ export async function getIncidentLogsPaginated(
 ): Promise<PaginatedIncidentLogs> {
   const { page, limit, search = "", status = "all", customerId } = query;
 
-  let results = [...incidentStore];
+  const reportStatus =
+    status === "open"
+      ? ("OPEN" as const)
+      : status === "resolved"
+        ? ("RESOLVED" as const)
+        : status === "all"
+          ? "all"
+          : undefined;
 
-  if (customerId) {
-    const propertyIds = new Set(
-      CUSTOMERS.find((c) => c.id === customerId)?.propertyIds ?? [],
-    );
-    results = results.filter(
-      (log) =>
-        log.customerId === customerId ||
-        (log.propertyId && propertyIds.has(log.propertyId)),
-    );
+  const result = await getReportsPaginated({
+    page,
+    limit,
+    search,
+    status: reportStatus === "OPEN" || reportStatus === "RESOLVED" ? reportStatus : "all",
+    customerId,
+  });
+
+  if (status === "open") {
+    const filtered = result.data.filter((r) => r.status !== "RESOLVED");
+    return {
+      data: filtered.map((item) =>
+        reportToIncidentLog(__getReportStoreSnapshot().find((r) => r.id === item.id)!),
+      ),
+      pagination: {
+        ...result.pagination,
+        total: filtered.length,
+        totalPages: Math.max(1, Math.ceil(filtered.length / limit)),
+      },
+    };
   }
 
-  results.sort((a, b) => (a.timestamp < b.timestamp ? 1 : -1));
-  results = filterIncidentReports(results, search, status);
-
-  const total = results.length;
-  const totalPages = Math.max(1, Math.ceil(total / limit));
-  const safePage = Math.max(1, Math.min(page, totalPages));
-  const start = (safePage - 1) * limit;
-  const data = results.slice(start, start + limit);
-
   return {
-    data,
-    pagination: {
-      page: safePage,
-      limit,
-      total,
-      totalPages,
-    },
+    data: result.data.map((item) =>
+      reportToIncidentLog(__getReportStoreSnapshot().find((r) => r.id === item.id)!),
+    ),
+    pagination: result.pagination,
   };
 }
 
 export async function countOpenIncidents(filters: IncidentLogFilters = {}): Promise<number> {
   const logs = await getIncidentLogs(filters);
-  return logs.filter(isOpenIncident).length;
+  return logs.filter((log) => log.status !== "Resolved").length;
 }
 
 export async function createIncident(input: CreateIncidentInput): Promise<IncidentLog> {
   const parsed = createIncidentSchema.parse(input);
-  const timestamp = new Date().toLocaleString("en-GB", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-    second: "2-digit",
-  });
+  const agent =
+    findAgentByName(parsed.agentName) ?? findAgentById(DEFAULT_AGENT_ID)!;
+  const actor = toReportActor(agent);
 
-  const entry: IncidentLog = {
-    id: `inc-${Date.now()}`,
-    callerName: parsed.callerName,
-    callerContact: parsed.callerContact,
-    reservationNumber: parsed.reservation,
-    nameOnBooking: parsed.nameOnBooking,
-    propertyLabel: parsed.propertyLabel ?? "—",
-    propertyId: parsed.propertyId,
-    customerId: parsed.customerId ?? resolveCustomerIdForProperty(parsed.propertyId),
-    incidentType: parsed.incidentType as IncidentLog["incidentType"],
-    issueSummary: parsed.issueSummary,
-    protocolIssueId: parsed.protocolIssueId,
-    status: parsed.status as IncidentLog["status"],
-    callNotes: parsed.callNotes,
-    agent: parsed.agentName,
-    submittedBy: parsed.submittedBy,
-    timestamp,
-    priority: parsed.priority,
-  };
+  const report = await createReport(
+    {
+      issueName: parsed.issueSummary,
+      issueType: parsed.incidentType,
+      priority: parsed.priority,
+      status: mapLegacyIncidentStatus(parsed.status as IncidentStatus),
+      customerId: parsed.customerId ?? resolveCustomerIdForProperty(parsed.propertyId) ?? CUSTOMERS[0]!.id,
+      propertyId: parsed.propertyId,
+      callerName: parsed.callerName,
+      callerContact: parsed.callerContact,
+      reservationNumber: parsed.reservation,
+      nameOnBooking: parsed.nameOnBooking,
+      callNotes: parsed.callNotes,
+      actionsTaken: parsed.actions,
+      protocolIssueId: parsed.protocolIssueId,
+      source: parsed.protocolIssueId ? "copilot" : "manual",
+    },
+    actor,
+  );
 
-  incidentStore.unshift(entry);
-  return entry;
+  return reportToIncidentLog(report);
 }

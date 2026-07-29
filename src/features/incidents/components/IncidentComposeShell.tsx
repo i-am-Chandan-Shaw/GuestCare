@@ -20,12 +20,6 @@ export function IncidentComposeShell() {
     return null;
   }
 
-  if (meta.isDetached && !state.pipWindow) {
-    return null;
-  }
-
-  const portalTarget = state.pipWindow?.document.body ?? document.body;
-
   return createPortal(
     <>
       {!meta.isDetached && state.panelMode === "closed" && (
@@ -33,7 +27,7 @@ export function IncidentComposeShell() {
           type="button"
           onClick={() => actions.openIncidentPanel("expanded")}
           aria-label="Create incident report"
-          className="fixed bottom-6 right-6 z-[9998] flex h-14 w-14 items-center justify-center rounded-full btn-primary-gradient text-white shadow-lg shadow-brand-primary/20 transition-transform hover:scale-105 active:scale-95"
+          className="fixed bottom-6 right-6 z-[10000] flex h-14 w-14 items-center justify-center rounded-full btn-primary-gradient text-white shadow-lg shadow-brand-primary/20 transition-transform hover:scale-105 active:scale-95"
           title="Create incident report"
         >
           <FilePlus2 className="h-6 w-6" strokeWidth={2} />
@@ -62,6 +56,6 @@ export function IncidentComposeShell() {
 
       {meta.isDetached && state.pipWindow && <IncidentComposePopupPage alwaysOnTop />}
     </>,
-    portalTarget,
+    state.pipWindow?.document.body ?? document.body,
   );
 }

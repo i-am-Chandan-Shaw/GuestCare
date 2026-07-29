@@ -1,4 +1,6 @@
 import { Link, useRouter, useRouterState } from "@tanstack/react-router";
+import { getAgentInitials, formatAgentRole } from "@/shared/lib/agent-display";
+import { readIncidentsNavSearch } from "@/features/workspace/lib/workspace-persistence";
 import { cn } from "@/lib/utils";
 import { logout } from "@/features/auth/api/auth.api";
 import { useAuth } from "@/features/auth/hooks/useAuth";
@@ -21,6 +23,7 @@ export function AppSidebar() {
   const router = useRouter();
   const { agent } = useAuth();
   const active = useActiveNav();
+  const incidentsSearch = readIncidentsNavSearch();
 
   const handleLogout = async () => {
     await logout();
@@ -52,7 +55,7 @@ export function AppSidebar() {
             <Link
               key={item.id}
               to={item.href}
-              {...(item.id === "issues" ? { search: {} } : {})}
+              {...(item.id === "issues" ? { search: incidentsSearch } : {})}
               aria-current={isActive ? "page" : undefined}
               className={cn(
                 "flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-[13px] font-medium transition-colors duration-150",
@@ -72,13 +75,13 @@ export function AppSidebar() {
         <div className="flex items-center gap-3 rounded-lg px-2 py-2">
           <div className="relative shrink-0">
             <span className="inline-flex h-8 w-8 items-center justify-center rounded-full btn-primary-gradient text-[10px] font-bold text-white">
-              {agent.initials}
+              {getAgentInitials(agent)}
             </span>
             <span className="absolute bottom-0 right-0 h-2 w-2 rounded-full border-2 border-sidebar-bg bg-success" />
           </div>
           <div className="min-w-0 flex-1">
             <div className="truncate text-[13px] font-medium text-white">{agent.name}</div>
-            <div className="truncate text-[11px] text-sidebar-text">{agent.role}</div>
+            <div className="truncate text-[11px] text-sidebar-text">{formatAgentRole(agent.role)}</div>
           </div>
           <button
             type="button"

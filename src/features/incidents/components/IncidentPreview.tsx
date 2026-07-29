@@ -1,6 +1,7 @@
 import { Hash, MessageSquare } from "lucide-react";
 import { useMemo } from "react";
 import { StatusChip } from "@/components/ui/StatusChip";
+import { getAgentHandle } from "@/shared/lib/agent-display";
 import { useAuth } from "@/features/auth/hooks/useAuth";
 import type { Customer, Issue, Property } from "@/shared/types";
 import type { FormState } from "./incident-form.types";
@@ -100,7 +101,7 @@ export function IncidentPreview({
                 alt="Priya"
                 className="h-4 w-4 rounded-full"
               />
-              {timestamp} · {agent.name} ({agent.handle})
+              {timestamp} · {agent.name} ({getAgentHandle(agent)})
             </div>
           </div>
         </div>

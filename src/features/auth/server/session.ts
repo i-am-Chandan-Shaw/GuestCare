@@ -1,5 +1,6 @@
 import { getRequestHeader, setResponseHeader } from "@tanstack/react-start/server";
-import type { AgentProfile } from "@/shared/types";
+import { normalizeSessionAgent } from "@/features/auth/lib/normalize-agent";
+import type { Agent } from "@/shared/types/agent";
 import type { AuthSession } from "@/features/auth/types";
 
 const COOKIE = "gc_session";
@@ -8,7 +9,7 @@ const MAX_AGE_SECONDS = 8 * 60 * 60;
 interface SessionPayload {
   userId: string;
   email: string;
-  agent: AgentProfile;
+  agent: Agent;
   exp: number;
 }
 
@@ -119,10 +120,13 @@ export async function parseSessionToken(token: string): Promise<AuthSession | nu
     if (!payload.userId || !payload.email || !payload.agent) return null;
     if (payload.exp <= Date.now()) return null;
 
+    const agent = normalizeSessionAgent(payload.agent);
+    if (!agent) return null;
+
     return {
       userId: payload.userId,
       email: payload.email,
-      agent: payload.agent,
+      agent,
     };
   } catch {
     return null;

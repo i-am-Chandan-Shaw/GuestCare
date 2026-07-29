@@ -2,6 +2,7 @@ import {
   createContext,
   use,
   useCallback,
+  useEffect,
   useMemo,
   useReducer,
   useRef,
@@ -15,6 +16,11 @@ import {
   type WorkspaceSyncPatch,
 } from "@/features/workspace/lib/resolve-workspace-from-url";
 import type { WorkspaceSearch } from "@/features/workspace/lib/workspace-url";
+import {
+  clearPersistedWorkspace,
+  readPersistedWorkspace,
+  writePersistedWorkspace,
+} from "@/features/workspace/lib/workspace-persistence";
 import type {
   WorkspaceActions,
   WorkspaceChecklistState,
@@ -118,6 +124,7 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
       payload: { phase: "browse", customer: null, property: null, issue: null },
     });
     dispatchChecklist({ type: "RESET" });
+    clearPersistedWorkspace();
   }, []);
 
   const applyRemotePatch = useCallback(
@@ -282,6 +289,7 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
       type: "SET",
       payload: { phase: "browse", customer: null, property: null, issue: null },
     });
+    clearPersistedWorkspace();
     broadcastPatch({
       customerId: null,
       propertyId: null,
@@ -308,6 +316,39 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
 
   const hydrateFromSearch = useCallback(
     async (search: WorkspaceSearch) => {
+      if (!search.customerId) {
+        const persisted = readPersistedWorkspace();
+        if (persisted?.customerId) {
+          const matchesPersisted =
+            selection.customer?.id === persisted.customerId &&
+            (selection.property?.id ?? null) === persisted.propertyId &&
+            (selection.issue?.id ?? null) === persisted.issueId &&
+            selection.phase === persisted.phase;
+
+          if (!matchesPersisted) {
+            await applyRemoteSnapshot({
+              phase: persisted.phase,
+              customerId: persisted.customerId,
+              propertyId: persisted.propertyId,
+              issueId: persisted.issueId,
+              checked: persisted.checked,
+              verificationChecked: persisted.verificationChecked,
+              outcome: persisted.outcome,
+            });
+          }
+          return;
+        }
+
+        if (selection.customer) return;
+
+        dispatchSelection({
+          type: "SET",
+          payload: { phase: "browse", customer: null, property: null, issue: null },
+        });
+        dispatchChecklist({ type: "RESET" });
+        return;
+      }
+
       const resolution = await resolveWorkspaceFromUrl(search);
 
       dispatchSelection({
@@ -321,8 +362,20 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
       });
       dispatchChecklist({ type: "RESET" });
       broadcastPatch(resolution.syncPatch);
+
+      if (resolution.customer) {
+        writePersistedWorkspace({
+          phase: resolution.phase,
+          customerId: resolution.customer.id,
+          propertyId: resolution.property?.id ?? null,
+          issueId: resolution.issue?.id ?? null,
+          checked: {},
+          verificationChecked: {},
+          outcome: null,
+        });
+      }
     },
-    [broadcastPatch],
+    [applyRemoteSnapshot, broadcastPatch, selection],
   );
 
   const toggleStep = useCallback(
@@ -399,6 +452,25 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
     }),
     [selection, checklist, actions, broadcastPatch],
   );
+
+  useEffect(() => {
+    if (!selection.customer) {
+      if (selection.phase === "browse") {
+        clearPersistedWorkspace();
+      }
+      return;
+    }
+
+    writePersistedWorkspace({
+      phase: selection.phase,
+      customerId: selection.customer.id,
+      propertyId: selection.property?.id ?? null,
+      issueId: selection.issue?.id ?? null,
+      checked: checklist.checked,
+      verificationChecked: checklist.verificationChecked,
+      outcome: checklist.outcome,
+    });
+  }, [selection, checklist]);
 
   return (
     <WorkspaceContext.Provider value={value}>

@@ -73,8 +73,8 @@ export function LoginPage({ redirectTo }: { redirectTo?: string }) {
             </p>
           )}
 
-          <Button type="submit" size="lg" className="w-full" disabled={isSubmitting}>
-            {isSubmitting ? "Signing in…" : "Sign in"}
+          <Button type="submit" size="lg" className="w-full" loading={isSubmitting}>
+            Sign in
           </Button>
         </form>
       </div>

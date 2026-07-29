@@ -183,7 +183,7 @@ export function IssuePickerSection({
         </p>
         <div className="mt-4">
           <SearchToolbar
-            className="max-w-xl"
+            className="max-w-md"
             value={search}
             onChange={setSearch}
             placeholder="Search issues…"
