@@ -1,12 +1,23 @@
 import { FilePlus2 } from "lucide-react";
+import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
+import { IncidentComposePopupPage } from "@/features/incidents/components/IncidentComposePopupPage";
 import { IncidentComposeWindow } from "@/features/incidents/components/IncidentComposeWindow";
 import { useWorkspaceContext } from "@/features/workspace/context/WorkspaceProvider";
 
 export function IncidentComposeShell() {
+  const [mounted, setMounted] = useState(false);
   const workspace = useWorkspaceContext();
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   const {
     composeMode,
+    isDetached,
+    isPopupWindow,
+    pipWindow,
     customer,
     property,
     issue,
@@ -19,15 +30,24 @@ export function IncidentComposeShell() {
     openCompose,
     closeCompose,
     minimizeCompose,
-    pipCompose,
+    detachCompose,
     expandCompose,
   } = workspace;
 
-  if (typeof document === "undefined") return null;
+  if (!mounted || isPopupWindow) {
+    return null;
+  }
+
+  // Detached via window.open — UI lives in the popup route.
+  if (isDetached && !pipWindow) {
+    return null;
+  }
+
+  const portalTarget = pipWindow?.document.body ?? document.body;
 
   return createPortal(
     <>
-      {composeMode === "closed" && (
+      {!isDetached && composeMode === "closed" && (
         <button
           type="button"
           onClick={() => openCompose("expanded")}
@@ -39,7 +59,7 @@ export function IncidentComposeShell() {
         </button>
       )}
 
-      {composeMode !== "closed" && (
+      {!isDetached && (composeMode === "expanded" || composeMode === "minimized") && (
         <IncidentComposeWindow
           mode={composeMode}
           customer={customer}
@@ -52,12 +72,14 @@ export function IncidentComposeShell() {
           isFormDirty={isFormDirty}
           isSubmitting={isSubmitting}
           onMinimize={minimizeCompose}
-          onTogglePip={pipCompose}
+          onDetach={detachCompose}
           onExpand={expandCompose}
           onRequestClose={closeCompose}
         />
       )}
+
+      {isDetached && pipWindow && <IncidentComposePopupPage alwaysOnTop />}
     </>,
-    document.body,
+    portalTarget,
   );
 }

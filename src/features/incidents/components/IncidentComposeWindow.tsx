@@ -1,8 +1,8 @@
-import { cn } from "@/lib/utils";
-import { Maximize2, Minus, PictureInPicture2, X } from "lucide-react";
+import { Maximize2, Minus, Pin, X } from "lucide-react";
 import { useState } from "react";
 import { IncidentForm } from "@/features/copilot/components/IncidentForm";
-import type { ComposeMode } from "@/features/workspace/context/WorkspaceProvider";
+import { isDocumentPipSupported } from "@/features/workspace/lib/compose-pip";
+import type { ComposeMode } from "@/features/workspace/lib/workspace-sync";
 import type { Customer, Issue, Property } from "@/shared/types";
 import type { FormState } from "@/features/copilot/components/incident-form.types";
 
@@ -15,12 +15,10 @@ function composeTitle(customer: Customer | null, property: Property | null) {
 function HeaderIconButton({
   label,
   onClick,
-  active = false,
   children,
 }: {
   label: string;
   onClick: () => void;
-  active?: boolean;
   children: React.ReactNode;
 }) {
   return (
@@ -29,12 +27,7 @@ function HeaderIconButton({
       onClick={onClick}
       title={label}
       aria-label={label}
-      className={cn(
-        "rounded-md p-1.5 transition-colors",
-        active
-          ? "bg-primary/15 text-primary"
-          : "text-muted-foreground hover:bg-surface hover:text-foreground",
-      )}
+      className="rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-surface hover:text-foreground"
     >
       {children}
     </button>
@@ -53,11 +46,11 @@ export function IncidentComposeWindow({
   isFormDirty,
   isSubmitting,
   onMinimize,
-  onTogglePip,
+  onDetach,
   onExpand,
   onRequestClose,
 }: {
-  mode: Exclude<ComposeMode, "closed">;
+  mode: Exclude<ComposeMode, "closed" | "detached">;
   customer: Customer | null;
   property: Property | null;
   issue: Issue | null;
@@ -68,14 +61,16 @@ export function IncidentComposeWindow({
   isFormDirty: boolean;
   isSubmitting: boolean;
   onMinimize: () => void;
-  onTogglePip: () => void;
+  onDetach: () => void;
   onExpand: () => void;
   onRequestClose: () => void;
 }) {
   const [confirmDiscard, setConfirmDiscard] = useState(false);
   const title = composeTitle(customer, property);
   const isMinimized = mode === "minimized";
-  const isPip = mode === "pip";
+  const pinLabel = isDocumentPipSupported()
+    ? "Keep on top while browsing"
+    : "Open in separate window";
 
   const handleClose = () => {
     if (isFormDirty) {
@@ -92,14 +87,11 @@ export function IncidentComposeWindow({
 
   return (
     <div
-      className={cn(
-        "fixed z-[9999] flex flex-col overflow-hidden rounded-lg border border-border bg-surface shadow-[0_8px_32px_rgba(15,23,42,0.18)] transition-[width,height]",
+      className={
         isMinimized
-          ? "bottom-6 right-6 h-12 w-[min(360px,calc(100vw-3rem))]"
-          : isPip
-            ? "bottom-6 right-6 h-[280px] w-[340px]"
-            : "bottom-6 right-6 h-[min(640px,85vh)] w-[min(480px,calc(100vw-3rem))]",
-      )}
+          ? "fixed bottom-6 right-6 z-[9999] flex h-12 w-[min(360px,calc(100vw-3rem))] flex-col overflow-hidden rounded-lg border border-border bg-surface shadow-[0_8px_32px_rgba(15,23,42,0.18)]"
+          : "fixed bottom-6 right-6 z-[9999] flex h-[min(640px,85vh)] w-[min(480px,calc(100vw-3rem))] flex-col overflow-hidden rounded-lg border border-border bg-surface shadow-[0_8px_32px_rgba(15,23,42,0.18)]"
+      }
       role="dialog"
       aria-label="Incident compose"
     >
@@ -111,21 +103,12 @@ export function IncidentComposeWindow({
           {isMinimized ? <Maximize2 className="h-4 w-4" /> : <Minus className="h-4 w-4" />}
         </HeaderIconButton>
 
-        <HeaderIconButton
-          label={isPip ? "Exit compact mode" : "Compact mode (PiP)"}
-          onClick={onTogglePip}
-          active={isPip}
-        >
-          <PictureInPicture2 className="h-4 w-4" strokeWidth={isPip ? 2.25 : 1.75} />
+        <HeaderIconButton label={pinLabel} onClick={onDetach}>
+          <Pin className="h-4 w-4" strokeWidth={1.75} />
         </HeaderIconButton>
 
         <p className="min-w-0 flex-1 truncate px-2 text-[13px] font-semibold text-foreground">
           {title}
-          {isPip && (
-            <span className="ml-1.5 text-[10px] font-semibold uppercase tracking-wide text-primary">
-              PiP
-            </span>
-          )}
         </p>
 
         <HeaderIconButton label="Close" onClick={handleClose}>
@@ -159,7 +142,6 @@ export function IncidentComposeWindow({
         <div className="min-h-0 flex-1 overflow-hidden">
           <IncidentForm
             embedded
-            compact={isPip}
             form={form}
             setForm={setForm}
             onClear={onClear}

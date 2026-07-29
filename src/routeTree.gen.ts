@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AgentsRouteImport } from './routes/agents'
+import { Route as IncidentComposeRouteImport } from './routes/incident-compose'
 import { Route as ReportsRouteImport } from './routes/reports'
 
 const IndexRoute = IndexRouteImport.update({
@@ -23,6 +24,11 @@ const AgentsRoute = AgentsRouteImport.update({
   path: '/agents',
   getParentRoute: () => rootRouteImport,
 } as any)
+const IncidentComposeRoute = IncidentComposeRouteImport.update({
+  id: '/incident-compose',
+  path: '/incident-compose',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ReportsRoute = ReportsRouteImport.update({
   id: '/reports',
   path: '/reports',
@@ -32,30 +38,34 @@ const ReportsRoute = ReportsRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/agents': typeof AgentsRoute
+  '/incident-compose': typeof IncidentComposeRoute
   '/reports': typeof ReportsRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/agents': typeof AgentsRoute
+  '/incident-compose': typeof IncidentComposeRoute
   '/reports': typeof ReportsRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/agents': typeof AgentsRoute
+  '/incident-compose': typeof IncidentComposeRoute
   '/reports': typeof ReportsRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/agents' | '/reports'
+  fullPaths: '/' | '/agents' | '/incident-compose' | '/reports'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/agents' | '/reports'
-  id: '__root__' | '/' | '/agents' | '/reports'
+  to: '/' | '/agents' | '/incident-compose' | '/reports'
+  id: '__root__' | '/' | '/agents' | '/incident-compose' | '/reports'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AgentsRoute: typeof AgentsRoute
+  IncidentComposeRoute: typeof IncidentComposeRoute
   ReportsRoute: typeof ReportsRoute
 }
 
@@ -75,6 +85,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AgentsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/incident-compose': {
+      id: '/incident-compose'
+      path: '/incident-compose'
+      fullPath: '/incident-compose'
+      preLoaderRoute: typeof IncidentComposeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/reports': {
       id: '/reports'
       path: '/reports'
@@ -88,6 +105,7 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AgentsRoute: AgentsRoute,
+  IncidentComposeRoute: IncidentComposeRoute,
   ReportsRoute: ReportsRoute,
 }
 export const routeTree = rootRouteImport

@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { getRouteApi, useNavigate } from "@tanstack/react-router";
 import { LockedHeader } from "@/features/workspace/components/LockedHeader";
 import { CustomerBrowsePhase } from "@/features/workspace/components/CustomerBrowsePhase";
@@ -28,9 +28,12 @@ export function CallWorkspace() {
     hydrateFromSearch,
   } = workspace;
 
+  const hydrateFromSearchRef = useRef(hydrateFromSearch);
+  hydrateFromSearchRef.current = hydrateFromSearch;
+
   useEffect(() => {
-    void hydrateFromSearch(urlSearch);
-  }, [hydrateFromSearch, urlSearch]);
+    void hydrateFromSearchRef.current(urlSearch);
+  }, [urlSearch]);
 
   const syncUrl = (search: WorkspaceSearch) => {
     void navigate({ to: "/", search, replace: true });
