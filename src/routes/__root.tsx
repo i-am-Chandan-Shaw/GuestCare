@@ -11,6 +11,7 @@ import { useEffect, type ReactNode } from "react";
 import appCss from "../styles.css?url";
 import agGridCss from "../styles/ag-grid.css?url";
 import agGridScrollbarCss from "../styles/ag-grid-scrollbar-visibility.css?url";
+import "@/lib/ag-grid-setup";
 import { Button } from "@/components/ui/Button";
 import { Toaster } from "@/components/ui/sonner";
 import { getSession } from "@/features/auth/api/auth.api";
