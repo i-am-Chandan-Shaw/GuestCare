@@ -1,6 +1,7 @@
 import { CUSTOMERS } from "@/data/mocks/customers.mock";
 import { INCIDENT_LOGS } from "@/data/incidents";
-import { findAgentByName, DEFAULT_AGENT_ID } from "@/data/agents.seed";
+import { DEFAULT_AGENT_ID } from "@/data/agents.seed";
+import { findAgentByName } from "@/features/agents/lib/agent-store";
 import { parseLegacyDisplayTimestamp, nowIso } from "@/shared/lib/datetime";
 import { mapLegacyIncidentStatus } from "@/features/reports/lib/report-status";
 import type { Report, ReportThreadEntry } from "@/shared/types/report";

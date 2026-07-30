@@ -28,6 +28,24 @@ export interface AgentListItem {
   createdAt: IsoDateTime;
 }
 
+export interface CreateAgentInput {
+  name: string;
+  email: string;
+  role: AgentRole;
+  isActive?: boolean;
+  customerScope: AgentCustomerScope;
+  password: string;
+}
+
+export interface UpdateAgentInput {
+  name: string;
+  email: string;
+  role: AgentRole;
+  isActive: boolean;
+  customerScope: AgentCustomerScope;
+  password?: string;
+}
+
 export interface AgentsQuery {
   page: number;
   limit: number;

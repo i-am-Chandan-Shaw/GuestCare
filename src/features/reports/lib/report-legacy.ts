@@ -1,6 +1,6 @@
 import { getAgentHandle } from "@/shared/lib/agent-display";
 import { formatActivityTimestamp } from "@/shared/lib/datetime";
-import { findAgentById } from "@/data/agents.seed";
+import { findAgentById } from "@/features/agents/lib/agent-store";
 import { mapReportStatusToLegacyIncidentStatus } from "@/features/reports/lib/report-status";
 import type { IncidentLog, IncidentType } from "@/shared/types";
 import type { Report } from "@/shared/types/report";

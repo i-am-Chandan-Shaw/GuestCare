@@ -1,6 +1,6 @@
 import { CUSTOMERS } from "@/data/mocks/customers.mock";
 import { PROPERTIES } from "@/data/properties";
-import { AGENT_SEED, findAgentById } from "@/data/agents.seed";
+import { listAgents, findAgentById } from "@/features/agents/lib/agent-store";
 import { createEmptyReportStore } from "@/features/reports/lib/seed-reports";
 import { filterReportsByActor } from "@/features/reports/lib/report-scope";
 import { nowIso } from "@/shared/lib/datetime";
@@ -437,7 +437,7 @@ export async function updateReportComment(
 }
 
 export async function getAgentsForAssignment(actor?: ReportActor) {
-  let agents = AGENT_SEED.filter((a) => a.isActive);
+  let agents = listAgents().filter((a) => a.isActive);
   if (actor && actor.role !== "admin" && actor.customerScope.type === "specific") {
     agents = agents.filter(
       (a) =>

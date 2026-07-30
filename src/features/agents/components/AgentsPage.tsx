@@ -1,12 +1,21 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { IGetRowsParams } from "ag-grid-community";
 import type { AgGridReact } from "ag-grid-react";
+import { Plus } from "lucide-react";
 import { getAgentsPaginated } from "@/features/agents/api/agents.api";
-import { agentsTableColumnDefs } from "@/features/agents/components/agents-table-columns";
+import { AgentFormDialog } from "@/features/agents/components/AgentFormDialog";
+import { createAgentsTableColumnDefs } from "@/features/agents/components/agents-table-columns";
+import {
+  canEditAgent,
+  canManageAgents,
+} from "@/features/agents/lib/agent-permissions";
+import { useAuth } from "@/features/auth/hooks/useAuth";
+import { toReportActor } from "@/features/reports/lib/report-scope";
 import {
   ServerPaginatedTable,
   computeInfiniteScrollLastRow,
 } from "@/components/table/ServerPaginatedTable";
+import { Button } from "@/components/ui/Button";
 import { SearchToolbar } from "@/shared/components/SearchToolbar";
 import type { AgentListItem } from "@/shared/types/agent";
 
@@ -22,10 +31,39 @@ function useDebouncedValue<T>(value: T, delayMs: number): T {
 }
 
 export function AgentsPage() {
+  const { agent } = useAuth();
+  const actor = useMemo(() => toReportActor(agent), [agent]);
   const [search, setSearch] = useState("");
   const debouncedSearch = useDebouncedValue(search, 300);
   const gridRef = useRef<AgGridReact<AgentListItem>>(null);
   const isMounted = useRef(false);
+
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [dialogMode, setDialogMode] = useState<"create" | "edit">("create");
+  const [editingAgentId, setEditingAgentId] = useState<string | null>(null);
+
+  const canManage = canManageAgents(actor);
+
+  const openCreate = () => {
+    setDialogMode("create");
+    setEditingAgentId(null);
+    setDialogOpen(true);
+  };
+
+  const openEdit = useCallback((agentId: string) => {
+    setDialogMode("edit");
+    setEditingAgentId(agentId);
+    setDialogOpen(true);
+  }, []);
+
+  const columnDefs = useMemo(
+    () =>
+      createAgentsTableColumnDefs({
+        canEdit: (row) => canEditAgent(actor, row),
+        onEdit: openEdit,
+      }),
+    [actor, openEdit],
+  );
 
   const handleFetchData = useCallback(
     async (params: IGetRowsParams) => {
@@ -59,6 +97,10 @@ export function AgentsPage() {
     gridRef.current?.api?.purgeInfiniteCache();
   }, [debouncedSearch]);
 
+  const handleSaved = () => {
+    gridRef.current?.api?.purgeInfiniteCache();
+  };
+
   return (
     <div className="flex h-full min-h-0 w-full flex-col overflow-hidden">
       <div className="shrink-0 border-b border-border-color bg-white/80 px-5 py-4 backdrop-blur-xl">
@@ -69,21 +111,29 @@ export function AgentsPage() {
       </div>
 
       <div className="shrink-0 bg-app-bg px-5 pt-3 pb-4">
-        <SearchToolbar
-          layout="inline"
-          className="w-full max-w-md"
-          value={search}
-          onChange={setSearch}
-          placeholder="Search agents…"
-          onClear={() => setSearch("")}
-        />
+        <div className="flex flex-wrap items-center gap-3">
+          <SearchToolbar
+            layout="inline"
+            className="w-full max-w-md"
+            value={search}
+            onChange={setSearch}
+            placeholder="Search agents…"
+            onClear={() => setSearch("")}
+          />
+          {canManage ? (
+            <Button type="button" onClick={openCreate} className="!h-9 !px-3">
+              <Plus className="mr-1.5 h-4 w-4" strokeWidth={2} />
+              Add agent
+            </Button>
+          ) : null}
+        </div>
       </div>
 
       <div className="flex min-h-0 flex-1 flex-col overflow-hidden p-4 pt-0">
         <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-md border border-border-color bg-card-bg shadow-sm">
           <ServerPaginatedTable<AgentListItem>
             gridRef={gridRef}
-            columnDefs={agentsTableColumnDefs}
+            columnDefs={columnDefs}
             fetchData={handleFetchData}
             getRowId={({ data }) => data.id}
             emptyMessage="No agents match your search."
@@ -91,6 +141,17 @@ export function AgentsPage() {
           />
         </div>
       </div>
+
+      {canManage ? (
+        <AgentFormDialog
+          open={dialogOpen}
+          mode={dialogMode}
+          agentId={editingAgentId}
+          actor={actor}
+          onOpenChange={setDialogOpen}
+          onSaved={handleSaved}
+        />
+      ) : null}
     </div>
   );
 }

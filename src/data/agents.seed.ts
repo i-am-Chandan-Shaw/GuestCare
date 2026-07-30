@@ -56,15 +56,3 @@ export const AGENT_DEV_PASSWORDS: Record<string, string> = {
 
 export const DEFAULT_AGENT_ID = "agent-priya";
 
-export function findAgentById(id: string): Agent | undefined {
-  return AGENT_SEED.find((a) => a.id === id);
-}
-
-export function findAgentByEmail(email: string): Agent | undefined {
-  const normalized = email.trim().toLowerCase();
-  return AGENT_SEED.find((a) => a.email.toLowerCase() === normalized);
-}
-
-export function findAgentByName(name: string): Agent | undefined {
-  return AGENT_SEED.find((a) => a.name === name);
-}

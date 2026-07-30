@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { CUSTOMERS } from "@/data/mock";
-import { findAgentByName, DEFAULT_AGENT_ID, findAgentById } from "@/data/agents.seed";
+import { DEFAULT_AGENT_ID } from "@/data/agents.seed";
+import { findAgentById, findAgentByName } from "@/features/agents/lib/agent-store";
 import {
   __getReportStoreSnapshot,
   createReport,

@@ -24,7 +24,7 @@ export function LockedHeader({
   return (
     <div className="shrink-0 border-b border-border-color bg-white px-5 py-2.5">
       <h1 className="text-[15px] font-black uppercase tracking-tight text-text-primary">
-        Incidents
+        Workspace
       </h1>
 
       <div className="mt-2">
