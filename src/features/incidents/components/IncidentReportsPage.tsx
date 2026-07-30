@@ -1,9 +1,9 @@
 import { Link } from "@tanstack/react-router";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { IGetRowsParams, RowClickedEvent } from "ag-grid-community";
 import type { AgGridReact } from "ag-grid-react";
 import { getReportsPaginated } from "@/features/reports/api/reports.api";
-import { reportsTableColumnDefs } from "@/features/incidents/components/reports-table-columns";
+import { createReportsTableColumnDefs } from "@/features/incidents/components/reports-table-columns";
 import { ReportDetailDrawer } from "@/features/reports/components/ReportDetailDrawer";
 import { useReportActor } from "@/features/reports/hooks/useReports";
 import { REPORT_STATUS_LABELS } from "@/features/reports/lib/report-status";
@@ -42,6 +42,15 @@ export function IncidentReportsPage({ customerId }: { customerId?: string }) {
   const debouncedSearch = useDebouncedValue(search, 300);
   const gridRef = useRef<AgGridReact<ReportListItem>>(null);
   const isMounted = useRef(false);
+
+  const handleViewReport = useCallback((reportId: string) => {
+    setSelectedReportId(reportId);
+  }, []);
+
+  const columnDefs = useMemo(
+    () => createReportsTableColumnDefs({ onViewReport: handleViewReport }),
+    [handleViewReport],
+  );
 
   const handleFetchData = useCallback(
     async (params: IGetRowsParams) => {
@@ -147,7 +156,7 @@ export function IncidentReportsPage({ customerId }: { customerId?: string }) {
           <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-md border border-border-color bg-card-bg shadow-sm">
             <ServerPaginatedTable<ReportListItem>
               gridRef={gridRef}
-              columnDefs={reportsTableColumnDefs}
+              columnDefs={columnDefs}
               fetchData={handleFetchData}
               getRowId={({ data }) => data.id}
               onRowClicked={handleRowClick}
