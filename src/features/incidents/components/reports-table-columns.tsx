@@ -1,5 +1,6 @@
 import type { ICellRendererParams, ValueFormatterParams } from "ag-grid-community";
 import type { ColDef } from "ag-grid-community";
+import { Eye } from "lucide-react";
 import { StatusChip } from "@/components/ui/StatusChip";
 import { priorityMeta } from "@/shared/constants/agent";
 import {
@@ -59,9 +60,11 @@ function ActionsCell({
         event.stopPropagation();
         onViewReport(data.id);
       }}
-      className="text-[12px] font-semibold text-brand-primary hover:underline"
+      aria-label="View report"
+      title="View report"
+      className="inline-flex h-7 w-7 items-center justify-center rounded-md text-text-secondary transition-colors hover:bg-app-bg hover:text-brand-primary"
     >
-      View full report
+      <Eye className="h-4 w-4" strokeWidth={2} />
     </button>
   );
 }
@@ -146,14 +149,17 @@ export function createReportsTableColumnDefs(options: {
       suppressSizeToFit: true,
     },
     {
-      headerName: "ACTIONS",
+      headerName: "",
       colId: "actions",
       pinned: "right",
       lockPinned: true,
-      width: 140,
-      minWidth: 140,
+      width: 56,
+      minWidth: 56,
+      maxWidth: 56,
       sortable: false,
+      resizable: false,
       suppressSizeToFit: true,
+      cellClass: "flex items-center justify-center",
       cellRenderer: (params: ICellRendererParams<ReportListItem>) => (
         <ActionsCell {...params} onViewReport={onViewReport} />
       ),

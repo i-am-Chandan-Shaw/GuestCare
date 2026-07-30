@@ -4,6 +4,7 @@ import { IncidentReportsPage } from "@/features/incidents";
 
 const searchSchema = z.object({
   customerId: z.string().optional(),
+  reportId: z.string().optional(),
 });
 
 export const Route = createFileRoute("/_authenticated/_shell/reports")({
@@ -12,6 +13,6 @@ export const Route = createFileRoute("/_authenticated/_shell/reports")({
 });
 
 function ReportsRoute() {
-  const { customerId } = Route.useSearch();
-  return <IncidentReportsPage customerId={customerId} />;
+  const { customerId, reportId } = Route.useSearch();
+  return <IncidentReportsPage customerId={customerId} reportId={reportId} />;
 }

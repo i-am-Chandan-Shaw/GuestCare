@@ -70,6 +70,8 @@ export interface ReportThreadEntry {
   authorAgentId: string;
   authorAgentName: string;
   body?: string;
+  /** Present only on replies to a root comment (max depth 1). */
+  parentId?: string;
   metadata?: {
     fromAgentId?: string;
     fromAgentName?: string;
@@ -134,6 +136,12 @@ export interface AssignReportInput {
 }
 
 export interface AddReportCommentInput {
+  body: string;
+  /** Must reference a root comment (no parent). Max nesting depth is 1. */
+  parentId?: string;
+}
+
+export interface UpdateReportCommentInput {
   body: string;
 }
 

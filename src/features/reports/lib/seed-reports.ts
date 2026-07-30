@@ -89,6 +89,59 @@ export function seedReportsFromIncidents(): { reports: Report[]; threads: Report
       body: "Report created",
       createdAt,
     });
+
+    // Seed a sample conversation on the first few reports so nested UI is visible.
+    if (index < 3) {
+      const rootId = `thr-${id}-c1`;
+      const rootCreated = new Date(new Date(createdAt).getTime() + 30 * 60_000).toISOString();
+      const reply1Created = new Date(new Date(createdAt).getTime() + 90 * 60_000).toISOString();
+      const reply2Created = new Date(new Date(createdAt).getTime() + 150 * 60_000).toISOString();
+      const otherAgent = findAgentByName("James Okonkwo") ?? findAgentByName("Sara Chen")!;
+
+      threads.push({
+        id: rootId,
+        reportId: id,
+        type: "comment",
+        authorAgentId: agent.id,
+        authorAgentName: agent.name,
+        body: "Logged the guest call and started the standard checklist for this issue.",
+        createdAt: rootCreated,
+      });
+      threads.push({
+        id: `thr-${id}-c1-r1`,
+        reportId: id,
+        type: "comment",
+        parentId: rootId,
+        authorAgentId: otherAgent.id,
+        authorAgentName: otherAgent.name,
+        body: "Checked property notes — spare parts / access details look current. Happy to take next steps if needed.",
+        createdAt: reply1Created,
+      });
+      threads.push({
+        id: `thr-${id}-c1-r2`,
+        reportId: id,
+        type: "comment",
+        parentId: rootId,
+        authorAgentId: agent.id,
+        authorAgentName: agent.name,
+        body: "Guest confirmed the temporary workaround. Leaving this open until we get final confirmation.",
+        createdAt: reply2Created,
+      });
+
+      if (index === 0) {
+        const root2Id = `thr-${id}-c2`;
+        const root2Created = new Date(new Date(createdAt).getTime() + 200 * 60_000).toISOString();
+        threads.push({
+          id: root2Id,
+          reportId: id,
+          type: "comment",
+          authorAgentId: otherAgent.id,
+          authorAgentName: otherAgent.name,
+          body: "Following up — any update from the host on ETA for a permanent fix?",
+          createdAt: root2Created,
+        });
+      }
+    }
   });
 
   return { reports, threads };

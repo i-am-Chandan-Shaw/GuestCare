@@ -16,6 +16,7 @@ import type {
   ReportsQuery,
   ReportStatus,
   ReportThreadEntry,
+  UpdateReportCommentInput,
   UpdateReportInput,
 } from "@/shared/types/report";
 
@@ -333,17 +334,61 @@ export async function addReportComment(
   const report = reportStore.find((r) => r.id === id);
   if (!report) throw new Error("Report not found");
 
+  const body = input.body.trim();
+  if (!body) throw new Error("Comment body is required");
+
+  let parentId: string | undefined;
+  if (input.parentId) {
+    const parent = threadStore.find(
+      (t) => t.id === input.parentId && t.reportId === id && t.type === "comment",
+    );
+    if (!parent) throw new Error("Parent comment not found");
+    if (parent.parentId) throw new Error("Cannot reply to a thread reply");
+    parentId = parent.id;
+  }
+
   const entry = touchReport(report, {
     id: `thr-${id}-comment-${Date.now()}`,
     reportId: id,
     type: "comment",
     authorAgentId: actor.id,
     authorAgentName: actor.name,
-    body: input.body,
+    body,
+    parentId,
   });
 
   report.version += 1;
   return entry!;
+}
+
+export async function updateReportComment(
+  reportId: string,
+  commentId: string,
+  input: UpdateReportCommentInput,
+  actor: ReportActor,
+): Promise<ReportThreadEntry> {
+  const report = reportStore.find((r) => r.id === reportId);
+  if (!report) throw new Error("Report not found");
+  if (actor && !filterReportsByActor([report], actor).length) {
+    throw new Error("Not allowed to update this report");
+  }
+
+  const entry = threadStore.find(
+    (t) => t.id === commentId && t.reportId === reportId && t.type === "comment",
+  );
+  if (!entry) throw new Error("Comment not found");
+  if (entry.authorAgentId !== actor.id) {
+    throw new Error("Only the author can edit this comment");
+  }
+
+  const body = input.body.trim();
+  if (!body) throw new Error("Comment body is required");
+
+  entry.body = body;
+  report.updatedAt = nowIso();
+  report.lastActivityAt = nowIso();
+  report.version += 1;
+  return { ...entry };
 }
 
 export async function getAgentsForAssignment(actor?: ReportActor) {

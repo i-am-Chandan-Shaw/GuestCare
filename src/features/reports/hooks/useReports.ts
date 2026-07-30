@@ -7,6 +7,7 @@ import {
   getReportById,
   getReportsPaginated,
   updateReport,
+  updateReportComment,
 } from "@/features/reports/api/reports.api";
 import { toReportActor } from "@/features/reports/lib/report-scope";
 import { useAuth } from "@/features/auth/hooks/useAuth";
@@ -14,6 +15,7 @@ import type {
   AddReportCommentInput,
   AssignReportInput,
   ReportsQuery,
+  UpdateReportCommentInput,
   UpdateReportInput,
 } from "@/shared/types/report";
 
@@ -79,6 +81,25 @@ export function useAddReportCommentMutation(reportId: string) {
 
   return useMutation({
     mutationFn: (input: AddReportCommentInput) => addReportComment(reportId, input, actor),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ["report", reportId] });
+      void queryClient.invalidateQueries({ queryKey: ["reports"] });
+    },
+  });
+}
+
+export function useUpdateReportCommentMutation(reportId: string) {
+  const actor = useReportActor();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({
+      commentId,
+      input,
+    }: {
+      commentId: string;
+      input: UpdateReportCommentInput;
+    }) => updateReportComment(reportId, commentId, input, actor),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: ["report", reportId] });
       void queryClient.invalidateQueries({ queryKey: ["reports"] });
