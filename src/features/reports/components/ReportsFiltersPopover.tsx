@@ -1,6 +1,21 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
-import { Check, ChevronDown, Filter, Search, X } from "lucide-react";
+import {
+  Building2,
+  Calendar,
+  Check,
+  ChevronDown,
+  ChevronUp,
+  CircleCheck,
+  Filter,
+  Flag,
+  Home,
+  Search,
+  Tag,
+  User,
+  X,
+  type LucideIcon,
+} from "lucide-react";
 import { useAgents } from "@/features/agents/hooks/useAgents";
 import { useCustomerSummaries } from "@/features/customers/hooks/useCustomers";
 import {
@@ -20,29 +35,16 @@ import type { ReportStatus } from "@/shared/types/report";
 
 const ALL_STATUSES = Object.keys(REPORT_STATUS_LABELS) as ReportStatus[];
 const ALL_PRIORITIES = Object.keys(priorityMeta) as Priority[];
+const PANEL_WIDTH = 360;
 
-const STATUS_SELECTED_TONE: Record<ReportStatus, string> = {
-  OPEN: "border-warning/40 bg-warning text-white",
-  ESCALATED: "border-destructive/40 bg-destructive text-white",
-  HANDEDOVER: "border-info/40 bg-info text-white",
-  RESOLVED: "border-success/40 bg-success text-white",
-};
-
-const PRIORITY_SELECTED_TONE: Record<Priority, string> = {
-  P1: "border-destructive/40 bg-destructive text-white",
-  P2: "border-warning/40 bg-warning text-white",
-  P3: "border-info/40 bg-info text-white",
-  P4: "border-border-color bg-text-secondary text-white",
-};
-
-const PRIORITY_IDLE_TONE: Record<Priority, string> = {
-  P1: "border-destructive/50",
-  P2: "border-warning/50",
-  P3: "border-info/50",
-  P4: "border-border-color",
-};
-
-type AccordionKey = "agent" | "customer" | "property" | "issueType" | "dateRange";
+type AccordionKey =
+  | "status"
+  | "priority"
+  | "agent"
+  | "customer"
+  | "property"
+  | "issueType"
+  | "dateRange";
 
 function cloneFilters(filters: ReportsListFilters): ReportsListFilters {
   return {
@@ -67,31 +69,37 @@ function draftFromApplied(applied: ReportsListFilters): ReportsListFilters {
   };
 }
 
+function selectedCountBadge(count: number): string {
+  return `${count} selected`;
+}
+
+function dateRangeBadge(dateFrom: string, dateTo: string): string {
+  if (!dateFrom && !dateTo) return "Not set";
+  if (dateFrom && dateTo) return "Set";
+  return "1 selected";
+}
+
 function FilterCheckbox({
   checked,
   label,
   onToggle,
-  selectedClassName,
-  idleClassName,
 }: {
   checked: boolean;
   label: string;
   onToggle: () => void;
-  selectedClassName?: string;
-  idleClassName?: string;
 }) {
   return (
     <button
       type="button"
       onClick={onToggle}
-      className="flex w-full items-center gap-2.5 rounded-md px-0.5 py-1.5 text-left transition-colors hover:bg-app-bg"
+      className="flex w-full items-center gap-2.5 rounded-md py-1.5 text-left transition-colors hover:bg-app-bg"
     >
       <span
         className={cn(
           "flex h-4 w-4 shrink-0 items-center justify-center rounded border transition-colors",
           checked
-            ? (selectedClassName ?? "border-brand-primary bg-brand-primary text-white")
-            : (idleClassName ?? "border-border-color bg-card-bg"),
+            ? "border-brand-primary bg-brand-primary text-white"
+            : "border-border-color bg-card-bg",
         )}
         aria-hidden
       >
@@ -102,34 +110,53 @@ function FilterCheckbox({
   );
 }
 
-function AccordionSection({
+function FilterSection({
   title,
+  icon: Icon,
+  iconClassName,
+  badge,
   open,
   onToggle,
   children,
 }: {
   title: string;
+  icon: LucideIcon;
+  iconClassName: string;
+  badge: string;
   open: boolean;
   onToggle: () => void;
-  children: React.ReactNode;
+  children: ReactNode;
 }) {
   return (
-    <div className="border-t border-border-color">
+    <div>
       <button
         type="button"
         onClick={onToggle}
-        className="flex w-full items-center justify-between gap-3 py-3 text-left"
+        aria-expanded={open}
+        className="flex w-full items-center gap-3 px-4 py-3.5 text-left transition-colors hover:bg-app-bg/60"
       >
-        <span className="text-[13px] font-semibold text-text-primary">{title}</span>
-        <ChevronDown
+        <span
           className={cn(
-            "h-4 w-4 text-text-muted transition-transform",
-            open && "rotate-180",
+            "flex h-7 w-7 shrink-0 items-center justify-center rounded-md",
+            iconClassName,
           )}
-          strokeWidth={2}
-        />
+          aria-hidden
+        >
+          <Icon className="h-3.5 w-3.5" strokeWidth={2} />
+        </span>
+        <span className="min-w-0 flex-1 text-[13px] font-semibold text-text-primary">
+          {title}
+        </span>
+        <span className="inline-flex shrink-0 items-center rounded-full bg-app-bg px-2 py-0.5 text-[11px] font-medium text-text-secondary">
+          {badge}
+        </span>
+        {open ? (
+          <ChevronUp className="h-4 w-4 shrink-0 text-text-muted" strokeWidth={2} />
+        ) : (
+          <ChevronDown className="h-4 w-4 shrink-0 text-text-muted" strokeWidth={2} />
+        )}
       </button>
-      {open ? <div className="pb-3">{children}</div> : null}
+      {open ? <div className="px-4 pb-3.5">{children}</div> : null}
     </div>
   );
 }
@@ -169,7 +196,7 @@ export function ReportsFiltersPopover({
 }) {
   const [open, setOpen] = useState(false);
   const [draft, setDraft] = useState<ReportsListFilters>(() => draftFromApplied(applied));
-  const [expanded, setExpanded] = useState<AccordionKey | null>(null);
+  const [expanded, setExpanded] = useState<AccordionKey | null>("status");
   const [agentQ, setAgentQ] = useState("");
   const [customerQ, setCustomerQ] = useState("");
   const [propertyQ, setPropertyQ] = useState("");
@@ -184,7 +211,7 @@ export function ReportsFiltersPopover({
 
   const openPopover = () => {
     setDraft(draftFromApplied(applied));
-    setExpanded(null);
+    setExpanded("status");
     setAgentQ("");
     setCustomerQ("");
     setPropertyQ("");
@@ -198,10 +225,9 @@ export function ReportsFiltersPopover({
   const updatePos = useCallback(() => {
     if (!triggerRef.current) return;
     const rect = triggerRef.current.getBoundingClientRect();
-    const panelWidth = 320;
     const left = Math.min(
-      Math.max(8, rect.right - panelWidth),
-      window.innerWidth - panelWidth - 8,
+      Math.max(8, rect.right - PANEL_WIDTH),
+      window.innerWidth - PANEL_WIDTH - 8,
     );
     setPos({ top: rect.bottom + 8, left });
   }, []);
@@ -284,8 +310,14 @@ export function ReportsFiltersPopover({
           ref={panelRef}
           role="dialog"
           aria-label="Filters"
-          className="flex max-h-[min(72vh,640px)] w-[320px] flex-col overflow-hidden rounded-xl border border-border-color bg-card-bg shadow-lg"
-          style={{ position: "fixed", top: pos.top, left: pos.left, zIndex: 9999 }}
+          className="flex max-h-[min(72vh,640px)] flex-col overflow-hidden rounded-xl border border-border-color bg-card-bg shadow-lg"
+          style={{
+            position: "fixed",
+            top: pos.top,
+            left: pos.left,
+            width: PANEL_WIDTH,
+            zIndex: 9999,
+          }}
         >
           <div className="flex shrink-0 items-center justify-between gap-3 border-b border-border-color px-4 py-3">
             <h2 className="text-[15px] font-bold text-text-primary">Filters</h2>
@@ -299,9 +331,15 @@ export function ReportsFiltersPopover({
             </button>
           </div>
 
-          <div className="min-h-0 flex-1 space-y-4 overflow-y-auto px-4 py-4">
-            <section className="space-y-1.5">
-              <p className="text-[12px] font-semibold text-text-primary">Status</p>
+          <div className="min-h-0 flex-1 divide-y divide-border-color overflow-y-auto">
+            <FilterSection
+              title="Status"
+              icon={CircleCheck}
+              iconClassName="bg-brand-primary/10 text-brand-primary"
+              badge={selectedCountBadge(draft.statuses.length)}
+              open={expanded === "status"}
+              onToggle={() => toggleAccordion("status")}
+            >
               <FilterCheckbox
                 checked={statusAllSelected}
                 label="All"
@@ -312,16 +350,21 @@ export function ReportsFiltersPopover({
                   key={status}
                   checked={draft.statuses.includes(status)}
                   label={REPORT_STATUS_LABELS[status]}
-                  selectedClassName={STATUS_SELECTED_TONE[status]}
                   onToggle={() =>
                     patch({ statuses: toggleIdInList(draft.statuses, status) })
                   }
                 />
               ))}
-            </section>
+            </FilterSection>
 
-            <section className="space-y-1.5">
-              <p className="text-[12px] font-semibold text-text-primary">Priority</p>
+            <FilterSection
+              title="Priority"
+              icon={Flag}
+              iconClassName="bg-warning/15 text-warning"
+              badge={selectedCountBadge(draft.priorities.length)}
+              open={expanded === "priority"}
+              onToggle={() => toggleAccordion("priority")}
+            >
               <FilterCheckbox
                 checked={priorityAllSelected}
                 label="All"
@@ -332,162 +375,175 @@ export function ReportsFiltersPopover({
                   key={priority}
                   checked={draft.priorities.includes(priority)}
                   label={priorityMeta[priority].name}
-                  selectedClassName={PRIORITY_SELECTED_TONE[priority]}
-                  idleClassName={PRIORITY_IDLE_TONE[priority]}
                   onToggle={() =>
-                    patch({ priorities: toggleIdInList(draft.priorities, priority) })
+                    patch({
+                      priorities: toggleIdInList(draft.priorities, priority),
+                    })
                   }
                 />
               ))}
-            </section>
+            </FilterSection>
 
-            <div>
-              <AccordionSection
-                title="Agent"
-                open={expanded === "agent"}
-                onToggle={() => toggleAccordion("agent")}
-              >
-                <ListSearch
-                  value={agentQ}
-                  onChange={setAgentQ}
-                  placeholder="Search agents…"
-                />
-                <div className="max-h-40 space-y-0.5 overflow-y-auto">
-                  {filteredAgents.map((agent) => (
-                    <FilterCheckbox
-                      key={agent.id}
-                      checked={draft.assignedAgentIds.includes(agent.id)}
-                      label={agent.name}
-                      onToggle={() =>
-                        patch({
-                          assignedAgentIds: toggleIdInList(
-                            draft.assignedAgentIds,
-                            agent.id,
-                          ),
-                        })
-                      }
-                    />
-                  ))}
-                  {filteredAgents.length === 0 ? (
-                    <p className="py-2 text-[12px] text-text-muted">No agents found</p>
-                  ) : null}
-                </div>
-              </AccordionSection>
+            <FilterSection
+              title="Agent"
+              icon={User}
+              iconClassName="bg-violet-500/10 text-violet-600"
+              badge={selectedCountBadge(draft.assignedAgentIds.length)}
+              open={expanded === "agent"}
+              onToggle={() => toggleAccordion("agent")}
+            >
+              <ListSearch
+                value={agentQ}
+                onChange={setAgentQ}
+                placeholder="Search agents…"
+              />
+              <div className="max-h-40 space-y-0.5 overflow-y-auto">
+                {filteredAgents.map((agent) => (
+                  <FilterCheckbox
+                    key={agent.id}
+                    checked={draft.assignedAgentIds.includes(agent.id)}
+                    label={agent.name}
+                    onToggle={() =>
+                      patch({
+                        assignedAgentIds: toggleIdInList(
+                          draft.assignedAgentIds,
+                          agent.id,
+                        ),
+                      })
+                    }
+                  />
+                ))}
+                {filteredAgents.length === 0 ? (
+                  <p className="py-2 text-[12px] text-text-muted">No agents found</p>
+                ) : null}
+              </div>
+            </FilterSection>
 
-              <AccordionSection
-                title="Customer"
-                open={expanded === "customer"}
-                onToggle={() => toggleAccordion("customer")}
-              >
-                {customerScoped ? (
-                  <p className="text-[12px] text-text-secondary">
-                    Customer is locked by the current page filter.
-                  </p>
-                ) : (
-                  <>
-                    <ListSearch
-                      value={customerQ}
-                      onChange={setCustomerQ}
-                      placeholder="Search customers…"
-                    />
-                    <div className="max-h-40 space-y-0.5 overflow-y-auto">
-                      {filteredCustomers.map((customer) => (
-                        <FilterCheckbox
-                          key={customer.id}
-                          checked={draft.customerIds.includes(customer.id)}
-                          label={customer.name}
-                          onToggle={() =>
-                            patch({
-                              customerIds: toggleIdInList(draft.customerIds, customer.id),
-                            })
-                          }
-                        />
-                      ))}
-                      {filteredCustomers.length === 0 ? (
-                        <p className="py-2 text-[12px] text-text-muted">No customers found</p>
-                      ) : null}
-                    </div>
-                  </>
-                )}
-              </AccordionSection>
+            <FilterSection
+              title="Customer"
+              icon={Building2}
+              iconClassName="bg-emerald-500/10 text-emerald-600"
+              badge={selectedCountBadge(draft.customerIds.length)}
+              open={expanded === "customer"}
+              onToggle={() => toggleAccordion("customer")}
+            >
+              {customerScoped ? (
+                <p className="text-[12px] text-text-secondary">
+                  Customer is locked by the current page filter.
+                </p>
+              ) : (
+                <>
+                  <ListSearch
+                    value={customerQ}
+                    onChange={setCustomerQ}
+                    placeholder="Search customers…"
+                  />
+                  <div className="max-h-40 space-y-0.5 overflow-y-auto">
+                    {filteredCustomers.map((customer) => (
+                      <FilterCheckbox
+                        key={customer.id}
+                        checked={draft.customerIds.includes(customer.id)}
+                        label={customer.name}
+                        onToggle={() =>
+                          patch({
+                            customerIds: toggleIdInList(draft.customerIds, customer.id),
+                          })
+                        }
+                      />
+                    ))}
+                    {filteredCustomers.length === 0 ? (
+                      <p className="py-2 text-[12px] text-text-muted">No customers found</p>
+                    ) : null}
+                  </div>
+                </>
+              )}
+            </FilterSection>
 
-              <AccordionSection
-                title="Property"
-                open={expanded === "property"}
-                onToggle={() => toggleAccordion("property")}
-              >
-                <ListSearch
-                  value={propertyQ}
-                  onChange={setPropertyQ}
-                  placeholder="Search properties…"
-                />
-                <div className="max-h-40 space-y-0.5 overflow-y-auto">
-                  {filteredProperties.map((property) => (
-                    <FilterCheckbox
-                      key={property.id}
-                      checked={draft.propertyIds.includes(property.id)}
-                      label={property.name}
-                      onToggle={() =>
-                        patch({
-                          propertyIds: toggleIdInList(draft.propertyIds, property.id),
-                        })
-                      }
-                    />
-                  ))}
-                  {filteredProperties.length === 0 ? (
-                    <p className="py-2 text-[12px] text-text-muted">No properties found</p>
-                  ) : null}
-                </div>
-              </AccordionSection>
+            <FilterSection
+              title="Property"
+              icon={Home}
+              iconClassName="bg-sky-500/10 text-sky-600"
+              badge={selectedCountBadge(draft.propertyIds.length)}
+              open={expanded === "property"}
+              onToggle={() => toggleAccordion("property")}
+            >
+              <ListSearch
+                value={propertyQ}
+                onChange={setPropertyQ}
+                placeholder="Search properties…"
+              />
+              <div className="max-h-40 space-y-0.5 overflow-y-auto">
+                {filteredProperties.map((property) => (
+                  <FilterCheckbox
+                    key={property.id}
+                    checked={draft.propertyIds.includes(property.id)}
+                    label={property.name}
+                    onToggle={() =>
+                      patch({
+                        propertyIds: toggleIdInList(draft.propertyIds, property.id),
+                      })
+                    }
+                  />
+                ))}
+                {filteredProperties.length === 0 ? (
+                  <p className="py-2 text-[12px] text-text-muted">No properties found</p>
+                ) : null}
+              </div>
+            </FilterSection>
 
-              <AccordionSection
-                title="Issue type"
-                open={expanded === "issueType"}
-                onToggle={() => toggleAccordion("issueType")}
-              >
-                <div className="max-h-40 space-y-0.5 overflow-y-auto">
-                  {INCIDENT_TYPES.map((type) => (
-                    <FilterCheckbox
-                      key={type}
-                      checked={draft.issueTypes.includes(type)}
-                      label={type}
-                      onToggle={() =>
-                        patch({
-                          issueTypes: toggleIdInList(draft.issueTypes, type),
-                        })
-                      }
-                    />
-                  ))}
-                </div>
-              </AccordionSection>
+            <FilterSection
+              title="Issue type"
+              icon={Tag}
+              iconClassName="bg-brand-primary/10 text-brand-primary"
+              badge={selectedCountBadge(draft.issueTypes.length)}
+              open={expanded === "issueType"}
+              onToggle={() => toggleAccordion("issueType")}
+            >
+              <div className="max-h-40 space-y-0.5 overflow-y-auto">
+                {INCIDENT_TYPES.map((type) => (
+                  <FilterCheckbox
+                    key={type}
+                    checked={draft.issueTypes.includes(type)}
+                    label={type}
+                    onToggle={() =>
+                      patch({
+                        issueTypes: toggleIdInList(draft.issueTypes, type),
+                      })
+                    }
+                  />
+                ))}
+              </div>
+            </FilterSection>
 
-              <AccordionSection
-                title="Date range"
-                open={expanded === "dateRange"}
-                onToggle={() => toggleAccordion("dateRange")}
-              >
-                <div className="grid grid-cols-1 gap-2">
-                  <label className="space-y-1">
-                    <span className="text-[11px] font-medium text-text-secondary">From</span>
-                    <input
-                      type="date"
-                      value={draft.dateFrom}
-                      onChange={(e) => patch({ dateFrom: e.target.value })}
-                      className="w-full rounded-md border border-border-color bg-card-bg px-2.5 py-1.5 text-[13px] text-text-primary outline-none"
-                    />
-                  </label>
-                  <label className="space-y-1">
-                    <span className="text-[11px] font-medium text-text-secondary">To</span>
-                    <input
-                      type="date"
-                      value={draft.dateTo}
-                      onChange={(e) => patch({ dateTo: e.target.value })}
-                      className="w-full rounded-md border border-border-color bg-card-bg px-2.5 py-1.5 text-[13px] text-text-primary outline-none"
-                    />
-                  </label>
-                </div>
-              </AccordionSection>
-            </div>
+            <FilterSection
+              title="Date range"
+              icon={Calendar}
+              iconClassName="bg-brand-primary/10 text-brand-primary"
+              badge={dateRangeBadge(draft.dateFrom, draft.dateTo)}
+              open={expanded === "dateRange"}
+              onToggle={() => toggleAccordion("dateRange")}
+            >
+              <div className="grid grid-cols-1 gap-2">
+                <label className="space-y-1">
+                  <span className="text-[11px] font-medium text-text-secondary">From</span>
+                  <input
+                    type="date"
+                    value={draft.dateFrom}
+                    onChange={(e) => patch({ dateFrom: e.target.value })}
+                    className="w-full rounded-md border border-border-color bg-card-bg px-2.5 py-1.5 text-[13px] text-text-primary outline-none"
+                  />
+                </label>
+                <label className="space-y-1">
+                  <span className="text-[11px] font-medium text-text-secondary">To</span>
+                  <input
+                    type="date"
+                    value={draft.dateTo}
+                    onChange={(e) => patch({ dateTo: e.target.value })}
+                    className="w-full rounded-md border border-border-color bg-card-bg px-2.5 py-1.5 text-[13px] text-text-primary outline-none"
+                  />
+                </label>
+              </div>
+            </FilterSection>
           </div>
 
           <div className="flex shrink-0 items-center justify-end gap-2 border-t border-border-color px-4 py-3">
@@ -500,7 +556,7 @@ export function ReportsFiltersPopover({
               Clear
             </Button>
             <Button type="button" onClick={handleApply} className="!h-8 !px-3">
-              Apply
+              Apply filters
             </Button>
           </div>
         </div>,

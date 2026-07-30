@@ -1,6 +1,6 @@
 import { Link, useNavigate } from "@tanstack/react-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import type { IGetRowsParams, RowClickedEvent } from "ag-grid-community";
+import type { IGetRowsParams } from "ag-grid-community";
 import type { AgGridReact } from "ag-grid-react";
 import { getReportsPaginated } from "@/features/reports/api/reports.api";
 import { createReportsTableColumnDefs } from "@/features/incidents/components/reports-table-columns";
@@ -111,13 +111,6 @@ export function IncidentReportsPage({
     gridRef.current?.api?.purgeInfiniteCache();
   }, [appliedFilters, customerId, actor.id]);
 
-  const handleRowClick = useCallback(
-    (event: RowClickedEvent<ReportListItem>) => {
-      if (event.data?.id) setSelectedReportId(event.data.id);
-    },
-    [setSelectedReportId],
-  );
-
   if (selectedReportId) {
     return <ReportDetailPage reportId={selectedReportId} onBack={handleBack} />;
   }
@@ -179,7 +172,6 @@ export function IncidentReportsPage({
             columnDefs={columnDefs}
             fetchData={handleFetchData}
             getRowId={({ data }) => data.id}
-            onRowClicked={handleRowClick}
             emptyMessage="No reports match your filters."
             height="100%"
           />
