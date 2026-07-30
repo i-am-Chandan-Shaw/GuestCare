@@ -1,6 +1,6 @@
 import { CUSTOMERS } from "@/data/mocks/customers.mock";
 import { PROPERTIES } from "@/data/properties";
-import { AGENT_SEED, findAgentById } from "@/data/agents.seed";
+import { listAgents, findAgentById } from "@/features/agents/lib/agent-store";
 import { createEmptyReportStore } from "@/features/reports/lib/seed-reports";
 import { filterReportsByActor } from "@/features/reports/lib/report-scope";
 import { nowIso } from "@/shared/lib/datetime";
@@ -16,6 +16,7 @@ import type {
   ReportsQuery,
   ReportStatus,
   ReportThreadEntry,
+  UpdateReportCommentInput,
   UpdateReportInput,
 } from "@/shared/types/report";
 
@@ -76,6 +77,10 @@ function toListItem(report: Report): ReportListItem {
   };
 }
 
+function activityDateKey(iso: string): string {
+  return iso.slice(0, 10);
+}
+
 function filterReports(query: ReportsQuery, actor?: ReportActor): Report[] {
   let results = filterReportsByActor([...reportStore], actor);
 
@@ -86,10 +91,51 @@ function filterReports(query: ReportsQuery, actor?: ReportActor): Report[] {
     results = results.filter(
       (r) => r.customerId === query.customerId || (r.propertyId && propertyIds.has(r.propertyId)),
     );
+  } else if (query.customerIds && query.customerIds.length > 0) {
+    const allowed = new Set(query.customerIds);
+    const propertyIds = new Set(
+      query.customerIds.flatMap(
+        (id) => CUSTOMERS.find((c) => c.id === id)?.propertyIds ?? [],
+      ),
+    );
+    results = results.filter(
+      (r) => allowed.has(r.customerId) || (r.propertyId != null && propertyIds.has(r.propertyId)),
+    );
   }
 
-  if (query.status && query.status !== "all") {
-    results = results.filter((r) => r.status === query.status);
+  if (query.statuses && query.statuses.length > 0) {
+    const allowed = new Set(query.statuses);
+    results = results.filter((r) => allowed.has(r.status));
+  }
+
+  if (query.priorities && query.priorities.length > 0) {
+    const allowed = new Set(query.priorities);
+    results = results.filter((r) => allowed.has(r.priority));
+  }
+
+  if (query.assignedAgentIds && query.assignedAgentIds.length > 0) {
+    const allowed = new Set(query.assignedAgentIds);
+    results = results.filter((r) => allowed.has(r.assignedAgentId));
+  }
+
+  if (query.propertyIds && query.propertyIds.length > 0) {
+    const allowed = new Set(query.propertyIds);
+    results = results.filter((r) => r.propertyId != null && allowed.has(r.propertyId));
+  }
+
+  if (query.issueTypes && query.issueTypes.length > 0) {
+    const allowed = new Set(query.issueTypes);
+    results = results.filter((r) => allowed.has(r.issueType));
+  }
+
+  if (query.dateFrom) {
+    const from = query.dateFrom;
+    results = results.filter((r) => activityDateKey(r.lastActivityAt) >= from);
+  }
+
+  if (query.dateTo) {
+    const to = query.dateTo;
+    results = results.filter((r) => activityDateKey(r.lastActivityAt) <= to);
   }
 
   const search = query.search?.trim().toLowerCase();
@@ -333,21 +379,65 @@ export async function addReportComment(
   const report = reportStore.find((r) => r.id === id);
   if (!report) throw new Error("Report not found");
 
+  const body = input.body.trim();
+  if (!body) throw new Error("Comment body is required");
+
+  let parentId: string | undefined;
+  if (input.parentId) {
+    const parent = threadStore.find(
+      (t) => t.id === input.parentId && t.reportId === id && t.type === "comment",
+    );
+    if (!parent) throw new Error("Parent comment not found");
+    if (parent.parentId) throw new Error("Cannot reply to a thread reply");
+    parentId = parent.id;
+  }
+
   const entry = touchReport(report, {
     id: `thr-${id}-comment-${Date.now()}`,
     reportId: id,
     type: "comment",
     authorAgentId: actor.id,
     authorAgentName: actor.name,
-    body: input.body,
+    body,
+    parentId,
   });
 
   report.version += 1;
   return entry!;
 }
 
+export async function updateReportComment(
+  reportId: string,
+  commentId: string,
+  input: UpdateReportCommentInput,
+  actor: ReportActor,
+): Promise<ReportThreadEntry> {
+  const report = reportStore.find((r) => r.id === reportId);
+  if (!report) throw new Error("Report not found");
+  if (actor && !filterReportsByActor([report], actor).length) {
+    throw new Error("Not allowed to update this report");
+  }
+
+  const entry = threadStore.find(
+    (t) => t.id === commentId && t.reportId === reportId && t.type === "comment",
+  );
+  if (!entry) throw new Error("Comment not found");
+  if (entry.authorAgentId !== actor.id) {
+    throw new Error("Only the author can edit this comment");
+  }
+
+  const body = input.body.trim();
+  if (!body) throw new Error("Comment body is required");
+
+  entry.body = body;
+  report.updatedAt = nowIso();
+  report.lastActivityAt = nowIso();
+  report.version += 1;
+  return { ...entry };
+}
+
 export async function getAgentsForAssignment(actor?: ReportActor) {
-  let agents = AGENT_SEED.filter((a) => a.isActive);
+  let agents = listAgents().filter((a) => a.isActive);
   if (actor && actor.role !== "admin" && actor.customerScope.type === "specific") {
     agents = agents.filter(
       (a) =>

@@ -1,3 +1,4 @@
+import { IssueHistoryPanel } from "@/features/workspace/components/IssueHistoryPanel";
 import { Building2, Check, Key, Phone, Wifi } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { cn } from "@/lib/utils";
@@ -47,6 +48,7 @@ export function IssuePanel({
   issue,
   property,
   onPick,
+  onBack,
   checked,
   onToggle,
   verificationChecked,
@@ -57,6 +59,7 @@ export function IssuePanel({
   issue: Issue | null;
   property: Property | null;
   onPick: (i: Issue) => void;
+  onBack?: () => void;
   checked: Record<string, boolean>;
   onToggle: (id: string) => void;
   verificationChecked: Record<string, boolean>;
@@ -115,11 +118,20 @@ export function IssuePanel({
 
   if (!issue) {
     return (
-      <IssuePickerSection
-        property={property}
-        recentIssues={recentIssues}
-        onPick={onPick}
-      />
+      <div className="flex h-full min-h-0 flex-col gap-4 overflow-hidden bg-app-bg p-4">
+        <IssuePickerSection
+          layout="stacked"
+          property={property}
+          recentIssues={recentIssues}
+          onPick={onPick}
+          onBack={onBack}
+        />
+        <IssueHistoryPanel
+          variant="section"
+          propertyId={property.id}
+          emptyLabel="No issues recorded for this property."
+        />
+      </div>
     );
   }
 

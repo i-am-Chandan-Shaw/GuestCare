@@ -1,5 +1,11 @@
-import { Copy, Phone, ChevronDown, ChevronRight } from "lucide-react";
-import { useState } from "react";
+import {
+  Copy,
+  Phone,
+  ChevronDown,
+  ChevronRight,
+  type LucideIcon,
+} from "lucide-react";
+import { useState, type ReactNode } from "react";
 import { cn } from "@/lib/utils";
 import { copyText } from "@/lib/copy-to-clipboard";
 
@@ -41,16 +47,41 @@ export function PropertyTabs({
   );
 }
 
+export function FieldLabel({
+  icon: Icon,
+  children,
+  className,
+}: {
+  icon?: LucideIcon;
+  children: ReactNode;
+  className?: string;
+}) {
+  return (
+    <span className={cn("inline-flex items-center gap-1.5", className)}>
+      {Icon ? (
+        <Icon
+          aria-hidden
+          strokeWidth={2}
+          className="block size-[1em] shrink-0 -translate-y-px text-text-muted"
+        />
+      ) : null}
+      <span className="leading-none">{children}</span>
+    </span>
+  );
+}
+
 export function CopyRow({
   label,
   value,
   mono = false,
   sublabel,
+  icon,
 }: {
   label: string;
   value: string;
   mono?: boolean;
   sublabel?: string;
+  icon?: LucideIcon;
 }) {
   const [copied, setCopied] = useState(false);
   const copy = async () => {
@@ -60,9 +91,11 @@ export function CopyRow({
     setTimeout(() => setCopied(false), 1200);
   };
   return (
-    <div className="flex items-center justify-between gap-3 py-3 text-[13px]">
+    <div className="flex items-center justify-between gap-3 px-4 py-3 text-[13px]">
       <div className="min-w-0 shrink-0 max-w-[42%]">
-        <span className="font-medium text-text-secondary">{label}</span>
+        <FieldLabel icon={icon} className="font-medium text-text-secondary">
+          {label}
+        </FieldLabel>
         {sublabel && (
           <p className="mt-0.5 break-words text-[11px] text-text-secondary/80">{sublabel}</p>
         )}
@@ -92,11 +125,26 @@ export function CopyRow({
   );
 }
 
-export function PhoneRow({ label, value, red = false }: { label: string; value: string; red?: boolean }) {
+export function PhoneRow({
+  label,
+  value,
+  red = false,
+  icon,
+}: {
+  label: string;
+  value: string;
+  red?: boolean;
+  icon?: LucideIcon;
+}) {
   return (
-    <div className="py-3">
+    <div className="px-4 py-3">
       <div className="flex items-center justify-between gap-3">
-        <p className="text-[11.5px] font-semibold text-text-secondary">{label}</p>
+        <FieldLabel
+          icon={icon}
+          className="text-[11.5px] font-semibold text-text-secondary"
+        >
+          {label}
+        </FieldLabel>
         <a
           href={`tel:${value.replace(/\s/g, "")}`}
           className={cn(
@@ -120,19 +168,33 @@ export function PhoneRow({ label, value, red = false }: { label: string; value: 
   );
 }
 
-export function ExpandableNote({ title, text }: { title: string; text: string }) {
+export function ExpandableNote({
+  title,
+  text,
+  icon,
+}: {
+  title: string;
+  text: string;
+  icon?: LucideIcon;
+}) {
   const [open, setOpen] = useState(false);
   return (
-    <div>
+    <div className="px-4">
       <button
         onClick={() => setOpen((o) => !o)}
         className="flex w-full cursor-pointer items-center justify-between gap-3 py-3 text-[13px] font-medium text-text-secondary hover:text-text-primary"
       >
-        <span>{title}</span>
-        {open ? <ChevronDown className="h-3.5 w-3.5 shrink-0" /> : <ChevronRight className="h-3.5 w-3.5 shrink-0" />}
+        <FieldLabel icon={icon}>{title}</FieldLabel>
+        {open ? (
+          <ChevronDown className="h-3.5 w-3.5 shrink-0" />
+        ) : (
+          <ChevronRight className="h-3.5 w-3.5 shrink-0" />
+        )}
       </button>
       {open && (
-        <p className="whitespace-pre-wrap pb-3 text-[12.5px] leading-relaxed text-text-primary">{text}</p>
+        <p className="whitespace-pre-wrap pb-3 text-[12.5px] leading-relaxed text-text-primary">
+          {text}
+        </p>
       )}
     </div>
   );
@@ -142,10 +204,12 @@ export function StackedCopyField({
   label,
   value,
   mono = false,
+  icon,
 }: {
   label: string;
   value: string;
   mono?: boolean;
+  icon?: LucideIcon;
 }) {
   const [copied, setCopied] = useState(false);
   const copy = async () => {
@@ -155,9 +219,14 @@ export function StackedCopyField({
     setTimeout(() => setCopied(false), 1200);
   };
   return (
-    <div className="py-3">
+    <div className="px-4 py-3">
       <div className="flex items-center justify-between gap-3">
-        <p className="text-[11.5px] font-semibold text-text-secondary">{label}</p>
+        <FieldLabel
+          icon={icon}
+          className="text-[11.5px] font-semibold text-text-secondary"
+        >
+          {label}
+        </FieldLabel>
         <button
           type="button"
           onClick={copy}
@@ -170,17 +239,35 @@ export function StackedCopyField({
           <Copy className="h-3.5 w-3.5" />
         </button>
       </div>
-      <p className={cn("mt-1 break-words text-[13px] font-medium text-text-primary", mono && "break-all font-mono")}>
+      <p
+        className={cn(
+          "mt-1 break-words text-[13px] font-medium text-text-primary",
+          mono && "break-all font-mono",
+        )}
+      >
         {value}
       </p>
     </div>
   );
 }
 
-export function StackedField({ label, value }: { label: string; value: string }) {
+export function StackedField({
+  label,
+  value,
+  icon,
+}: {
+  label: string;
+  value: string;
+  icon?: LucideIcon;
+}) {
   return (
-    <div className="py-3">
-      <p className="text-[11.5px] font-semibold text-text-secondary">{label}</p>
+    <div className="px-4 py-3">
+      <FieldLabel
+        icon={icon}
+        className="text-[11.5px] font-semibold text-text-secondary"
+      >
+        {label}
+      </FieldLabel>
       <p className="mt-1 break-words text-[13px] font-medium text-text-primary">{value}</p>
     </div>
   );

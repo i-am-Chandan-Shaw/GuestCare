@@ -1,12 +1,14 @@
-import { formatRelativeTime } from "@/shared/lib/format-relative-time";
+import { formatCompactRelativeTime } from "@/shared/lib/format-relative-time";
 import {
   PORTFOLIO_CARD_TITLE_CLASS,
+  PortfolioCardActivityChip,
   PortfolioMetricColumn,
 } from "@/shared/components/PortfolioCardParts";
+import { PortfolioCardThumbnail } from "@/shared/components/PortfolioCardThumbnail";
 import { cn } from "@/lib/utils";
-import type { CustomerSummary } from "@/shared/types";
+import type { PropertySummary } from "@/shared/types";
 import type { ReactNode } from "react";
-import { AlertCircle, CheckCircle2, ChevronRight, ClipboardList, Clock } from "lucide-react";
+import { AlertCircle, CheckCircle2, ChevronRight, ClipboardList } from "lucide-react";
 
 function MetricCell({ children }: { children: ReactNode }) {
   return (
@@ -16,30 +18,19 @@ function MetricCell({ children }: { children: ReactNode }) {
   );
 }
 
-/** e.g. "2 days ago" → "2 Days ago" for chip display */
-function formatLastIssueAgo(timestamp: string): string {
-  return formatRelativeTime(timestamp).replace(
-    /\b(day|days|hour|hours|week|weeks|min)\b/gi,
-    (word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase(),
-  );
-}
-
-export function CustomerPortfolioCard({
-  customer,
+export function PropertyListRow({
+  property,
   onSelect,
   striped = false,
 }: {
-  customer: CustomerSummary;
+  property: PropertySummary;
   onSelect: () => void;
   striped?: boolean;
 }) {
-  const lastIssue = customer.lastIssue;
-  const lastIssueTitle = lastIssue
-    ? lastIssue.propertyLabel
-      ? `${lastIssue.summary} — ${lastIssue.propertyLabel}`
-      : lastIssue.summary
-    : "—";
-  const lastIssueAgo = lastIssue ? formatLastIssueAgo(lastIssue.timestamp) : null;
+  const totalIssues = property.openReportsCount + property.resolvedCount;
+  const activityLabel = property.lastIssue
+    ? formatCompactRelativeTime(property.lastIssue.timestamp)
+    : null;
 
   return (
     <article
@@ -59,12 +50,21 @@ export function CustomerPortfolioCard({
           : "hover:bg-app-bg",
       )}
     >
+      <PortfolioCardThumbnail
+        name={property.name}
+        imageUrl={property.imageUrl}
+        className="h-[56px] w-[84px]"
+      />
+
       <div className="min-w-0 w-[200px] shrink-0 border-r border-border-color pr-4">
-        <h3 className={cn(PORTFOLIO_CARD_TITLE_CLASS, "min-w-0 truncate text-[14px]")}>
-          {customer.name}
-        </h3>
+        <div className="flex min-w-0 items-center gap-2">
+          <h3 className={cn(PORTFOLIO_CARD_TITLE_CLASS, "min-w-0 truncate text-[14px]")}>
+            {property.name}
+          </h3>
+          {activityLabel && <PortfolioCardActivityChip label={activityLabel} />}
+        </div>
         <p className="mt-0.5 truncate text-[12px] font-medium text-card-subtext">
-          {customer.email}
+          {property.address}
         </p>
       </div>
 
@@ -73,38 +73,21 @@ export function CustomerPortfolioCard({
           <PortfolioMetricColumn
             icon={<AlertCircle strokeWidth={1.75} />}
             label="Open Issues"
-            value={customer.openReportsCount}
+            value={property.openReportsCount}
           />
         </MetricCell>
         <MetricCell>
           <PortfolioMetricColumn
             icon={<CheckCircle2 strokeWidth={1.75} />}
             label="Resolved"
-            value={customer.resolvedCount}
+            value={property.resolvedCount}
           />
         </MetricCell>
         <MetricCell>
           <PortfolioMetricColumn
             icon={<ClipboardList strokeWidth={1.75} />}
             label="Total Issues"
-            value={customer.totalIssuesCount}
-          />
-        </MetricCell>
-        <MetricCell>
-          <PortfolioMetricColumn
-            icon={<Clock strokeWidth={1.75} />}
-            label="Last Issue"
-            labelAccessory={
-              lastIssueAgo ? (
-                <span className="inline-flex h-3.5 shrink-0 items-center rounded border border-warning/20 bg-warning/10 px-1 text-[9px] font-semibold leading-none text-warning">
-                  {lastIssueAgo}
-                </span>
-              ) : null
-            }
-            value={
-              <span className="block truncate text-[12px] font-semibold">{lastIssueTitle}</span>
-            }
-            className="min-w-0 max-w-[220px] flex-[1.2]"
+            value={totalIssues}
           />
         </MetricCell>
       </div>

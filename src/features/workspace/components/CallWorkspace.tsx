@@ -49,6 +49,11 @@ export function CallWorkspace() {
     syncUrl({});
   };
 
+  const handleClearAll = () => {
+    changeCustomer();
+    syncUrl({});
+  };
+
   const handleClearProperty = () => {
     changeProperty();
     if (customer) syncUrl({ customerId: customer.id });
@@ -92,6 +97,7 @@ export function CallWorkspace() {
         onClearCustomer={handleClearCustomer}
         onClearProperty={handleClearProperty}
         onClearIssue={handleClearIssue}
+        onClearAll={handleClearAll}
       />
 
       {phase === "browse" && (
@@ -102,11 +108,16 @@ export function CallWorkspace() {
         <CustomerLockedPhase
           customer={customer}
           onSelectProperty={handleSelectProperty}
+          onBack={handleClearCustomer}
         />
       )}
 
       {showProtocolLayout && (
-        <ProtocolPhase workspace={workspace} onPickIssue={handlePickIssue} />
+        <ProtocolPhase
+          workspace={workspace}
+          onPickIssue={handlePickIssue}
+          onBack={handleClearProperty}
+        />
       )}
     </div>
   );

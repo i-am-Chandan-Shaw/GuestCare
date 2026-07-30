@@ -1,6 +1,7 @@
 import { CUSTOMERS } from "@/data/mock";
 import { PROPERTIES } from "@/data/properties";
 import { getIncidentLogs } from "@/features/incidents/api/incidents.api";
+import { agentCanAccessCustomer } from "@/features/reports/lib/report-scope";
 import type {
   Customer,
   CustomerSummary,
@@ -9,8 +10,10 @@ import type {
   Property,
   PropertySummary,
 } from "@/shared/types";
+import type { ReportActor } from "@/shared/types/agent";
 
 import { isOpenIncident } from "@/shared/lib/incident-status";
+
 function toLastIssue(log: IncidentLog): LastIssueSummary {
   return {
     summary: log.issueSummary,
@@ -74,9 +77,12 @@ export async function getPropertyById(propertyId: string): Promise<Property | nu
   return PROPERTIES.find((p) => p.id === propertyId) ?? null;
 }
 
-export async function getCustomerSummaries(): Promise<CustomerSummary[]> {
+export async function getCustomerSummaries(actor?: ReportActor): Promise<CustomerSummary[]> {
   const logs = await getIncidentLogs();
-  return CUSTOMERS.map((customer) => summarizeCustomer(customer, logs));
+  const visible = actor
+    ? CUSTOMERS.filter((customer) => agentCanAccessCustomer(actor, customer.id))
+    : CUSTOMERS;
+  return visible.map((customer) => summarizeCustomer(customer, logs));
 }
 
 export async function getCustomerSummary(customerId: string): Promise<CustomerSummary | null> {

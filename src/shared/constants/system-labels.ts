@@ -3,7 +3,7 @@ import type { SystemKey } from "@/shared/types";
 export const SYSTEM_LABELS: Record<SystemKey, string> = {
   heating: "Heating + Hot Water",
   alarms: "Alarms / AOV / Fire",
-  breakIn: "Break In / Theft / Criminal Damage",
+  breakIn: "Break-in / Theft",
   locksmith: "Locksmiths",
   drains: "Drains",
   emergencyLights: "Emergency Lights",

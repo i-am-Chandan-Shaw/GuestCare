@@ -4,10 +4,10 @@ import { readIncidentsNavSearch } from "@/features/workspace/lib/workspace-persi
 import { cn } from "@/lib/utils";
 import { logout } from "@/features/auth/api/auth.api";
 import { useAuth } from "@/features/auth/hooks/useAuth";
-import { BarChart3, CircleAlert, UserCircle, LifeBuoy, LogOut } from "lucide-react";
+import { BarChart3, LayoutDashboard, UserCircle, LifeBuoy, LogOut } from "lucide-react";
 
 const nav = [
-  { id: "issues" as const, label: "Incidents", href: "/", icon: CircleAlert },
+  { id: "issues" as const, label: "Workspace", href: "/", icon: LayoutDashboard },
   { id: "reports" as const, label: "Reports", href: "/reports", icon: BarChart3 },
   { id: "agents" as const, label: "Agents", href: "/agents", icon: UserCircle },
 ];

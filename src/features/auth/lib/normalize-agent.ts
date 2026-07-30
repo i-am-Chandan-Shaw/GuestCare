@@ -1,4 +1,5 @@
-import { AGENT_SEED, DEFAULT_AGENT_ID, findAgentByEmail, findAgentById } from "@/data/agents.seed";
+import { DEFAULT_AGENT_ID } from "@/data/agents.seed";
+import { findAgentByEmail, findAgentById } from "@/features/agents/lib/agent-store";
 import type { Agent, AgentCustomerScope, AgentRole } from "@/shared/types/agent";
 
 type LegacyAgentProfile = {
@@ -59,5 +60,5 @@ export function normalizeSessionAgent(raw: unknown): Agent | null {
 }
 
 export function normalizeReportActor(raw: unknown): Agent {
-  return normalizeSessionAgent(raw) ?? AGENT_SEED.find((a) => a.id === DEFAULT_AGENT_ID)!;
+  return normalizeSessionAgent(raw) ?? findAgentById(DEFAULT_AGENT_ID)!;
 }

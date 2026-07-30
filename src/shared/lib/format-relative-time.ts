@@ -43,3 +43,34 @@ export function formatCompactRelativeTime(timestamp: string): string {
   if (days < 60) return `${Math.floor(days / 7)}W`;
   return timestamp.split(",")[0] ?? timestamp;
 }
+
+const TIME_FORMATTER = new Intl.DateTimeFormat("en-US", {
+  hour: "numeric",
+  minute: "2-digit",
+  hour12: true,
+});
+
+const DATE_FORMATTER = new Intl.DateTimeFormat("en-GB", {
+  day: "numeric",
+  month: "short",
+  year: "numeric",
+});
+
+function startOfDay(date: Date): number {
+  return new Date(date.getFullYear(), date.getMonth(), date.getDate()).getTime();
+}
+
+/** Timeline label e.g. "Today • 10:15 AM" or "27 Apr 2025 • 9:45 AM". */
+export function formatTimelineTimestamp(timestamp: string): string {
+  const date = parseIncidentTimestamp(timestamp);
+  if (!date) return timestamp;
+
+  const timePart = TIME_FORMATTER.format(date);
+  const todayStart = startOfDay(new Date());
+  const dateStart = startOfDay(date);
+  const dayDiff = Math.round((todayStart - dateStart) / DAY);
+
+  if (dayDiff === 0) return `Today • ${timePart}`;
+  if (dayDiff === 1) return `Yesterday • ${timePart}`;
+  return `${DATE_FORMATTER.format(date)} • ${timePart}`;
+}

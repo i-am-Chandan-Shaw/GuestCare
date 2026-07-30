@@ -1,8 +1,57 @@
-import { ExternalLink } from "lucide-react";
+import {
+  ArrowUpDown,
+  CircleAlert,
+  CigaretteOff,
+  Droplet,
+  Droplets,
+  ExternalLink,
+  Flame,
+  Footprints,
+  KeyRound,
+  Lightbulb,
+  Moon,
+  PawPrint,
+  PhoneCall,
+  Shirt,
+  Siren,
+  Trash2,
+  Users,
+  Zap,
+  type LucideIcon,
+} from "lucide-react";
 import { SectionCard } from "@/shared/components/ui-kit";
 import { SYSTEM_LABELS } from "@/shared/constants/system-labels";
 import type { Property, SystemKey } from "@/shared/types";
-import { ExpandableNote, PhoneRow, propertyCardClass } from "./property-shared";
+import {
+  ExpandableNote,
+  FieldLabel,
+  PhoneRow,
+  propertyCardClass,
+} from "./property-shared";
+
+const SYSTEM_ICONS: Record<SystemKey, LucideIcon> = {
+  heating: Flame,
+  alarms: Siren,
+  breakIn: CircleAlert,
+  locksmith: KeyRound,
+  drains: Droplets,
+  emergencyLights: Lightbulb,
+  electrical: Zap,
+  gas: Flame,
+  leak: Droplet,
+  lifts: ArrowUpDown,
+  waterSupply: Droplets,
+};
+
+function houseRuleIcon(rule: string): LucideIcon {
+  const text = rule.toLowerCase();
+  if (text.includes("shoe")) return Footprints;
+  if (text.includes("smok") || text.includes("vap")) return CigaretteOff;
+  if (text.includes("pet")) return PawPrint;
+  if (text.includes("guest")) return Users;
+  if (text.includes("quiet")) return Moon;
+  return CircleAlert;
+}
 
 export function PropertyOpsTab({ property }: { property: Property }) {
   const systemEntries = Object.entries(property.systems) as [
@@ -14,13 +63,20 @@ export function PropertyOpsTab({ property }: { property: Property }) {
     <>
       {property.houseRules.length > 0 && (
         <SectionCard title="House Rules" className={propertyCardClass}>
-          <ul className="space-y-1.5 py-1">
-            {property.houseRules.map((r) => (
-              <li key={r} className="text-[12.5px] text-foreground flex gap-2">
-                <span className="text-muted-foreground">•</span>
-                <span>{r}</span>
-              </li>
-            ))}
+          <ul className="space-y-2.5 py-1">
+            {property.houseRules.map((rule) => {
+              const Icon = houseRuleIcon(rule);
+              return (
+                <li key={rule} className="flex items-center gap-2 text-[12.5px] text-foreground">
+                  <Icon
+                    className="block size-[1em] shrink-0 -translate-y-px text-text-muted"
+                    strokeWidth={2}
+                    aria-hidden
+                  />
+                  <span className="leading-none">{rule}</span>
+                </li>
+              );
+            })}
           </ul>
         </SectionCard>
       )}
@@ -29,14 +85,28 @@ export function PropertyOpsTab({ property }: { property: Property }) {
         <SectionCard title="Laundry & Waste" className={propertyCardClass}>
           {property.laundry && (
             <div className="py-2">
-              <span className="text-[11.5px] font-semibold text-muted-foreground">Laundry</span>
-              <p className="text-[12.5px] text-foreground mt-1 leading-relaxed">{property.laundry}</p>
+              <FieldLabel
+                icon={Shirt}
+                className="text-[11.5px] font-semibold text-muted-foreground"
+              >
+                Laundry
+              </FieldLabel>
+              <p className="mt-1 text-[12.5px] leading-relaxed text-foreground">
+                {property.laundry}
+              </p>
             </div>
           )}
           {property.waste && (
-            <div className="py-2 border-t border-border/60">
-              <span className="text-[11.5px] font-semibold text-muted-foreground">Waste</span>
-              <p className="text-[12.5px] text-foreground mt-1 leading-relaxed">{property.waste}</p>
+            <div className="border-t border-border/60 py-2">
+              <FieldLabel
+                icon={Trash2}
+                className="text-[11.5px] font-semibold text-muted-foreground"
+              >
+                Waste
+              </FieldLabel>
+              <p className="mt-1 text-[12.5px] leading-relaxed text-foreground">
+                {property.waste}
+              </p>
             </div>
           )}
         </SectionCard>
@@ -44,11 +114,12 @@ export function PropertyOpsTab({ property }: { property: Property }) {
 
       {systemEntries.length > 0 && (
         <SectionCard title="Utilities & Systems" className={propertyCardClass} padded={false}>
-          <div className="px-4 divide-y divide-border/60">
+          <div className="divide-y divide-border/60">
             {systemEntries.map(([key, sys]) => (
               <ExpandableNote
                 key={key}
                 title={SYSTEM_LABELS[key]}
+                icon={SYSTEM_ICONS[key]}
                 text={[
                   sys.info,
                   typeof sys.escalation === "string"
@@ -74,7 +145,7 @@ export function PropertyOpsTab({ property }: { property: Property }) {
       )}
 
       <SectionCard title="Property Notes" className={propertyCardClass}>
-        <p className="text-[12.5px] leading-relaxed text-foreground whitespace-pre-wrap py-1">
+        <p className="whitespace-pre-wrap py-1 text-[12.5px] leading-relaxed text-foreground">
           {property.specificInfo}
         </p>
         {property.mediaFolderUrl && (
@@ -82,7 +153,7 @@ export function PropertyOpsTab({ property }: { property: Property }) {
             href={property.mediaFolderUrl}
             target="_blank"
             rel="noreferrer"
-            className="inline-flex items-center gap-1 text-[12px] font-semibold text-primary hover:underline mt-2"
+            className="mt-2 inline-flex items-center gap-1 text-[12px] font-semibold text-primary hover:underline"
           >
             Media folder <ExternalLink className="h-3 w-3" />
           </a>
@@ -90,15 +161,20 @@ export function PropertyOpsTab({ property }: { property: Property }) {
       </SectionCard>
 
       <SectionCard title="Emergency Contacts" className={propertyCardClass} padded={false}>
-        <div className="px-4 divide-y divide-border/60">
+        <div className="divide-y divide-border/60">
           {property.hosts.length === 0 ? (
-            <p className="text-[12.5px] text-muted-foreground py-3">No host contacts on file.</p>
+            <p className="px-4 py-3 text-[12.5px] text-muted-foreground">No host contacts on file.</p>
           ) : (
             property.hosts.map((h) => (
-              <PhoneRow key={`${h.name}-${h.phone}`} label={`Host (${h.name})`} value={h.phone} />
+              <PhoneRow
+                key={`${h.name}-${h.phone}`}
+                label={`Host (${h.name})`}
+                value={h.phone}
+                icon={PhoneCall}
+              />
             ))
           )}
-          <PhoneRow label="Emergency Services" value="999" red />
+          <PhoneRow label="Emergency Services" value="999" red icon={Siren} />
         </div>
       </SectionCard>
     </>

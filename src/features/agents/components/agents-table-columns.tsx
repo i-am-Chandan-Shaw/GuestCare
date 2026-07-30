@@ -1,5 +1,5 @@
-import type { ColDef } from "ag-grid-community";
-import type { ICellRendererParams } from "ag-grid-community";
+import type { ColDef, ICellRendererParams } from "ag-grid-community";
+import { Pencil } from "lucide-react";
 import { StatusChip } from "@/components/ui/StatusChip";
 import { formatAgentRole } from "@/shared/lib/agent-display";
 import { formatActivityTimestamp } from "@/shared/lib/datetime";
@@ -28,50 +28,100 @@ function CreatedCell({ data }: ICellRendererParams<AgentListItem>) {
   );
 }
 
-export const agentsTableColumnDefs: ColDef<AgentListItem>[] = [
-  {
-    headerName: "AGENT",
-    field: "name",
-    colId: "name",
-    flex: 1,
-    minWidth: 180,
-  },
-  {
-    headerName: "EMAIL",
-    field: "email",
-    colId: "email",
-    flex: 1,
-    minWidth: 200,
-  },
-  {
-    headerName: "ROLE",
-    colId: "role",
-    width: 120,
-    minWidth: 100,
-    cellRenderer: RoleCell,
-    suppressSizeToFit: true,
-  },
-  {
-    headerName: "STATUS",
-    colId: "isActive",
-    width: 110,
-    minWidth: 110,
-    cellRenderer: ActiveCell,
-    suppressSizeToFit: true,
-  },
-  {
-    headerName: "SCOPE",
-    field: "customerScopeLabel",
-    colId: "scope",
-    flex: 1,
-    minWidth: 140,
-  },
-  {
-    headerName: "CREATED",
-    colId: "createdAt",
-    width: 180,
-    minWidth: 180,
-    cellRenderer: CreatedCell,
-    suppressSizeToFit: true,
-  },
-];
+function EditCell({
+  data,
+  canEdit,
+  onEdit,
+}: ICellRendererParams<AgentListItem> & {
+  canEdit: (agent: AgentListItem) => boolean;
+  onEdit: (agentId: string) => void;
+}) {
+  if (!data || !canEdit(data)) return null;
+  return (
+    <button
+      type="button"
+      onClick={(e) => {
+        e.stopPropagation();
+        onEdit(data.id);
+      }}
+      aria-label={`Edit ${data.name}`}
+      className="inline-flex h-7 w-7 items-center justify-center rounded-md text-text-secondary transition-colors hover:bg-app-bg hover:text-text-primary"
+    >
+      <Pencil className="h-3.5 w-3.5" strokeWidth={2} />
+    </button>
+  );
+}
+
+export function createAgentsTableColumnDefs({
+  canEdit,
+  onEdit,
+}: {
+  canEdit: (agent: AgentListItem) => boolean;
+  onEdit: (agentId: string) => void;
+}): ColDef<AgentListItem>[] {
+  return [
+    {
+      headerName: "AGENT",
+      field: "name",
+      colId: "name",
+      flex: 1,
+      minWidth: 180,
+    },
+    {
+      headerName: "EMAIL",
+      field: "email",
+      colId: "email",
+      flex: 1,
+      minWidth: 200,
+    },
+    {
+      headerName: "ROLE",
+      colId: "role",
+      width: 120,
+      minWidth: 100,
+      cellRenderer: RoleCell,
+      suppressSizeToFit: true,
+    },
+    {
+      headerName: "STATUS",
+      colId: "isActive",
+      width: 110,
+      minWidth: 110,
+      cellRenderer: ActiveCell,
+      suppressSizeToFit: true,
+    },
+    {
+      headerName: "SCOPE",
+      field: "customerScopeLabel",
+      colId: "scope",
+      flex: 1,
+      minWidth: 140,
+    },
+    {
+      headerName: "CREATED",
+      colId: "createdAt",
+      width: 180,
+      minWidth: 180,
+      cellRenderer: CreatedCell,
+      suppressSizeToFit: true,
+    },
+    {
+      headerName: "",
+      colId: "actions",
+      width: 56,
+      minWidth: 56,
+      maxWidth: 56,
+      sortable: false,
+      filter: false,
+      suppressSizeToFit: true,
+      cellRenderer: EditCell,
+      cellRendererParams: { canEdit, onEdit },
+    },
+  ];
+}
+
+/** @deprecated Use createAgentsTableColumnDefs */
+export const agentsTableColumnDefs = createAgentsTableColumnDefs({
+  canEdit: () => false,
+  onEdit: () => undefined,
+});
