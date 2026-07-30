@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState, type ReactNode } from "react";
 import {
+  ArrowLeft,
   ArrowRight,
   Check,
   ChevronDown,
@@ -746,30 +747,6 @@ export function AgentFormDialog({
                     </p>
                   </div>
 
-                  {form.scopeType === "specific" ? (
-                    <div className="flex justify-end">
-                      <div className="flex items-center gap-2">
-                        <div className="inline-flex items-center gap-1.5 rounded-full border border-border-color bg-card-bg px-2.5 py-1">
-                          <span className="h-1.5 w-1.5 rounded-full bg-success" />
-                          <span className="text-[11px] font-semibold text-text-primary">
-                            {form.customerIds.length} selected
-                          </span>
-                        </div>
-                        <button
-                          type="button"
-                          className="text-[11px] font-semibold text-brand-primary hover:underline disabled:opacity-40"
-                          disabled={form.customerIds.length === 0}
-                          onClick={() => {
-                            patch({ customerIds: [] });
-                            setViewSelectedOnly(false);
-                          }}
-                        >
-                          Clear all
-                        </button>
-                      </div>
-                    </div>
-                  ) : null}
-
                   <div
                     className={cn(
                       "grid gap-3",
@@ -966,6 +943,7 @@ export function AgentFormDialog({
                   disabled={loading}
                   className="!h-9 !rounded-md !px-3"
                 >
+                  <ArrowLeft className="mr-1.5 h-4 w-4" strokeWidth={2} />
                   Back
                 </Button>
               ) : (

@@ -104,29 +104,33 @@ export function AgentsPage() {
   return (
     <div className="flex h-full min-h-0 w-full flex-col overflow-hidden">
       <div className="shrink-0 border-b border-border-color bg-white/80 px-5 py-4 backdrop-blur-xl">
-        <h1 className="text-lg font-black uppercase tracking-tight text-text-primary">Agents</h1>
-        <p className="mt-1 text-[11px] font-semibold uppercase tracking-wide text-text-secondary">
-          Support team roster, roles, and customer scope
-        </p>
-      </div>
-
-      <div className="shrink-0 bg-app-bg px-5 pt-3 pb-4">
-        <div className="flex flex-wrap items-center gap-3">
-          <SearchToolbar
-            layout="inline"
-            className="w-full max-w-md"
-            value={search}
-            onChange={setSearch}
-            placeholder="Search agents…"
-            onClear={() => setSearch("")}
-          />
+        <div className="flex items-start justify-between gap-4">
+          <div className="min-w-0">
+            <h1 className="text-lg font-black uppercase tracking-tight text-text-primary">
+              Agents
+            </h1>
+            <p className="mt-1 text-[11px] font-semibold uppercase tracking-wide text-text-secondary">
+              Support team roster, roles, and customer scope
+            </p>
+          </div>
           {canManage ? (
-            <Button type="button" onClick={openCreate} className="!h-9 !px-3">
+            <Button type="button" onClick={openCreate} className="!h-9 shrink-0 !px-3">
               <Plus className="mr-1.5 h-4 w-4" strokeWidth={2} />
               Add agent
             </Button>
           ) : null}
         </div>
+      </div>
+
+      <div className="shrink-0 bg-app-bg px-5 pt-3 pb-4">
+        <SearchToolbar
+          layout="inline"
+          className="w-full max-w-md"
+          value={search}
+          onChange={setSearch}
+          placeholder="Search agents…"
+          onClear={() => setSearch("")}
+        />
       </div>
 
       <div className="flex min-h-0 flex-1 flex-col overflow-hidden p-4 pt-0">
