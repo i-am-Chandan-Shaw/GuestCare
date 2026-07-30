@@ -1,15 +1,11 @@
 import { cn } from "@/lib/utils";
-import { Check, X } from "lucide-react";
+import { Check, ChevronRight } from "lucide-react";
 import type { ReactNode } from "react";
 
 export type WorkspaceStepState = "incomplete" | "current" | "completed";
 
-const STEPPER = {
-  active: "#2D5BFF",
-  activeBg: "#E8F0FE",
-  complete: "#1D7143",
-  incomplete: "#8C91A0",
-} as const;
+const STEP_CLIP =
+  "polygon(0% 0%, calc(100% - 14px) 0%, 100% 50%, calc(100% - 14px) 100%, 0% 100%)";
 
 export function WorkspaceStep({
   stepNumber,
@@ -17,89 +13,87 @@ export function WorkspaceStep({
   value,
   icon,
   state,
-  onClear,
 }: {
   stepNumber: 1 | 2 | 3;
-  label: "Select customer" | "Select property" | "Select issue";
+  label: "Customer" | "Property" | "Issue";
   value?: string | null;
   icon: ReactNode;
   state: WorkspaceStepState;
-  onClear?: () => void;
 }) {
-  const stepLabel = String(stepNumber);
   const isCompleted = state === "completed";
   const isCurrent = state === "current";
   const displayLabel = isCompleted && value ? value : label;
 
-  const color =
-    state === "completed"
-      ? STEPPER.complete
-      : state === "current"
-        ? STEPPER.active
-        : STEPPER.incomplete;
+  const fill =
+    isCurrent ? "bg-blue-50" : isCompleted ? "bg-emerald-50" : "bg-gray-100";
+  const edge =
+    isCurrent ? "bg-blue-100" : isCompleted ? "bg-emerald-100" : "bg-gray-200";
 
   return (
     <div
-      className="inline-flex h-6 min-w-0 max-w-full items-center gap-2"
+      className="relative inline-flex h-10 min-w-0 max-w-full"
       aria-current={isCurrent ? "step" : undefined}
     >
       <span
-        className={cn(
-          "inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[11px] font-bold tabular-nums leading-none",
-          state === "incomplete" && "border border-[#8C91A0] bg-white text-[#8C91A0]",
-        )}
-        style={
-          isCompleted
-            ? { backgroundColor: STEPPER.complete, color: "#FFFFFF" }
-            : isCurrent
-              ? { backgroundColor: STEPPER.activeBg, color: STEPPER.active }
-              : undefined
-        }
         aria-hidden
-      >
-        {isCompleted ? (
-          <Check className="h-[10px] w-[10px]" strokeWidth={2.5} absoluteStrokeWidth />
-        ) : (
-          stepLabel
-        )}
-      </span>
-
-      <span className="inline-flex h-5 shrink-0 items-center [&>svg]:h-3.5 [&>svg]:w-3.5" style={{ color }}>
-        {icon}
-      </span>
-
+        className={cn("absolute inset-0", edge)}
+        style={{ clipPath: STEP_CLIP }}
+      />
       <span
-        className="min-w-0 truncate text-[12px] font-semibold leading-none"
-        style={{ color }}
-        title={displayLabel}
-      >
-        {displayLabel}
-      </span>
+        aria-hidden
+        className={cn("absolute inset-px", fill)}
+        style={{ clipPath: STEP_CLIP }}
+      />
 
-      {isCompleted && onClear ? (
-        <button
-          type="button"
-          onClick={onClear}
-          aria-label={`Clear ${label}`}
-          className="inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-md transition-colors hover:bg-black/5"
-          style={{ color: STEPPER.complete }}
+      <div className="relative z-[1] inline-flex h-10 min-w-0 max-w-full items-center gap-2.5 py-2 pl-3 pr-7">
+        <span
+          className={cn(
+            "inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[12px] font-bold tabular-nums leading-none",
+            isCurrent && "bg-blue-600 text-white",
+            isCompleted && "bg-emerald-600 text-white",
+            state === "incomplete" && "border border-gray-300 bg-white text-gray-400",
+          )}
+          aria-hidden
         >
-          <X className="h-3.5 w-3.5" strokeWidth={2.25} />
-        </button>
-      ) : null}
+          {isCompleted ? (
+            <Check className="h-3 w-3" strokeWidth={2.5} />
+          ) : (
+            stepNumber
+          )}
+        </span>
+
+        <span
+          className={cn(
+            "inline-flex h-4 shrink-0 items-center [&>svg]:h-4 [&>svg]:w-4",
+            isCurrent && "text-blue-600",
+            isCompleted && "text-emerald-600",
+            state === "incomplete" && "text-gray-400",
+          )}
+          aria-hidden
+        >
+          {icon}
+        </span>
+
+        <span
+          className={cn(
+            "min-w-0 truncate text-[14px] font-semibold leading-none",
+            isCurrent && "text-gray-800",
+            isCompleted && "text-gray-800",
+            state === "incomplete" && "text-gray-400",
+          )}
+          title={displayLabel}
+        >
+          {displayLabel}
+        </span>
+      </div>
     </div>
   );
 }
 
 export function WorkspaceStepSeparator() {
   return (
-    <div
-      className="flex h-6 w-6 min-w-0 max-w-10 shrink grow-0 basis-6 items-center justify-center gap-0.5 overflow-hidden px-1"
-      aria-hidden
-    >
-      <span className="h-1 w-1 shrink-0 rounded-full bg-[#C5CAD3]" />
-      <span className="h-1 w-1 shrink-0 rounded-full bg-[#C5CAD3]" />
-      <span className="h-1 w-1 shrink-0 rounded-full bg-[#C5CAD3]" />
+    <div className="flex h-10 w-7 shrink-0 items-center justify-center" aria-hidden>
+      <ChevronRight className="h-4 w-4 text-gray-300" strokeWidth={2} />
     </div>
   );
 }

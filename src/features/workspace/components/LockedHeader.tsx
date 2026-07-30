@@ -7,18 +7,12 @@ export function LockedHeader({
   customer,
   property,
   issue,
-  onClearCustomer,
-  onClearProperty,
-  onClearIssue,
   onClearAll,
 }: {
   phase: WorkspacePhase;
   customer: Customer | null;
   property?: Property | null;
   issue?: Issue | null;
-  onClearCustomer: () => void;
-  onClearProperty: () => void;
-  onClearIssue: () => void;
   onClearAll: () => void;
 }) {
   return (
@@ -33,9 +27,6 @@ export function LockedHeader({
           customer={customer}
           property={property ?? null}
           issue={issue ?? null}
-          onClearCustomer={onClearCustomer}
-          onClearProperty={onClearProperty}
-          onClearIssue={onClearIssue}
           onClearAll={onClearAll}
         />
       </div>
