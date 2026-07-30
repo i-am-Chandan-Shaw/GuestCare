@@ -92,6 +92,9 @@ function CommentBody({
   onReply,
   onSaveEdit,
   editPending,
+  replyCount,
+  repliesExpanded,
+  onToggleReplies,
 }: {
   entry: ReportThreadEntry;
   isReporter: boolean;
@@ -100,6 +103,9 @@ function CommentBody({
   onReply?: () => void;
   onSaveEdit: (body: string) => void;
   editPending?: boolean;
+  replyCount?: number;
+  repliesExpanded?: boolean;
+  onToggleReplies?: () => void;
 }) {
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(entry.body ?? "");
@@ -163,7 +169,7 @@ function CommentBody({
       )}
 
       {!editing && (
-        <div className="mt-2 flex items-center gap-3">
+        <div className="mt-2 flex flex-wrap items-center gap-3">
           {isRoot && onReply ? (
             <button
               type="button"
@@ -185,6 +191,20 @@ function CommentBody({
             >
               <Pencil className="h-3.5 w-3.5" strokeWidth={2} />
               Edit
+            </button>
+          ) : null}
+          {isRoot && replyCount != null && replyCount > 0 && onToggleReplies ? (
+            <button
+              type="button"
+              onClick={onToggleReplies}
+              className="inline-flex items-center gap-1 rounded-full bg-brand-primary/10 py-0.5 pl-2 pr-1.5 text-[11px] font-semibold text-brand-primary transition-colors hover:bg-brand-primary/15"
+            >
+              {replyCount} {replyCount === 1 ? "reply" : "replies"}
+              {repliesExpanded ? (
+                <ChevronUp className="h-3.5 w-3.5" strokeWidth={2.5} />
+              ) : (
+                <ChevronDown className="h-3.5 w-3.5" strokeWidth={2.5} />
+              )}
             </button>
           ) : null}
         </div>
@@ -308,16 +328,21 @@ export function ReportConversations({
           Conversations{" "}
           <span className="font-normal text-text-secondary">({comments.length})</span>
         </h2>
-        <label className="flex items-center gap-2 text-[12px] text-text-secondary">
+        <label className="relative inline-flex items-center">
           <span className="sr-only">Sort conversations</span>
           <select
             value={sortOrder}
             onChange={(e) => onSortChange(e.target.value as ThreadSortOrder)}
-            className="h-8 rounded-md border border-border-color bg-card-bg px-2 text-[12px] font-medium text-text-primary outline-none"
+            className="h-9 appearance-none rounded-lg border border-border-color bg-card-bg py-0 pl-3 pr-8 text-[12px] font-medium text-text-primary outline-none transition-colors hover:border-text-secondary/30 focus:border-input-border-focus"
           >
             <option value="oldest">Oldest first</option>
             <option value="newest">Newest first</option>
           </select>
+          <ChevronDown
+            className="pointer-events-none absolute right-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-text-primary"
+            strokeWidth={2}
+            aria-hidden
+          />
         </label>
       </div>
 
@@ -341,9 +366,20 @@ export function ReportConversations({
             const showThread = children.length > 0 && open;
 
             return (
-              <li key={root.id} className="space-y-0">
-                <div className="flex gap-3">
-                  <Avatar name={root.authorAgentName} />
+              <li key={root.id} className="flex gap-3">
+                <div className="flex w-9 shrink-0 flex-col items-center self-stretch">
+                  <div className="relative z-[1] shrink-0 rounded-full bg-card-bg">
+                    <Avatar name={root.authorAgentName} />
+                  </div>
+                  {showThread ? (
+                    <div
+                      className="mt-0 w-0 flex-1 border-l border-dashed border-border-color"
+                      aria-hidden
+                    />
+                  ) : null}
+                </div>
+
+                <div className="min-w-0 flex-1">
                   <CommentBody
                     entry={root}
                     isReporter={root.authorAgentId === reporterAgentId}
@@ -352,53 +388,34 @@ export function ReportConversations({
                     onReply={() => setReplyingTo(root.id)}
                     onSaveEdit={(body) => onEdit(root.id, body)}
                     editPending={editPending}
+                    replyCount={children.length}
+                    repliesExpanded={open}
+                    onToggleReplies={
+                      children.length > 0
+                        ? () =>
+                            setExpanded((prev) => ({
+                              ...prev,
+                              [root.id]: !isExpanded(root.id),
+                            }))
+                        : undefined
+                    }
                   />
-                </div>
 
-                {children.length > 0 && (
-                  <div className="mt-2 ml-12 flex items-center gap-2">
-                    <button
-                      type="button"
-                      onClick={() =>
-                        setExpanded((prev) => ({
-                          ...prev,
-                          [root.id]: !isExpanded(root.id),
-                        }))
-                      }
-                      className="inline-flex items-center gap-1.5 rounded-full bg-brand-primary/10 px-2.5 py-1 text-[12px] font-semibold text-brand-primary transition-colors hover:bg-brand-primary/15"
-                    >
-                      {children.length} {children.length === 1 ? "reply" : "replies"}
-                    </button>
-                    <button
-                      type="button"
-                      aria-label={open ? "Collapse replies" : "Expand replies"}
-                      onClick={() =>
-                        setExpanded((prev) => ({
-                          ...prev,
-                          [root.id]: !isExpanded(root.id),
-                        }))
-                      }
-                      className="text-brand-primary"
-                    >
-                      {open ? (
-                        <ChevronUp className="h-4 w-4" strokeWidth={2} />
-                      ) : (
-                        <ChevronDown className="h-4 w-4" strokeWidth={2} />
-                      )}
-                    </button>
-                  </div>
-                )}
-
-                {showThread && (
-                  <div className="relative ml-[18px] mt-3 border-l border-dashed border-border-color pl-8">
-                    <ul className="space-y-4">
+                  {showThread && (
+                    <ul className="mt-3 space-y-4">
                       {children.map((child) => (
                         <li key={child.id} className="relative flex gap-3">
                           <span
-                            className="absolute -left-[33px] top-3 h-2 w-2 rounded-full bg-border-color"
+                            className="absolute -left-[30px] top-3.5 z-0 h-0 w-[30px] border-t border-dashed border-border-color"
                             aria-hidden
                           />
-                          <Avatar name={child.authorAgentName} size="sm" />
+                          <span
+                            className="absolute -left-[30px] top-[11px] z-[1] h-2 w-2 -translate-x-1/2 rounded-full bg-border-color"
+                            aria-hidden
+                          />
+                          <div className="relative z-[1] shrink-0 rounded-full bg-card-bg">
+                            <Avatar name={child.authorAgentName} size="sm" />
+                          </div>
                           <CommentBody
                             entry={child}
                             isReporter={child.authorAgentId === reporterAgentId}
@@ -410,22 +427,22 @@ export function ReportConversations({
                         </li>
                       ))}
                     </ul>
-                  </div>
-                )}
+                  )}
 
-                {replyingTo === root.id && (
-                  <div className="ml-12 mt-2">
-                    <InlineReplyComposer
-                      pending={replyPending}
-                      onCancel={() => setReplyingTo(null)}
-                      onSubmit={(body) => {
-                        onReply(root.id, body);
-                        setReplyingTo(null);
-                        setExpanded((prev) => ({ ...prev, [root.id]: true }));
-                      }}
-                    />
-                  </div>
-                )}
+                  {replyingTo === root.id && (
+                    <div className="mt-2">
+                      <InlineReplyComposer
+                        pending={replyPending}
+                        onCancel={() => setReplyingTo(null)}
+                        onSubmit={(body) => {
+                          onReply(root.id, body);
+                          setReplyingTo(null);
+                          setExpanded((prev) => ({ ...prev, [root.id]: true }));
+                        }}
+                      />
+                    </div>
+                  )}
+                </div>
               </li>
             );
           })}

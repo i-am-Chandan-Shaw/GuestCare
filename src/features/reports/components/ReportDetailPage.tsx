@@ -305,7 +305,7 @@ export function ReportDetailPage({
       </div>
 
       <div className="min-h-0 flex-1 overflow-y-auto">
-        <div className="grid max-w-6xl gap-4 p-4 lg:grid-cols-[minmax(0,1fr)_340px] lg:items-start">
+        <div className="grid w-full gap-4 p-4 lg:grid-cols-[minmax(0,1fr)_minmax(380px,42%)] lg:items-start">
           <div className="min-w-0 space-y-4">
             <article className="rounded-md border border-border-color bg-card-bg p-5 shadow-sm">
               <div className="flex items-start justify-between gap-4">
@@ -314,12 +314,12 @@ export function ReportDetailPage({
                     className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-brand-primary/10 text-[12px] font-bold text-brand-primary"
                     aria-hidden
                   >
-                    {initialsFromName(report.createdByAgentName)}
+                    {initialsFromName(report.callerName)}
                   </div>
                   <div className="min-w-0">
                     <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
                       <span className="text-[14px] font-semibold text-text-primary">
-                        {report.createdByAgentName}
+                        {report.callerName}
                       </span>
                       <span
                         className="text-[12px] text-text-muted"
@@ -329,7 +329,7 @@ export function ReportDetailPage({
                       </span>
                     </div>
                     <p className="mt-0.5 truncate text-[12px] text-text-secondary">
-                      {report.customerName} · {report.propertyName} · Caller: {report.callerName}
+                      {report.customerName} · {report.propertyName}
                     </p>
                   </div>
                 </div>
@@ -421,109 +421,123 @@ export function ReportDetailPage({
                   <h3 className="text-[11px] font-bold uppercase tracking-wide text-text-muted">
                     Issue information
                   </h3>
-                  <Field label="Issue summary">
-                    <Input
-                      value={form.issueName}
-                      onChange={(v) => update("issueName", v)}
-                      readOnly={!canEdit}
-                    />
-                  </Field>
-                  <Field label="Issue type">
-                    <Select
-                      value={form.issueType}
-                      onChange={(v) => update("issueType", v)}
-                      options={INCIDENT_TYPES}
-                      disabled={!canEdit}
-                    />
-                  </Field>
-                  <Field label="Priority">
-                    <Select
-                      value={form.priority}
-                      onChange={(v) => update("priority", v as Priority)}
-                      options={Object.keys(priorityMeta) as Priority[]}
-                      optionLabels={Object.fromEntries(
-                        (Object.keys(priorityMeta) as Priority[]).map((key) => [
-                          key,
-                          priorityMeta[key].name,
-                        ]),
-                      )}
-                      disabled={!canEdit}
-                    />
-                  </Field>
-                  <Field label="Status">
-                    <Select
-                      value={form.status}
-                      onChange={(v) => update("status", v as ReportStatus)}
-                      options={Object.keys(REPORT_STATUS_LABELS) as ReportStatus[]}
-                      optionLabels={REPORT_STATUS_LABELS}
-                      disabled={!canEdit}
-                    />
-                  </Field>
-                  <Field label="Call notes">
-                    <Textarea
-                      value={form.callNotes}
-                      onChange={(v) => update("callNotes", v)}
-                      readOnly={!canEdit}
-                      rows={4}
-                    />
-                  </Field>
+                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                    <div className="sm:col-span-2">
+                      <Field label="Issue summary">
+                        <Input
+                          value={form.issueName}
+                          onChange={(v) => update("issueName", v)}
+                          readOnly={!canEdit}
+                        />
+                      </Field>
+                    </div>
+                    <Field label="Issue type">
+                      <Select
+                        value={form.issueType}
+                        onChange={(v) => update("issueType", v)}
+                        options={INCIDENT_TYPES}
+                        disabled={!canEdit}
+                      />
+                    </Field>
+                    <Field label="Priority">
+                      <Select
+                        value={form.priority}
+                        onChange={(v) => update("priority", v as Priority)}
+                        options={Object.keys(priorityMeta) as Priority[]}
+                        optionLabels={Object.fromEntries(
+                          (Object.keys(priorityMeta) as Priority[]).map((key) => [
+                            key,
+                            priorityMeta[key].name,
+                          ]),
+                        )}
+                        disabled={!canEdit}
+                      />
+                    </Field>
+                    <div className="sm:col-span-2">
+                      <Field label="Status">
+                        <Select
+                          value={form.status}
+                          onChange={(v) => update("status", v as ReportStatus)}
+                          options={Object.keys(REPORT_STATUS_LABELS) as ReportStatus[]}
+                          optionLabels={REPORT_STATUS_LABELS}
+                          disabled={!canEdit}
+                        />
+                      </Field>
+                    </div>
+                    <div className="sm:col-span-2">
+                      <Field label="Call notes">
+                        <Textarea
+                          value={form.callNotes}
+                          onChange={(v) => update("callNotes", v)}
+                          readOnly={!canEdit}
+                          rows={4}
+                        />
+                      </Field>
+                    </div>
+                  </div>
                 </section>
 
                 <section className="space-y-3 border-t border-border-color pt-5">
                   <h3 className="text-[11px] font-bold uppercase tracking-wide text-text-muted">
                     Caller & booking
                   </h3>
-                  <Field label="Caller name">
-                    <Input
-                      value={form.callerName}
-                      onChange={(v) => update("callerName", v)}
-                      readOnly={!canEdit}
-                    />
-                  </Field>
-                  <Field label="Caller contact">
-                    <Input
-                      value={form.callerContact}
-                      onChange={(v) => update("callerContact", v)}
-                      readOnly={!canEdit}
-                    />
-                  </Field>
-                  <Field label="Reservation">
-                    <Input
-                      value={form.reservationNumber}
-                      onChange={(v) => update("reservationNumber", v)}
-                      readOnly={!canEdit}
-                    />
-                  </Field>
-                  <Field label="Name on booking">
-                    <Input
-                      value={form.nameOnBooking}
-                      onChange={(v) => update("nameOnBooking", v)}
-                      readOnly={!canEdit}
-                    />
-                  </Field>
+                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                    <Field label="Caller name">
+                      <Input
+                        value={form.callerName}
+                        onChange={(v) => update("callerName", v)}
+                        readOnly={!canEdit}
+                      />
+                    </Field>
+                    <Field label="Caller contact">
+                      <Input
+                        value={form.callerContact}
+                        onChange={(v) => update("callerContact", v)}
+                        readOnly={!canEdit}
+                      />
+                    </Field>
+                    <Field label="Reservation">
+                      <Input
+                        value={form.reservationNumber}
+                        onChange={(v) => update("reservationNumber", v)}
+                        readOnly={!canEdit}
+                      />
+                    </Field>
+                    <Field label="Name on booking">
+                      <Input
+                        value={form.nameOnBooking}
+                        onChange={(v) => update("nameOnBooking", v)}
+                        readOnly={!canEdit}
+                      />
+                    </Field>
+                  </div>
                 </section>
 
                 <section className="space-y-3 border-t border-border-color pt-5">
                   <h3 className="text-[11px] font-bold uppercase tracking-wide text-text-muted">
                     Additional context
                   </h3>
-                  <Field label="Property">
-                    <Input value={report.propertyName} readOnly />
-                  </Field>
-                  <Field label="Assigned to">
-                    <Select
-                      value={form.assignedAgentId}
-                      onChange={(v) => update("assignedAgentId", v)}
-                      options={agents.map((a) => a.id)}
-                      optionLabels={Object.fromEntries(agents.map((a) => [a.id, a.name]))}
-                      disabled={!canAssign}
-                    />
-                  </Field>
-                  {canAssign && form.assignedAgentId !== report.assignedAgentId && (
-                    <Field label="Assignment note (optional)">
-                      <Input value={assignNote} onChange={setAssignNote} />
+                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                    <Field label="Property">
+                      <Input value={report.propertyName} readOnly />
                     </Field>
-                  )}
+                    <Field label="Assigned to">
+                      <Select
+                        value={form.assignedAgentId}
+                        onChange={(v) => update("assignedAgentId", v)}
+                        options={agents.map((a) => a.id)}
+                        optionLabels={Object.fromEntries(agents.map((a) => [a.id, a.name]))}
+                        disabled={!canAssign}
+                      />
+                    </Field>
+                    {canAssign && form.assignedAgentId !== report.assignedAgentId && (
+                      <div className="sm:col-span-2">
+                        <Field label="Assignment note (optional)">
+                          <Input value={assignNote} onChange={setAssignNote} />
+                        </Field>
+                      </div>
+                    )}
+                  </div>
                 </section>
               </div>
             </div>
