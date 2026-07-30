@@ -5,23 +5,19 @@ import type { AgGridReact } from "ag-grid-react";
 import { getReportsPaginated } from "@/features/reports/api/reports.api";
 import { createReportsTableColumnDefs } from "@/features/incidents/components/reports-table-columns";
 import { ReportDetailPage } from "@/features/reports/components/ReportDetailPage";
+import { ReportsFiltersPopover } from "@/features/reports/components/ReportsFiltersPopover";
 import { useReportActor } from "@/features/reports/hooks/useReports";
-import { REPORT_STATUS_LABELS } from "@/features/reports/lib/report-status";
+import {
+  EMPTY_REPORTS_LIST_FILTERS,
+  reportsListFiltersToQuery,
+  type ReportsListFilters,
+} from "@/features/reports/lib/reports-list-filters";
 import {
   ServerPaginatedTable,
   computeInfiniteScrollLastRow,
 } from "@/components/table/ServerPaginatedTable";
 import { SearchToolbar } from "@/shared/components/SearchToolbar";
-import { cn } from "@/lib/utils";
-import type { ReportListItem, ReportStatusFilter } from "@/shared/types/report";
-
-const STATUS_FILTERS: { id: ReportStatusFilter; label: string }[] = [
-  { id: "all", label: "All" },
-  { id: "OPEN", label: REPORT_STATUS_LABELS.OPEN },
-  { id: "ESCALATED", label: REPORT_STATUS_LABELS.ESCALATED },
-  { id: "HANDEDOVER", label: REPORT_STATUS_LABELS.HANDEDOVER },
-  { id: "RESOLVED", label: REPORT_STATUS_LABELS.RESOLVED },
-];
+import type { ReportListItem } from "@/shared/types/report";
 
 function useDebouncedValue<T>(value: T, delayMs: number): T {
   const [debounced, setDebounced] = useState(value);
@@ -43,13 +39,17 @@ export function IncidentReportsPage({
 }) {
   const actor = useReportActor();
   const navigate = useNavigate({ from: "/reports" });
-  const [search, setSearch] = useState("");
-  const [status, setStatus] = useState<ReportStatusFilter>("all");
-  const debouncedSearch = useDebouncedValue(search, 300);
+  const [filters, setFilters] = useState<ReportsListFilters>(EMPTY_REPORTS_LIST_FILTERS);
+  const debouncedSearch = useDebouncedValue(filters.search, 300);
   const gridRef = useRef<AgGridReact<ReportListItem>>(null);
   const isMounted = useRef(false);
 
   const selectedReportId = reportIdFromSearch ?? null;
+
+  const appliedFilters = useMemo(
+    () => ({ ...filters, search: debouncedSearch }),
+    [filters, debouncedSearch],
+  );
 
   const setSelectedReportId = useCallback(
     (nextId: string | null) => {
@@ -87,13 +87,7 @@ export function IncidentReportsPage({
       const page = Math.floor(startRow / limit) + 1;
 
       const result = await getReportsPaginated(
-        {
-          page,
-          limit,
-          search: debouncedSearch,
-          status,
-          customerId,
-        },
+        reportsListFiltersToQuery(appliedFilters, { page, limit, customerId }),
         actor,
       );
 
@@ -106,7 +100,7 @@ export function IncidentReportsPage({
 
       return { data: result.data, lastRow };
     },
-    [actor, customerId, debouncedSearch, status],
+    [actor, appliedFilters, customerId],
   );
 
   useEffect(() => {
@@ -115,7 +109,7 @@ export function IncidentReportsPage({
       return;
     }
     gridRef.current?.api?.purgeInfiniteCache();
-  }, [debouncedSearch, status, customerId, actor.id]);
+  }, [appliedFilters, customerId, actor.id]);
 
   const handleRowClick = useCallback(
     (event: RowClickedEvent<ReportListItem>) => {
@@ -160,29 +154,21 @@ export function IncidentReportsPage({
           <SearchToolbar
             layout="inline"
             className="w-full max-w-md"
-            value={search}
-            onChange={setSearch}
+            value={filters.search}
+            onChange={(value) => setFilters((prev) => ({ ...prev, search: value }))}
             placeholder="Search reports…"
-            onClear={() => setSearch("")}
+            onClear={() => setFilters((prev) => ({ ...prev, search: "" }))}
           />
-
-          <div className="flex shrink-0 flex-wrap gap-2">
-            {STATUS_FILTERS.map((item) => (
-              <button
-                key={item.id}
-                type="button"
-                onClick={() => setStatus(item.id)}
-                className={cn(
-                  "rounded-full border px-3 py-1 text-[12px] font-semibold transition-colors",
-                  status === item.id
-                    ? "border-brand-primary/20 bg-brand-primary/10 text-brand-primary"
-                    : "border-border-color bg-card-bg text-text-secondary hover:bg-app-bg",
-                )}
-              >
-                {item.label}
-              </button>
-            ))}
-          </div>
+          <ReportsFiltersPopover
+            applied={filters}
+            onApply={(next) =>
+              setFilters((prev) => ({
+                ...next,
+                search: prev.search,
+              }))
+            }
+            customerScoped={Boolean(customerId)}
+          />
         </div>
       </div>
 

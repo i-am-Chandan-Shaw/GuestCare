@@ -88,8 +88,18 @@ export interface ReportsQuery {
   page: number;
   limit: number;
   search?: string;
-  status?: ReportStatusFilter;
+  /** Page-level URL scope (workspace deep-link). Wins over `customerIds` when set. */
   customerId?: string;
+  statuses?: ReportStatus[];
+  priorities?: Priority[];
+  assignedAgentIds?: string[];
+  customerIds?: string[];
+  propertyIds?: string[];
+  issueTypes?: string[];
+  /** Inclusive ISO date (YYYY-MM-DD), matched against `lastActivityAt`. */
+  dateFrom?: string;
+  /** Inclusive ISO date (YYYY-MM-DD), matched against `lastActivityAt`. */
+  dateTo?: string;
 }
 
 export interface PaginatedReports {

@@ -77,6 +77,10 @@ function toListItem(report: Report): ReportListItem {
   };
 }
 
+function activityDateKey(iso: string): string {
+  return iso.slice(0, 10);
+}
+
 function filterReports(query: ReportsQuery, actor?: ReportActor): Report[] {
   let results = filterReportsByActor([...reportStore], actor);
 
@@ -87,10 +91,51 @@ function filterReports(query: ReportsQuery, actor?: ReportActor): Report[] {
     results = results.filter(
       (r) => r.customerId === query.customerId || (r.propertyId && propertyIds.has(r.propertyId)),
     );
+  } else if (query.customerIds && query.customerIds.length > 0) {
+    const allowed = new Set(query.customerIds);
+    const propertyIds = new Set(
+      query.customerIds.flatMap(
+        (id) => CUSTOMERS.find((c) => c.id === id)?.propertyIds ?? [],
+      ),
+    );
+    results = results.filter(
+      (r) => allowed.has(r.customerId) || (r.propertyId != null && propertyIds.has(r.propertyId)),
+    );
   }
 
-  if (query.status && query.status !== "all") {
-    results = results.filter((r) => r.status === query.status);
+  if (query.statuses && query.statuses.length > 0) {
+    const allowed = new Set(query.statuses);
+    results = results.filter((r) => allowed.has(r.status));
+  }
+
+  if (query.priorities && query.priorities.length > 0) {
+    const allowed = new Set(query.priorities);
+    results = results.filter((r) => allowed.has(r.priority));
+  }
+
+  if (query.assignedAgentIds && query.assignedAgentIds.length > 0) {
+    const allowed = new Set(query.assignedAgentIds);
+    results = results.filter((r) => allowed.has(r.assignedAgentId));
+  }
+
+  if (query.propertyIds && query.propertyIds.length > 0) {
+    const allowed = new Set(query.propertyIds);
+    results = results.filter((r) => r.propertyId != null && allowed.has(r.propertyId));
+  }
+
+  if (query.issueTypes && query.issueTypes.length > 0) {
+    const allowed = new Set(query.issueTypes);
+    results = results.filter((r) => allowed.has(r.issueType));
+  }
+
+  if (query.dateFrom) {
+    const from = query.dateFrom;
+    results = results.filter((r) => activityDateKey(r.lastActivityAt) >= from);
+  }
+
+  if (query.dateTo) {
+    const to = query.dateTo;
+    results = results.filter((r) => activityDateKey(r.lastActivityAt) <= to);
   }
 
   const search = query.search?.trim().toLowerCase();

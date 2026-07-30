@@ -129,14 +129,14 @@ function CommentComposer({
   ] as const;
 
   return (
-    <div className="rounded-xl border border-border-color bg-card-bg p-3 shadow-sm">
+    <div className="rounded-md border border-border-color bg-card-bg p-3 shadow-sm">
       <textarea
         ref={ref}
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        rows={4}
+        rows={3}
         placeholder="Leave a comment…"
-        className="w-full resize-y bg-transparent px-1 py-1 text-[13px] leading-relaxed text-text-primary outline-none placeholder:text-text-muted"
+        className="w-full resize-none bg-transparent px-1 py-1 text-[13px] leading-relaxed text-text-primary outline-none placeholder:text-text-muted"
       />
       <div className="mt-2 flex flex-wrap items-center justify-between gap-3 border-t border-border-color pt-3">
         <div className="flex flex-wrap items-center gap-0.5">
@@ -304,100 +304,103 @@ export function ReportDetailPage({
         <ReportStatusBadge status={report.status} />
       </div>
 
-      <div className="min-h-0 flex-1 overflow-y-auto">
-        <div className="grid w-full gap-4 p-4 lg:grid-cols-[minmax(0,1fr)_minmax(380px,42%)] lg:items-start">
-          <div className="min-w-0 space-y-4">
-            <article className="rounded-md border border-border-color bg-card-bg p-5 shadow-sm">
-              <div className="flex items-start justify-between gap-4">
-                <div className="flex min-w-0 items-start gap-3">
-                  <div
-                    className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-brand-primary/10 text-[12px] font-bold text-brand-primary"
-                    aria-hidden
-                  >
-                    {initialsFromName(report.callerName)}
-                  </div>
-                  <div className="min-w-0">
-                    <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
-                      <span className="text-[14px] font-semibold text-text-primary">
-                        {report.callerName}
-                      </span>
-                      <span
-                        className="text-[12px] text-text-muted"
-                        title={formatActivityTimestamp(report.createdAt)}
-                      >
-                        {formatActivityTimestampRelative(report.createdAt)}
-                      </span>
+      <div className="grid min-h-0 flex-1 grid-cols-1 gap-4 overflow-hidden p-4 lg:grid-cols-[minmax(0,1fr)_minmax(380px,42%)]">
+          <div className="flex min-h-0 min-w-0 flex-col overflow-hidden">
+            <div className="min-h-0 flex-1 space-y-4 overflow-y-auto pr-0.5">
+              <article className="rounded-md border border-border-color bg-card-bg p-5 shadow-sm">
+                <div className="flex items-start justify-between gap-4">
+                  <div className="flex min-w-0 items-start gap-3">
+                    <div
+                      className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-brand-primary/10 text-[12px] font-bold text-brand-primary"
+                      aria-hidden
+                    >
+                      {initialsFromName(report.callerName)}
                     </div>
-                    <p className="mt-0.5 truncate text-[12px] text-text-secondary">
-                      {report.customerName} · {report.propertyName}
-                    </p>
+                    <div className="min-w-0">
+                      <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
+                        <span className="text-[14px] font-semibold text-text-primary">
+                          {report.callerName}
+                        </span>
+                        <span
+                          className="text-[12px] text-text-muted"
+                          title={formatActivityTimestamp(report.createdAt)}
+                        >
+                          {formatActivityTimestampRelative(report.createdAt)}
+                        </span>
+                      </div>
+                      <p className="mt-0.5 truncate text-[12px] text-text-secondary">
+                        {report.customerName} · {report.propertyName}
+                      </p>
+                    </div>
                   </div>
+
+                  <button
+                    type="button"
+                    onClick={copyId}
+                    className="inline-flex shrink-0 items-center gap-1.5 rounded-md px-2 py-1 font-mono text-[12px] text-text-secondary transition-colors hover:bg-app-bg hover:text-text-primary"
+                    title="Copy report ID"
+                  >
+                    #{displayId}
+                    {copied ? (
+                      <Check className="h-3.5 w-3.5 text-success" strokeWidth={2.5} />
+                    ) : (
+                      <Copy className="h-3.5 w-3.5" strokeWidth={2} />
+                    )}
+                  </button>
                 </div>
 
-                <button
-                  type="button"
-                  onClick={copyId}
-                  className="inline-flex shrink-0 items-center gap-1.5 rounded-md px-2 py-1 font-mono text-[12px] text-text-secondary transition-colors hover:bg-app-bg hover:text-text-primary"
-                  title="Copy report ID"
-                >
-                  #{displayId}
-                  {copied ? (
-                    <Check className="h-3.5 w-3.5 text-success" strokeWidth={2.5} />
-                  ) : (
-                    <Copy className="h-3.5 w-3.5" strokeWidth={2} />
-                  )}
-                </button>
-              </div>
+                <h1 className="mt-4 text-[22px] font-bold leading-tight tracking-tight text-text-primary">
+                  {report.issueName}
+                </h1>
+                <p className="mt-3 whitespace-pre-wrap text-[14px] leading-relaxed text-text-primary/90">
+                  {report.callNotes.trim() || "No call notes recorded."}
+                </p>
+                <div className="mt-4 flex flex-wrap items-center gap-2">
+                  <span className="inline-flex rounded-full bg-violet-500/10 px-2.5 py-1 text-[11px] font-semibold text-violet-700">
+                    {report.issueType}
+                  </span>
+                  <span
+                    className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-semibold ${priority.tone}`}
+                  >
+                    <span className={`h-1.5 w-1.5 rounded-full ${priority.dot}`} />
+                    {priority.name}
+                  </span>
+                  <ReportStatusBadge status={report.status} />
+                </div>
+              </article>
 
-              <h1 className="mt-4 text-[22px] font-bold leading-tight tracking-tight text-text-primary">
-                {report.issueName}
-              </h1>
-              <p className="mt-3 whitespace-pre-wrap text-[14px] leading-relaxed text-text-primary/90">
-                {report.callNotes.trim() || "No call notes recorded."}
-              </p>
-              <div className="mt-4 flex flex-wrap items-center gap-2">
-                <span className="inline-flex rounded-full bg-violet-500/10 px-2.5 py-1 text-[11px] font-semibold text-violet-700">
-                  {report.issueType}
-                </span>
-                <span
-                  className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-semibold ${priority.tone}`}
-                >
-                  <span className={`h-1.5 w-1.5 rounded-full ${priority.dot}`} />
-                  {priority.name}
-                </span>
-                <ReportStatusBadge status={report.status} />
+              <div className="rounded-md border border-border-color bg-card-bg p-5 shadow-sm">
+                <ReportConversations
+                  entries={thread}
+                  reporterAgentId={report.createdByAgentId}
+                  currentActorId={actor.id}
+                  sortOrder={sortOrder}
+                  onSortChange={setSortOrder}
+                  replyPending={addComment.isPending}
+                  editPending={updateComment.isPending}
+                  onReply={(parentId, body) => {
+                    addComment.mutate({ body, parentId });
+                  }}
+                  onEdit={(commentId, body) => {
+                    updateComment.mutate({ commentId, input: { body } });
+                  }}
+                />
               </div>
-            </article>
-
-            <div className="rounded-md border border-border-color bg-card-bg p-5 shadow-sm">
-              <ReportConversations
-                entries={thread}
-                reporterAgentId={report.createdByAgentId}
-                currentActorId={actor.id}
-                sortOrder={sortOrder}
-                onSortChange={setSortOrder}
-                replyPending={addComment.isPending}
-                editPending={updateComment.isPending}
-                onReply={(parentId, body) => {
-                  addComment.mutate({ body, parentId });
-                }}
-                onEdit={(commentId, body) => {
-                  updateComment.mutate({ commentId, input: { body } });
-                }}
-              />
             </div>
 
-            <CommentComposer
-              value={comment}
-              onChange={setComment}
-              onSubmit={handleRootComment}
-              pending={addComment.isPending}
-            />
+            <div className="shrink-0 bg-app-bg pt-3">
+              <CommentComposer
+                value={comment}
+                onChange={setComment}
+                onSubmit={handleRootComment}
+                pending={addComment.isPending}
+              />
+            </div>
           </div>
 
-          <aside className="lg:sticky lg:top-4">
-            <div className="overflow-hidden rounded-md border border-border-color bg-card-bg shadow-sm">
-              <div className="flex items-center justify-between gap-3 border-b border-border-color px-4 py-3">
+          <aside className="flex min-h-0 min-w-0 flex-col overflow-hidden lg:max-h-full">
+            <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-md border border-border-color bg-card-bg shadow-sm">
+              <div className="flex shrink-0 items-center justify-between gap-3 border-b border-border-color px-4 py-3">
                 <h2 className="text-[14px] font-semibold text-text-primary">Edit issue</h2>
                 <div className="flex items-center gap-2">
                   <Button type="button" variant="ghost" onClick={handleCancel} className="!h-8 !px-3">
@@ -416,7 +419,7 @@ export function ReportDetailPage({
                 </div>
               </div>
 
-              <div className="max-h-[calc(100vh-8rem)] space-y-5 overflow-y-auto p-4">
+              <div className="min-h-0 flex-1 space-y-5 overflow-y-auto p-4">
                 <section className="space-y-3">
                   <h3 className="text-[11px] font-bold uppercase tracking-wide text-text-muted">
                     Issue information
@@ -543,7 +546,6 @@ export function ReportDetailPage({
             </div>
           </aside>
         </div>
-      </div>
     </div>
   );
 }

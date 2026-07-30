@@ -97,7 +97,8 @@ export async function getIncidentLogsPaginated(
     page,
     limit,
     search,
-    status: reportStatus === "OPEN" || reportStatus === "RESOLVED" ? reportStatus : "all",
+    statuses:
+      reportStatus === "OPEN" || reportStatus === "RESOLVED" ? [reportStatus] : undefined,
     customerId,
   });
 
