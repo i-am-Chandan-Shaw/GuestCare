@@ -32,6 +32,7 @@ function toListItem(agent: Agent): AgentListItem {
     role: agent.role,
     isActive: agent.isActive,
     customerScopeLabel: formatCustomerScope(agent.customerScope),
+    imageUrl: agent.imageUrl,
     createdAt: agent.createdAt,
   };
 }

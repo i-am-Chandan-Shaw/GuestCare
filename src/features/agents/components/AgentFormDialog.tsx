@@ -37,7 +37,7 @@ import {
 } from "@/components/ui/dialog";
 import { CUSTOMERS } from "@/data/mocks/customers.mock";
 import { cn } from "@/lib/utils";
-import type { Customer } from "@/shared/types";
+import { Avatar } from "@/shared/components/Avatar";
 import type { Agent, AgentRole, ReportActor } from "@/shared/types/agent";
 
 type FormSection = "info" | "access";
@@ -49,16 +49,6 @@ const FORM_SECTIONS: { id: FormSection; label: string }[] = [
 
 /** Top inset when jumping to a section (matches scroll pane `pt-5`). */
 const SECTION_TOP_INSET = 20;
-
-const AVATAR_TONES = [
-  "bg-teal-600 text-white",
-  "bg-rose-500 text-white",
-  "bg-amber-500 text-white",
-  "bg-indigo-500 text-white",
-  "bg-sky-600 text-white",
-  "bg-violet-500 text-white",
-  "bg-emerald-600 text-white",
-] as const;
 
 function emptyForm(defaults: {
   role: AgentFormValues["role"];
@@ -92,43 +82,6 @@ function formFromAgent(agent: Agent, canAll: boolean): AgentFormValues {
     confirmPassword: "",
     changePassword: false,
   };
-}
-
-function customerInitials(name: string): string {
-  const parts = name.trim().split(/\s+/).filter(Boolean);
-  if (parts.length >= 2) {
-    return `${parts[0]![0] ?? ""}${parts[1]![0] ?? ""}`.toUpperCase();
-  }
-  return name.slice(0, 2).toUpperCase() || "?";
-}
-
-function avatarToneForId(id: string): string {
-  let hash = 0;
-  for (let i = 0; i < id.length; i += 1) {
-    hash = (hash + id.charCodeAt(i) * (i + 1)) % AVATAR_TONES.length;
-  }
-  return AVATAR_TONES[hash] ?? AVATAR_TONES[0]!;
-}
-
-function CustomerAvatar({
-  customer,
-  className,
-}: {
-  customer: Pick<Customer, "id" | "name">;
-  className?: string;
-}) {
-  return (
-    <span
-      className={cn(
-        "inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-[11px] font-bold",
-        avatarToneForId(customer.id),
-        className,
-      )}
-      aria-hidden
-    >
-      {customerInitials(customer.name)}
-    </span>
-  );
 }
 
 function IconField({
@@ -833,7 +786,12 @@ export function AgentFormDialog({
                                   <Check className="h-3 w-3" strokeWidth={3} />
                                 ) : null}
                               </span>
-                              <CustomerAvatar customer={customer} />
+                              <Avatar
+                                name={customer.name}
+                                seed={customer.id}
+                                src={customer.imageUrl}
+                                size="md"
+                              />
                               <span className="min-w-0 flex-1">
                                 <span className="block truncate text-[13px] font-semibold text-text-primary">
                                   {customer.name}

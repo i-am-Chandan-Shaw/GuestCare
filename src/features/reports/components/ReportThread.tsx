@@ -12,6 +12,7 @@ import {
   REPORT_STATUS_LABELS,
   REPORT_STATUS_TONES,
 } from "@/features/reports/lib/report-status";
+import { Avatar } from "@/shared/components/Avatar";
 import {
   formatActivityTimestamp,
   formatActivityTimestampRelative,
@@ -19,13 +20,6 @@ import {
 import type { ReportThreadEntry } from "@/shared/types/report";
 
 export type ThreadSortOrder = "oldest" | "newest";
-
-function initialsFromName(name: string): string {
-  const parts = name.trim().split(/\s+/).filter(Boolean);
-  if (parts.length === 0) return "?";
-  if (parts.length === 1) return parts[0]!.slice(0, 2).toUpperCase();
-  return `${parts[0]![0] ?? ""}${parts[1]![0] ?? ""}`.toUpperCase();
-}
 
 function threadSummary(entry: ReportThreadEntry): string {
   switch (entry.type) {
@@ -50,20 +44,6 @@ function threadSummary(entry: ReportThreadEntry): string {
     default:
       return entry.body ?? "System event";
   }
-}
-
-function Avatar({ name, size = "md" }: { name: string; size?: "sm" | "md" }) {
-  return (
-    <div
-      className={cn(
-        "flex shrink-0 items-center justify-center rounded-full bg-brand-primary/10 font-bold text-brand-primary",
-        size === "md" ? "h-9 w-9 text-[12px]" : "h-7 w-7 text-[10px]",
-      )}
-      aria-hidden
-    >
-      {initialsFromName(name)}
-    </div>
-  );
 }
 
 function ActivityLine({ entry }: { entry: ReportThreadEntry }) {
@@ -369,7 +349,11 @@ export function ReportConversations({
               <li key={root.id} className="flex gap-3">
                 <div className="flex w-9 shrink-0 flex-col items-center self-stretch">
                   <div className="relative z-[1] shrink-0 rounded-full bg-card-bg">
-                    <Avatar name={root.authorAgentName} />
+                    <Avatar
+                      name={root.authorAgentName}
+                      seed={root.authorAgentId}
+                      size="md"
+                    />
                   </div>
                   {showThread ? (
                     <div
@@ -414,7 +398,11 @@ export function ReportConversations({
                             aria-hidden
                           />
                           <div className="relative z-[1] shrink-0 rounded-full bg-card-bg">
-                            <Avatar name={child.authorAgentName} size="sm" />
+                            <Avatar
+                              name={child.authorAgentName}
+                              seed={child.authorAgentId}
+                              size="sm"
+                            />
                           </div>
                           <CommentBody
                             entry={child}

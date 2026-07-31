@@ -52,6 +52,8 @@ export interface Customer {
   email: string;
   phone: string;
   propertyIds: string[];
+  /** Profile image URL when available; UI falls back to initials. */
+  imageUrl?: string;
 }
 
 export interface HostContact {

@@ -33,6 +33,7 @@ import { REPORT_STATUS_LABELS } from "@/features/reports/lib/report-status";
 import { agentCanAssignReport, agentCanEditReport } from "@/features/reports/lib/report-scope";
 import { priorityMeta } from "@/shared/constants/agent";
 import { INCIDENT_TYPES } from "@/shared/constants/incident";
+import { Avatar } from "@/shared/components/Avatar";
 import {
   formatActivityTimestamp,
   formatActivityTimestampRelative,
@@ -75,13 +76,6 @@ function toFormState(report: Report): ReportFormState {
 
 function formatReportId(id: string) {
   return id.replaceAll("-", "");
-}
-
-function initialsFromName(name: string): string {
-  const parts = name.trim().split(/\s+/).filter(Boolean);
-  if (parts.length === 0) return "?";
-  if (parts.length === 1) return parts[0]!.slice(0, 2).toUpperCase();
-  return `${parts[0]![0] ?? ""}${parts[1]![0] ?? ""}`.toUpperCase();
 }
 
 function wrapSelection(
@@ -325,12 +319,11 @@ export function ReportDetailPage({
             <div className="min-h-0 flex-1 space-y-5 overflow-y-auto p-5">
               <div className="flex items-start justify-between gap-4">
                 <div className="flex min-w-0 items-start gap-3">
-                  <div
-                    className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-brand-primary/10 text-[12px] font-bold text-brand-primary"
-                    aria-hidden
-                  >
-                    {initialsFromName(report.callerName)}
-                  </div>
+                  <Avatar
+                    name={report.callerName}
+                    seed={report.id}
+                    size="lg"
+                  />
                   <div className="min-w-0">
                     <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
                       <span className="text-[14px] font-semibold text-text-primary">
