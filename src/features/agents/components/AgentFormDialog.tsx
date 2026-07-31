@@ -1,7 +1,5 @@
-import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { useEffect, useEffectEvent, useMemo, useRef, useState, type ReactNode } from "react";
 import {
-  ArrowLeft,
-  ArrowRight,
   Check,
   ChevronDown,
   Eye,
@@ -24,7 +22,6 @@ import {
 import {
   formValuesToCustomerScope,
   getPasswordRequirementState,
-  ROLE_HELPER_COPY,
   roleOptionLabels,
   validateAgentPasswords,
   type AgentFormValues,
@@ -43,7 +40,15 @@ import { cn } from "@/lib/utils";
 import type { Customer } from "@/shared/types";
 import type { Agent, AgentRole, ReportActor } from "@/shared/types/agent";
 
-type WizardStep = 1 | 2;
+type FormSection = "info" | "access";
+
+const FORM_SECTIONS: { id: FormSection; label: string }[] = [
+  { id: "info", label: "Info" },
+  { id: "access", label: "Access" },
+];
+
+/** Top inset when jumping to a section (matches scroll pane `pt-5`). */
+const SECTION_TOP_INSET = 20;
 
 const AVATAR_TONES = [
   "bg-teal-600 text-white",
@@ -107,18 +112,15 @@ function avatarToneForId(id: string): string {
 
 function CustomerAvatar({
   customer,
-  size = "md",
   className,
 }: {
   customer: Pick<Customer, "id" | "name">;
-  size?: "sm" | "md";
   className?: string;
 }) {
   return (
     <span
       className={cn(
-        "inline-flex shrink-0 items-center justify-center rounded-full font-bold",
-        size === "sm" ? "h-6 w-6 text-[9px]" : "h-8 w-8 text-[11px]",
+        "inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-[11px] font-bold",
         avatarToneForId(customer.id),
         className,
       )}
@@ -154,54 +156,10 @@ function IconField({
 const fieldClassName =
   "h-11 w-full rounded-md border border-border-color bg-card-bg pl-10 pr-3 text-[13px] text-text-primary outline-none transition-colors placeholder:text-text-muted focus:border-brand-primary/40";
 
-function ScopeChoiceCard({
-  selected,
-  icon,
-  title,
-  description,
-  onClick,
-}: {
-  selected: boolean;
-  icon: ReactNode;
-  title: string;
-  description: string;
-  onClick: () => void;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={cn(
-        "relative flex w-full flex-col items-start gap-2 rounded-md border p-3.5 text-left transition-colors",
-        selected
-          ? "border-2 border-brand-primary bg-brand-primary/5 shadow-sm"
-          : "border border-border-color bg-card-bg hover:bg-app-bg",
-      )}
-    >
-      <span
-        className={cn(
-          "absolute right-3 top-3 flex h-4 w-4 items-center justify-center rounded-full border",
-          selected
-            ? "border-brand-primary bg-brand-primary"
-            : "border-border-color bg-card-bg",
-        )}
-        aria-hidden
-      >
-        {selected ? <span className="h-1.5 w-1.5 rounded-full bg-white" /> : null}
-      </span>
-      <span
-        className={cn(
-          "flex h-8 w-8 items-center justify-center rounded-md",
-          selected ? "bg-brand-primary/15 text-brand-primary" : "bg-app-bg text-text-secondary",
-        )}
-      >
-        {icon}
-      </span>
-      <span className="text-[13px] font-semibold text-text-primary">{title}</span>
-      <span className="pr-4 text-[11px] leading-snug text-text-secondary">{description}</span>
-    </button>
-  );
-}
+const selectClassName = cn(
+  fieldClassName,
+  "appearance-none bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20width%3D%2220%22%20height%3D%2220%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Cpath%20d%3D%22M5%208l5%205%205-5%22%20stroke%3D%22%23666%22%20stroke-width%3D%221.5%22%20fill%3D%22none%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%2F%3E%3C%2Fsvg%3E')] bg-no-repeat bg-[position:right_0.5rem_center] pr-9 font-medium disabled:cursor-not-allowed disabled:opacity-60",
+);
 
 function PasswordRequirementPills({ password }: { password: string }) {
   const requirements = getPasswordRequirementState(password);
@@ -225,89 +183,84 @@ function PasswordRequirementPills({ password }: { password: string }) {
   );
 }
 
-function StepRail({ step }: { step: WizardStep }) {
+function ScopePill({
+  selected,
+  icon,
+  title,
+  onClick,
+}: {
+  selected: boolean;
+  icon: ReactNode;
+  title: string;
+  onClick: () => void;
+}) {
   return (
-    <aside className="flex w-full shrink-0 flex-col border-b border-border-color bg-app-bg/80 p-5 sm:w-[240px] sm:border-b-0 sm:border-r">
-      <ol className="relative space-y-0">
-        <li className="relative flex gap-3 pb-8">
-          <div className="relative flex flex-col items-center">
-            <span
-              className={cn(
-                "relative z-10 flex h-7 w-7 items-center justify-center rounded-full text-[12px] font-bold",
-                step === 1
-                  ? "bg-brand-primary text-white"
-                  : "bg-success text-white",
-              )}
-            >
-              {step > 1 ? <Check className="h-3.5 w-3.5" strokeWidth={3} /> : "1"}
-            </span>
-            <span
-              className="absolute top-7 bottom-[-2rem] left-1/2 w-px -translate-x-1/2 border-l border-dashed border-border-color"
-              aria-hidden
-            />
-          </div>
-          <div className="min-w-0 pt-0.5">
-            <p
-              className={cn(
-                "text-[13px] font-semibold",
-                step === 1 ? "text-text-primary" : "text-text-secondary",
-              )}
-            >
-              Agent details
-            </p>
-            <p className="text-[11px] leading-snug text-text-muted">
-              Basic information, role and status
-            </p>
-          </div>
-        </li>
-        <li className="relative flex gap-3">
-          <div className="relative flex flex-col items-center">
-            <span
-              className={cn(
-                "relative z-10 flex h-7 w-7 items-center justify-center rounded-full text-[12px] font-bold",
-                step === 2
-                  ? "bg-brand-primary text-white"
-                  : "border border-border-color bg-card-bg text-text-muted",
-              )}
-            >
-              2
-            </span>
-          </div>
-          <div className="min-w-0 pt-0.5">
-            <p
-              className={cn(
-                "text-[13px] font-semibold",
-                step === 2 ? "text-text-primary" : "text-text-muted",
-              )}
-            >
-              Customer access
-            </p>
-            <p className="text-[11px] leading-snug text-text-muted">
-              Choose which customers this agent can access
-            </p>
-          </div>
-        </li>
-      </ol>
+    <button
+      type="button"
+      onClick={onClick}
+      className={cn(
+        "inline-flex flex-1 items-center gap-2.5 rounded-md border px-3.5 py-2.5 text-left transition-colors",
+        selected
+          ? "border-brand-primary bg-brand-primary/5"
+          : "border-border-color bg-card-bg hover:bg-app-bg",
+      )}
+    >
+      <span
+        className={cn(
+          "flex h-4 w-4 shrink-0 items-center justify-center rounded-full border",
+          selected
+            ? "border-brand-primary bg-brand-primary"
+            : "border-border-color bg-card-bg",
+        )}
+        aria-hidden
+      >
+        {selected ? <span className="h-1.5 w-1.5 rounded-full bg-white" /> : null}
+      </span>
+      <span
+        className={cn(
+          "text-text-secondary",
+          selected && "text-brand-primary",
+        )}
+      >
+        {icon}
+      </span>
+      <span className="text-[13px] font-semibold text-text-primary">{title}</span>
+    </button>
+  );
+}
 
-      <div className="mt-auto hidden rounded-md border border-border-color bg-card-bg p-3 sm:block">
-        <div className="flex items-start gap-2.5">
-          <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-brand-primary/10 text-brand-primary">
-            <Shield className="h-3.5 w-3.5" strokeWidth={2} />
-          </span>
-          <div className="min-w-0 space-y-1">
-            <p className="text-[12px] font-semibold text-text-primary">What can this agent see?</p>
-            <p className="text-[11px] leading-snug text-text-secondary">
-              Agents can view and manage customers and their related issues based on the access
-              permissions.
-            </p>
-          </div>
-        </div>
-      </div>
+function SectionNav({
+  activeSection,
+  onSelect,
+}: {
+  activeSection: FormSection;
+  onSelect: (section: FormSection) => void;
+}) {
+  return (
+    <aside className="flex w-full shrink-0 flex-row gap-1 overflow-x-auto border-b border-border-color bg-app-bg/80 p-3 sm:w-[200px] sm:flex-col sm:overflow-visible sm:border-b-0 sm:border-r sm:p-4">
+      {FORM_SECTIONS.map(({ id, label }) => {
+        const active = activeSection === id;
+        return (
+          <button
+            key={id}
+            type="button"
+            onClick={() => onSelect(id)}
+            className={cn(
+              "shrink-0 rounded-md px-3 py-2 text-left text-[13px] font-semibold transition-colors",
+              active
+                ? "bg-brand-primary text-white"
+                : "text-text-secondary hover:bg-app-bg hover:text-text-primary",
+            )}
+          >
+            {label}
+          </button>
+        );
+      })}
     </aside>
   );
 }
 
-function validateStep1(form: AgentFormValues, mode: "create" | "edit"): string | null {
+function validateInfo(form: AgentFormValues, mode: "create" | "edit"): string | null {
   if (!form.name.trim()) return "Full name is required.";
   if (!form.email.trim() || !form.email.includes("@")) return "Enter a valid email address.";
   return validateAgentPasswords(form, mode);
@@ -335,7 +288,7 @@ export function AgentFormDialog({
   const defaultRole = roles[0] ?? "user";
   const defaultScopeType = canAll ? "all" : "specific";
 
-  const [step, setStep] = useState<WizardStep>(1);
+  const [activeSection, setActiveSection] = useState<FormSection>("info");
   const [form, setForm] = useState<AgentFormValues>(() =>
     emptyForm({
       role: defaultRole,
@@ -350,15 +303,29 @@ export function AgentFormDialog({
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const infoRef = useRef<HTMLElement>(null);
+  const accessRef = useRef<HTMLElement>(null);
+  const scrollingToSectionRef = useRef(false);
+
   const isEditingSelf = mode === "edit" && agentId === actor.id;
   const showPasswordFields = mode === "create" || form.changePassword;
+  const customersDisabled = form.scopeType !== "specific";
+
+  const updateAccessMinHeight = useEffectEvent(() => {
+    const root = scrollRef.current;
+    const access = accessRef.current;
+    if (!root || !access) return;
+    // Fill the pane minus top + bottom insets (matches `py-5`).
+    access.style.minHeight = `${Math.max(0, root.clientHeight - SECTION_TOP_INSET * 2)}px`;
+  });
 
   useEffect(() => {
     if (!open) return;
 
     let cancelled = false;
     setError(null);
-    setStep(1);
+    setActiveSection("info");
     setCustomerQuery("");
     setViewSelectedOnly(false);
     setShowPassword(false);
@@ -423,9 +390,6 @@ export function AgentFormDialog({
     );
   }, [assignableCustomers, customerQuery, selectedCustomers, viewSelectedOnly]);
 
-  const footerAvatars = selectedCustomers.slice(0, 5);
-  const footerOverflow = Math.max(0, selectedCustomers.length - footerAvatars.length);
-
   const patch = (partial: Partial<AgentFormValues>) => {
     setForm((prev) => ({ ...prev, ...partial }));
   };
@@ -439,23 +403,57 @@ export function AgentFormDialog({
     }));
   };
 
-  const handleContinue = () => {
-    setError(null);
-    if (roles.length === 0) {
-      setError("You do not have permission to manage agents.");
-      return;
-    }
-    if (!roles.includes(form.role)) {
-      setError("You cannot assign that role.");
-      return;
-    }
-    const stepError = validateStep1(form, mode);
-    if (stepError) {
-      setError(stepError);
-      return;
-    }
-    setStep(2);
+  const scrollToSection = (section: FormSection) => {
+    const root = scrollRef.current;
+    const el = section === "info" ? infoRef.current : accessRef.current;
+    if (!root || !el) return;
+
+    updateAccessMinHeight();
+    scrollingToSectionRef.current = true;
+    setActiveSection(section);
+
+    const top = Math.max(
+      0,
+      root.scrollTop +
+        (el.getBoundingClientRect().top - root.getBoundingClientRect().top) -
+        SECTION_TOP_INSET,
+    );
+    root.scrollTo({ top, behavior: "smooth" });
+    window.setTimeout(() => {
+      scrollingToSectionRef.current = false;
+    }, 500);
   };
+
+  const onScrollSync = useEffectEvent(() => {
+    if (scrollingToSectionRef.current) return;
+    const root = scrollRef.current;
+    const accessEl = accessRef.current;
+    if (!root || !accessEl) return;
+    const rootTop = root.getBoundingClientRect().top;
+    const accessTop = accessEl.getBoundingClientRect().top;
+    setActiveSection(accessTop - rootTop <= 48 ? "access" : "info");
+  });
+
+  useEffect(() => {
+    const root = scrollRef.current;
+    if (!root || hydrating) return;
+    const handleScroll = () => onScrollSync();
+    root.addEventListener("scroll", handleScroll, { passive: true });
+    return () => root.removeEventListener("scroll", handleScroll);
+  }, [hydrating, open]);
+
+  useEffect(() => {
+    if (!open || hydrating) return;
+    const root = scrollRef.current;
+    const access = accessRef.current;
+    if (!root || !access) return;
+
+    updateAccessMinHeight();
+
+    const observer = new ResizeObserver(() => updateAccessMinHeight());
+    observer.observe(root);
+    return () => observer.disconnect();
+  }, [open, hydrating]);
 
   const handleSubmit = async () => {
     setError(null);
@@ -467,18 +465,20 @@ export function AgentFormDialog({
 
     if (!roles.includes(form.role)) {
       setError("You cannot assign that role.");
+      scrollToSection("info");
       return;
     }
 
-    const passwordError = validateAgentPasswords(form, mode);
-    if (passwordError) {
-      setError(passwordError);
-      setStep(1);
+    const infoError = validateInfo(form, mode);
+    if (infoError) {
+      setError(infoError);
+      scrollToSection("info");
       return;
     }
 
     if (form.scopeType === "specific" && form.customerIds.length === 0) {
       setError("Select at least one customer, or choose All customers.");
+      scrollToSection("access");
       return;
     }
 
@@ -525,272 +525,249 @@ export function AgentFormDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="flex max-h-[min(92vh,820px)] max-w-4xl flex-col gap-0 overflow-hidden p-0 sm:rounded-xl">
+      <DialogContent className="flex h-[min(92vh,820px)] max-h-[min(92vh,820px)] max-w-3xl flex-col gap-0 overflow-hidden p-0 sm:rounded-xl">
         <DialogHeader className="shrink-0 space-y-0 border-b border-border-color px-6 py-5 text-left">
           <DialogTitle className="text-[18px] font-bold tracking-tight text-text-primary">
             {mode === "create" ? "Add agent" : "Edit agent"}
           </DialogTitle>
           <DialogDescription className="text-[13px] text-text-secondary">
-            Create a new agent and define their access.
+            {mode === "create"
+              ? "Create a new agent and define their access."
+              : "Update this agent’s details and access."}
           </DialogDescription>
         </DialogHeader>
 
         <div className="flex min-h-0 flex-1 flex-col overflow-hidden sm:flex-row">
-          <StepRail step={step} />
+          <SectionNav activeSection={activeSection} onSelect={scrollToSection} />
 
-          <div className="flex min-h-0 min-w-0 flex-1 flex-col">
-            <div className="min-h-0 flex-1 space-y-5 overflow-y-auto px-6 py-5">
+          <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
+            <div
+              ref={scrollRef}
+              className="min-h-0 flex-1 space-y-8 overflow-y-auto px-6 py-5"
+            >
               {hydrating ? (
                 <p className="py-10 text-center text-[13px] text-text-muted">Loading agent…</p>
-              ) : step === 1 ? (
-                <>
-                  <div>
-                    <p className="text-[11px] font-semibold uppercase tracking-wide text-text-muted">
-                      Step 1 of 2
-                    </p>
-                    <h3 className="mt-1 text-[18px] font-bold text-text-primary">Agent details</h3>
-                    <p className="mt-1 text-[13px] text-text-secondary">
-                      Add the basic information for this agent.
-                    </p>
-                  </div>
-
-                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                    <IconField
-                      label="Full name"
-                      icon={<User className="h-4 w-4" strokeWidth={2} />}
-                    >
-                      <input
-                        value={form.name}
-                        onChange={(e) => patch({ name: e.target.value })}
-                        placeholder="Enter full name"
-                        className={fieldClassName}
-                      />
-                    </IconField>
-                    <IconField
-                      label="Email address"
-                      icon={<Mail className="h-4 w-4" strokeWidth={2} />}
-                    >
-                      <input
-                        type="email"
-                        value={form.email}
-                        onChange={(e) => patch({ email: e.target.value })}
-                        placeholder="name@guestcare.com"
-                        className={fieldClassName}
-                      />
-                    </IconField>
-                  </div>
-
-                  <label className="block space-y-1.5">
-                    <span className="text-[12px] font-semibold text-text-primary">Role</span>
-                    <div className="relative">
-                      <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-violet-600">
-                        <Shield className="h-4 w-4" strokeWidth={2} />
-                      </span>
-                      <select
-                        value={form.role}
-                        onChange={(e) => patch({ role: e.target.value as AgentRole })}
-                        disabled={isEditingSelf || roles.length === 0}
-                        className={cn(
-                          fieldClassName,
-                          "appearance-none bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20width%3D%2220%22%20height%3D%2220%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Cpath%20d%3D%22M5%208l5%205%205-5%22%20stroke%3D%22%23666%22%20stroke-width%3D%221.5%22%20fill%3D%22none%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%2F%3E%3C%2Fsvg%3E')] bg-no-repeat bg-[position:right_0.5rem_center] pr-9 font-medium disabled:cursor-not-allowed disabled:opacity-60",
-                        )}
-                      >
-                        {roles.map((role) => (
-                          <option key={role} value={role}>
-                            {roleOptionLabels(roles)[role]}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                    <p className="text-[11px] leading-snug text-text-muted">
-                      {ROLE_HELPER_COPY[form.role]}
-                    </p>
-                  </label>
-
-                  <div className="flex items-center justify-between gap-4 rounded-md border border-border-color px-4 py-3">
-                    <div className="min-w-0">
-                      <p className="text-[13px] font-semibold text-text-primary">
-                        Is agent active?
-                      </p>
-                      <p className="text-[11px] text-text-secondary">
-                        Active agents can log in and access the platform.
-                      </p>
-                    </div>
-                    <button
-                      type="button"
-                      role="switch"
-                      aria-checked={form.isActive}
-                      disabled={isEditingSelf}
-                      onClick={() => patch({ isActive: !form.isActive })}
-                      className={cn(
-                        "relative h-6 w-11 shrink-0 rounded-full transition-colors disabled:cursor-not-allowed disabled:opacity-50",
-                        form.isActive ? "bg-brand-primary" : "bg-border-color",
-                      )}
-                    >
-                      <span
-                        className={cn(
-                          "absolute top-0.5 left-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform",
-                          form.isActive && "translate-x-5",
-                        )}
-                      />
-                    </button>
-                  </div>
-
-                  <section className="space-y-3 rounded-md border border-border-color p-4">
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="flex min-w-0 items-start gap-2.5">
-                        <span className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-app-bg text-text-secondary">
-                          <Lock className="h-4 w-4" strokeWidth={2} />
-                        </span>
-                        <div className="min-w-0">
-                          <h4 className="text-[13px] font-semibold text-text-primary">
-                            Login details
-                          </h4>
-                          <p className="text-[11px] text-text-secondary">
-                            Set a secure password for the agent to access the platform.
-                          </p>
-                        </div>
-                      </div>
-                      {mode === "edit" ? (
-                        <button
-                          type="button"
-                          className="shrink-0 text-[11px] font-semibold text-brand-primary hover:underline"
-                          onClick={() =>
-                            patch({
-                              changePassword: !form.changePassword,
-                              password: "",
-                              confirmPassword: "",
-                            })
-                          }
-                        >
-                          {form.changePassword ? "Cancel" : "Change password"}
-                        </button>
-                      ) : null}
-                    </div>
-
-                    {showPasswordFields ? (
-                      <>
-                        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                          <IconField
-                            label={mode === "create" ? "Password" : "New password"}
-                            icon={<Lock className="h-4 w-4" strokeWidth={2} />}
-                          >
-                            <input
-                              type={showPassword ? "text" : "password"}
-                              value={form.password}
-                              onChange={(e) => patch({ password: e.target.value })}
-                              placeholder="At least 8 characters"
-                              className={cn(fieldClassName, "pr-10")}
-                            />
-                            <button
-                              type="button"
-                              onClick={() => setShowPassword((v) => !v)}
-                              className="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted hover:text-text-primary"
-                              aria-label={showPassword ? "Hide password" : "Show password"}
-                            >
-                              {showPassword ? (
-                                <EyeOff className="h-4 w-4" strokeWidth={2} />
-                              ) : (
-                                <Eye className="h-4 w-4" strokeWidth={2} />
-                              )}
-                            </button>
-                          </IconField>
-                          <IconField
-                            label="Confirm password"
-                            icon={<Lock className="h-4 w-4" strokeWidth={2} />}
-                          >
-                            <input
-                              type={showConfirmPassword ? "text" : "password"}
-                              value={form.confirmPassword}
-                              onChange={(e) => patch({ confirmPassword: e.target.value })}
-                              placeholder="Repeat password"
-                              className={cn(fieldClassName, "pr-10")}
-                            />
-                            <button
-                              type="button"
-                              onClick={() => setShowConfirmPassword((v) => !v)}
-                              className="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted hover:text-text-primary"
-                              aria-label={
-                                showConfirmPassword
-                                  ? "Hide confirm password"
-                                  : "Show confirm password"
-                              }
-                            >
-                              {showConfirmPassword ? (
-                                <EyeOff className="h-4 w-4" strokeWidth={2} />
-                              ) : (
-                                <Eye className="h-4 w-4" strokeWidth={2} />
-                              )}
-                            </button>
-                          </IconField>
-                        </div>
-                        <PasswordRequirementPills password={form.password} />
-                      </>
-                    ) : (
-                      <p className="text-[12px] text-text-secondary">
-                        Leave unchanged unless you need to reset this agent’s login password.
-                      </p>
-                    )}
-                  </section>
-                </>
               ) : (
                 <>
-                  <div>
-                    <p className="text-[11px] font-semibold uppercase tracking-wide text-text-muted">
-                      Step 2 of 2
-                    </p>
-                    <h3 className="mt-1 text-[18px] font-bold text-text-primary">
-                      Customer access
-                    </h3>
-                    <p className="mt-1 text-[13px] text-text-secondary">
-                      Choose which customers this agent can view and manage.
-                    </p>
-                  </div>
+                  <section ref={infoRef} id="agent-form-info" className="scroll-mt-2 space-y-4">
+                    <h3 className="text-[15px] font-bold text-text-primary">Info</h3>
 
-                  <div
-                    className={cn(
-                      "grid gap-3",
-                      canAll ? "sm:grid-cols-2" : "grid-cols-1",
-                    )}
+                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                      <IconField
+                        label="Full name"
+                        icon={<User className="h-4 w-4" strokeWidth={2} />}
+                      >
+                        <input
+                          value={form.name}
+                          onChange={(e) => patch({ name: e.target.value })}
+                          placeholder="Enter full name"
+                          className={fieldClassName}
+                        />
+                      </IconField>
+                      <IconField
+                        label="Email address"
+                        icon={<Mail className="h-4 w-4" strokeWidth={2} />}
+                      >
+                        <input
+                          type="email"
+                          value={form.email}
+                          onChange={(e) => patch({ email: e.target.value })}
+                          placeholder="name@guestcare.com"
+                          className={fieldClassName}
+                        />
+                      </IconField>
+                    </div>
+
+                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                      <label className="block space-y-1.5">
+                        <span className="text-[12px] font-semibold text-text-primary">Role</span>
+                        <div className="relative">
+                          <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-violet-600">
+                            <Shield className="h-4 w-4" strokeWidth={2} />
+                          </span>
+                          <select
+                            value={form.role}
+                            onChange={(e) => patch({ role: e.target.value as AgentRole })}
+                            disabled={isEditingSelf || roles.length === 0}
+                            className={selectClassName}
+                          >
+                            {roles.map((role) => (
+                              <option key={role} value={role}>
+                                {roleOptionLabels(roles)[role]}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                      </label>
+
+                      <label className="block space-y-1.5">
+                        <span className="text-[12px] font-semibold text-text-primary">Status</span>
+                        <div className="relative">
+                          <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-text-muted">
+                            <Check className="h-4 w-4" strokeWidth={2} />
+                          </span>
+                          <select
+                            value={form.isActive ? "active" : "inactive"}
+                            onChange={(e) => patch({ isActive: e.target.value === "active" })}
+                            disabled={isEditingSelf}
+                            className={selectClassName}
+                          >
+                            <option value="active">Active</option>
+                            <option value="inactive">Inactive</option>
+                          </select>
+                        </div>
+                      </label>
+                    </div>
+
+                    <div className="space-y-3 border-t border-border-color pt-4">
+                      {mode === "edit" && !form.changePassword ? (
+                        <div className="flex justify-end">
+                          <button
+                            type="button"
+                            className="text-[11px] font-semibold text-brand-primary hover:underline"
+                            onClick={() =>
+                              patch({
+                                changePassword: true,
+                                password: "",
+                                confirmPassword: "",
+                              })
+                            }
+                          >
+                            Change password
+                          </button>
+                        </div>
+                      ) : null}
+
+                      {showPasswordFields ? (
+                        <>
+                          {mode === "edit" ? (
+                            <div className="flex justify-end">
+                              <button
+                                type="button"
+                                className="text-[11px] font-semibold text-brand-primary hover:underline"
+                                onClick={() =>
+                                  patch({
+                                    changePassword: false,
+                                    password: "",
+                                    confirmPassword: "",
+                                  })
+                                }
+                              >
+                                Cancel
+                              </button>
+                            </div>
+                          ) : null}
+                          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                            <IconField
+                              label={mode === "create" ? "Password" : "New password"}
+                              icon={<Lock className="h-4 w-4" strokeWidth={2} />}
+                            >
+                              <input
+                                type={showPassword ? "text" : "password"}
+                                value={form.password}
+                                onChange={(e) => patch({ password: e.target.value })}
+                                placeholder="At least 8 characters"
+                                className={cn(fieldClassName, "pr-10")}
+                              />
+                              <button
+                                type="button"
+                                onClick={() => setShowPassword((v) => !v)}
+                                className="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted hover:text-text-primary"
+                                aria-label={showPassword ? "Hide password" : "Show password"}
+                              >
+                                {showPassword ? (
+                                  <EyeOff className="h-4 w-4" strokeWidth={2} />
+                                ) : (
+                                  <Eye className="h-4 w-4" strokeWidth={2} />
+                                )}
+                              </button>
+                            </IconField>
+                            <IconField
+                              label="Confirm password"
+                              icon={<Lock className="h-4 w-4" strokeWidth={2} />}
+                            >
+                              <input
+                                type={showConfirmPassword ? "text" : "password"}
+                                value={form.confirmPassword}
+                                onChange={(e) => patch({ confirmPassword: e.target.value })}
+                                placeholder="Repeat password"
+                                className={cn(fieldClassName, "pr-10")}
+                              />
+                              <button
+                                type="button"
+                                onClick={() => setShowConfirmPassword((v) => !v)}
+                                className="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted hover:text-text-primary"
+                                aria-label={
+                                  showConfirmPassword
+                                    ? "Hide confirm password"
+                                    : "Show confirm password"
+                                }
+                              >
+                                {showConfirmPassword ? (
+                                  <EyeOff className="h-4 w-4" strokeWidth={2} />
+                                ) : (
+                                  <Eye className="h-4 w-4" strokeWidth={2} />
+                                )}
+                              </button>
+                            </IconField>
+                          </div>
+                          <PasswordRequirementPills password={form.password} />
+                        </>
+                      ) : null}
+                    </div>
+                  </section>
+
+                  <section
+                    ref={accessRef}
+                    id="agent-form-access"
+                    className="flex min-h-0 scroll-mt-2 flex-col gap-4"
                   >
-                    {canAll ? (
-                      <ScopeChoiceCard
-                        selected={form.scopeType === "all"}
-                        icon={<Globe2 className="h-4 w-4" strokeWidth={2} />}
-                        title="All customers"
-                        description="Agent can access every customer and their issues"
-                        onClick={() => {
-                          patch({ scopeType: "all", customerIds: [] });
-                          setViewSelectedOnly(false);
-                        }}
-                      />
-                    ) : null}
-                    <ScopeChoiceCard
-                      selected={form.scopeType === "specific"}
-                      icon={<User className="h-4 w-4" strokeWidth={2} />}
-                      title="Specific customers"
-                      description="Choose specific customers to grant access"
-                      onClick={() =>
-                        patch({
-                          scopeType: "specific",
-                          customerIds:
-                            form.scopeType === "specific" ? form.customerIds : [],
-                        })
-                      }
-                    />
-                  </div>
-
-                  {form.scopeType === "all" ? (
-                    <div className="flex items-start gap-2 rounded-md border border-success/25 bg-success/10 px-3 py-2.5 text-[12px] text-success">
-                      <Check className="mt-0.5 h-4 w-4 shrink-0" strokeWidth={2.5} />
-                      <p>
-                        This agent will be able to view and manage all customers and related
-                        issues.
+                    <div className="shrink-0">
+                      <h3 className="text-[15px] font-bold text-text-primary">Access</h3>
+                      <p className="mt-1 text-[12px] text-text-secondary">
+                        Choose which customers this agent can view and manage.
                       </p>
                     </div>
-                  ) : (
-                    <div className="overflow-hidden rounded-md border border-border-color">
-                      <div className="flex flex-wrap items-center gap-2 border-b border-border-color bg-app-bg px-3 py-2">
+
+                    <div
+                      className={cn(
+                        "flex shrink-0 flex-col gap-2 sm:flex-row",
+                        !canAll && "sm:flex-col",
+                      )}
+                    >
+                      {canAll ? (
+                        <ScopePill
+                          selected={form.scopeType === "all"}
+                          icon={<Globe2 className="h-4 w-4" strokeWidth={2} />}
+                          title="All customers"
+                          onClick={() => {
+                            patch({ scopeType: "all", customerIds: [] });
+                            setViewSelectedOnly(false);
+                          }}
+                        />
+                      ) : null}
+                      <ScopePill
+                        selected={form.scopeType === "specific"}
+                        icon={<User className="h-4 w-4" strokeWidth={2} />}
+                        title="Specific customers"
+                        onClick={() =>
+                          patch({
+                            scopeType: "specific",
+                            customerIds:
+                              form.scopeType === "specific" ? form.customerIds : [],
+                          })
+                        }
+                      />
+                    </div>
+
+                    <div
+                      className={cn(
+                        "flex min-h-0 flex-1 flex-col overflow-hidden rounded-md border border-border-color transition-opacity",
+                        customersDisabled && "opacity-50",
+                      )}
+                      aria-disabled={customersDisabled}
+                    >
+                      <div className="flex shrink-0 flex-wrap items-center gap-2 border-b border-border-color bg-app-bg px-3 py-2">
                         <div className="flex min-w-0 flex-1 items-center gap-2">
                           <Search
                             className="h-3.5 w-3.5 shrink-0 text-text-muted"
@@ -800,13 +777,15 @@ export function AgentFormDialog({
                             value={customerQuery}
                             onChange={(e) => setCustomerQuery(e.target.value)}
                             placeholder="Search customers…"
-                            className="w-full min-w-0 bg-transparent text-[12px] text-text-primary outline-none placeholder:text-text-muted"
+                            disabled={customersDisabled}
+                            className="w-full min-w-0 bg-transparent text-[12px] text-text-primary outline-none placeholder:text-text-muted disabled:cursor-not-allowed"
                           />
                         </div>
                         <div className="flex shrink-0 items-center gap-2">
                           <button
                             type="button"
-                            className="text-[11px] font-semibold text-brand-primary hover:underline"
+                            disabled={customersDisabled}
+                            className="text-[11px] font-semibold text-brand-primary hover:underline disabled:cursor-not-allowed disabled:no-underline disabled:opacity-50"
                             onClick={() =>
                               patch({
                                 customerIds: assignableCustomers.map((c) => c.id),
@@ -817,7 +796,8 @@ export function AgentFormDialog({
                           </button>
                           <button
                             type="button"
-                            className="text-[11px] font-semibold text-text-muted hover:underline"
+                            disabled={customersDisabled}
+                            className="text-[11px] font-semibold text-text-muted hover:underline disabled:cursor-not-allowed disabled:no-underline disabled:opacity-50"
                             onClick={() => {
                               patch({ customerIds: [] });
                               setViewSelectedOnly(false);
@@ -828,15 +808,17 @@ export function AgentFormDialog({
                         </div>
                       </div>
 
-                      <div className="max-h-48 space-y-0.5 overflow-y-auto p-1.5">
+                      <div className="min-h-0 flex-1 space-y-0.5 overflow-y-auto p-1.5">
                         {filteredCustomers.map((customer) => {
-                          const checked = form.customerIds.includes(customer.id);
+                          const checked =
+                            !customersDisabled && form.customerIds.includes(customer.id);
                           return (
                             <button
                               key={customer.id}
                               type="button"
+                              disabled={customersDisabled}
                               onClick={() => toggleCustomer(customer.id)}
-                              className="flex w-full items-center gap-2.5 rounded-md px-2 py-1.5 text-left hover:bg-app-bg"
+                              className="flex w-full items-center gap-2.5 rounded-md px-2 py-1.5 text-left hover:bg-app-bg disabled:cursor-not-allowed disabled:hover:bg-transparent"
                             >
                               <span
                                 className={cn(
@@ -872,38 +854,17 @@ export function AgentFormDialog({
                         ) : null}
                       </div>
 
-                      <div className="flex h-11 shrink-0 items-center justify-between gap-2 border-t border-border-color bg-card-bg px-3">
-                        <div className="flex min-w-0 items-center gap-2">
-                          {/* Fixed slot so avatars never change footer height on first select */}
-                          <div
-                            className="flex h-6 min-w-6 shrink-0 items-center justify-start pl-0.5"
-                            aria-hidden={selectedCustomers.length === 0}
-                          >
-                            {footerAvatars.map((customer, index) => (
-                              <CustomerAvatar
-                                key={customer.id}
-                                customer={customer}
-                                size="sm"
-                                className={cn(
-                                  "ring-2 ring-card-bg",
-                                  index > 0 && "-ml-1.5",
-                                )}
-                              />
-                            ))}
-                            {footerOverflow > 0 ? (
-                              <span className="-ml-1.5 inline-flex h-6 min-w-6 items-center justify-center rounded-full bg-app-bg px-1 text-[9px] font-bold text-text-secondary ring-2 ring-card-bg">
-                                +{footerOverflow}
-                              </span>
-                            ) : null}
-                          </div>
-                          <span className="text-[11px] font-medium text-text-secondary">
-                            {selectedCustomers.length} customer
-                            {selectedCustomers.length === 1 ? "" : "s"} selected
-                          </span>
-                        </div>
+                      <div className="flex shrink-0 items-center justify-between gap-2 border-t border-border-color px-3 py-2">
+                        <span className="text-[11px] font-medium text-text-secondary">
+                          {customersDisabled
+                            ? "Select Specific customers to choose"
+                            : `${selectedCustomers.length} customer${
+                                selectedCustomers.length === 1 ? "" : "s"
+                              } selected`}
+                        </span>
                         <button
                           type="button"
-                          disabled={selectedCustomers.length === 0}
+                          disabled={customersDisabled || selectedCustomers.length === 0}
                           onClick={() => setViewSelectedOnly((v) => !v)}
                           className="inline-flex shrink-0 items-center gap-1 text-[11px] font-semibold text-brand-primary hover:underline disabled:cursor-not-allowed disabled:opacity-40"
                         >
@@ -920,7 +881,7 @@ export function AgentFormDialog({
                         </button>
                       </div>
                     </div>
-                  )}
+                  </section>
                 </>
               )}
 
@@ -931,63 +892,32 @@ export function AgentFormDialog({
               ) : null}
             </div>
 
-            <DialogFooter className="shrink-0 gap-3 border-t border-border-color px-6 py-4 sm:flex-row sm:items-center sm:justify-between">
-              {step === 2 ? (
-                <Button
-                  type="button"
-                  variant="ghost"
-                  onClick={() => {
-                    setError(null);
-                    setStep(1);
-                  }}
-                  disabled={loading}
-                  className="!h-9 !rounded-md !px-3"
-                >
-                  <ArrowLeft className="mr-1.5 h-4 w-4" strokeWidth={2} />
-                  Back
-                </Button>
-              ) : (
-                <span />
-              )}
-              <div className="flex items-center justify-end gap-2">
-                <Button
-                  type="button"
-                  variant="secondary"
-                  onClick={() => onOpenChange(false)}
-                  disabled={loading}
-                  className="!h-9 !rounded-md !px-4"
-                >
-                  Cancel
-                </Button>
-                {step === 1 ? (
-                  <Button
-                    type="button"
-                    onClick={handleContinue}
-                    disabled={hydrating || roles.length === 0}
-                    className="!h-9 !rounded-md !px-4"
-                  >
-                    Continue
-                    <ArrowRight className="ml-1.5 h-4 w-4" strokeWidth={2} />
-                  </Button>
+            <DialogFooter className="shrink-0 gap-2 border-t border-border-color px-6 py-4 sm:flex-row sm:justify-end">
+              <Button
+                type="button"
+                variant="secondary"
+                onClick={() => onOpenChange(false)}
+                disabled={loading}
+                className="!h-9 !rounded-md !px-4"
+              >
+                Cancel
+              </Button>
+              <Button
+                type="button"
+                onClick={() => void handleSubmit()}
+                loading={loading}
+                disabled={hydrating || roles.length === 0}
+                className="!h-9 !rounded-md !px-4"
+              >
+                {mode === "create" ? (
+                  <>
+                    <UserPlus className="mr-1.5 h-4 w-4" strokeWidth={2} />
+                    Create agent
+                  </>
                 ) : (
-                  <Button
-                    type="button"
-                    onClick={() => void handleSubmit()}
-                    loading={loading}
-                    disabled={hydrating || roles.length === 0}
-                    className="!h-9 !rounded-md !px-4"
-                  >
-                    {mode === "create" ? (
-                      <>
-                        <UserPlus className="mr-1.5 h-4 w-4" strokeWidth={2} />
-                        Create agent
-                      </>
-                    ) : (
-                      "Save changes"
-                    )}
-                  </Button>
+                  "Save changes"
                 )}
-              </div>
+              </Button>
             </DialogFooter>
           </div>
         </div>

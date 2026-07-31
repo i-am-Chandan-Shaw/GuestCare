@@ -9,6 +9,7 @@ import {
   Link2,
   List,
   ListOrdered,
+  Pencil,
   Smile,
   Strikethrough,
 } from "lucide-react";
@@ -181,6 +182,7 @@ export function ReportDetailPage({
   const [assignNote, setAssignNote] = useState("");
   const [sortOrder, setSortOrder] = useState<ThreadSortOrder>("oldest");
   const [copied, setCopied] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
 
   useEffect(() => {
     if (data?.report) {
@@ -189,6 +191,10 @@ export function ReportDetailPage({
       setForm(null);
     }
   }, [data?.report, reportId]);
+
+  useEffect(() => {
+    setIsEditing(false);
+  }, [reportId]);
 
   if (isLoading || !form) {
     return (
@@ -222,7 +228,10 @@ export function ReportDetailPage({
   const { report, thread } = data;
   const canEdit = agentCanEditReport(actor, report);
   const canAssign = agentCanAssignReport(actor, report);
-  const priority = priorityMeta[form.priority];
+  const canStartEdit = canEdit || canAssign;
+  const fieldsEditable = isEditing && canEdit;
+  const assignEditable = isEditing && canAssign;
+  const priority = priorityMeta[report.priority];
   const displayId = formatReportId(report.id);
 
   const update = <K extends keyof ReportFormState>(key: K, value: ReportFormState[K]) => {
@@ -238,22 +247,28 @@ export function ReportDetailPage({
   const handleCancel = () => {
     setForm(toFormState(report));
     setAssignNote("");
+    setIsEditing(false);
   };
 
   const handleSave = () => {
-    updateReport.mutate({
-      callerName: form.callerName,
-      callerContact: form.callerContact,
-      reservationNumber: form.reservationNumber,
-      nameOnBooking: form.nameOnBooking,
-      issueName: form.issueName,
-      issueType: form.issueType,
-      priority: form.priority,
-      status: form.status,
-      callNotes: form.callNotes,
-      actionsTaken: form.actionsTaken,
-      version: form.version,
-    });
+    updateReport.mutate(
+      {
+        callerName: form.callerName,
+        callerContact: form.callerContact,
+        reservationNumber: form.reservationNumber,
+        nameOnBooking: form.nameOnBooking,
+        issueName: form.issueName,
+        issueType: form.issueType,
+        priority: form.priority,
+        status: form.status,
+        callNotes: form.callNotes,
+        actionsTaken: form.actionsTaken,
+        version: form.version,
+      },
+      {
+        onSuccess: () => setIsEditing(false),
+      },
+    );
 
     if (canAssign && form.assignedAgentId !== report.assignedAgentId) {
       assignReport.mutate({
@@ -304,40 +319,41 @@ export function ReportDetailPage({
         <ReportStatusBadge status={report.status} />
       </div>
 
-      <div className="grid min-h-0 flex-1 grid-cols-1 gap-4 overflow-hidden p-4 lg:grid-cols-[minmax(0,1fr)_minmax(380px,42%)]">
-          <div className="flex min-h-0 min-w-0 flex-col overflow-hidden">
-            <div className="min-h-0 flex-1 space-y-4 overflow-y-auto pr-0.5">
-              <article className="rounded-md border border-border-color bg-card-bg p-5 shadow-sm">
-                <div className="flex items-start justify-between gap-4">
-                  <div className="flex min-w-0 items-start gap-3">
-                    <div
-                      className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-brand-primary/10 text-[12px] font-bold text-brand-primary"
-                      aria-hidden
-                    >
-                      {initialsFromName(report.callerName)}
-                    </div>
-                    <div className="min-w-0">
-                      <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
-                        <span className="text-[14px] font-semibold text-text-primary">
-                          {report.callerName}
-                        </span>
-                        <span
-                          className="text-[12px] text-text-muted"
-                          title={formatActivityTimestamp(report.createdAt)}
-                        >
-                          {formatActivityTimestampRelative(report.createdAt)}
-                        </span>
-                      </div>
-                      <p className="mt-0.5 truncate text-[12px] text-text-secondary">
-                        {report.customerName} · {report.propertyName}
-                      </p>
-                    </div>
+      <div className="grid min-h-0 flex-1 grid-cols-1 gap-4 overflow-hidden p-4 lg:grid-cols-[minmax(0,1.1fr)_minmax(360px,0.9fr)]">
+        <div className="flex min-h-0 min-w-0 flex-col overflow-hidden">
+          <article className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-md border border-border-color bg-card-bg shadow-sm">
+            <div className="min-h-0 flex-1 space-y-5 overflow-y-auto p-5">
+              <div className="flex items-start justify-between gap-4">
+                <div className="flex min-w-0 items-start gap-3">
+                  <div
+                    className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-brand-primary/10 text-[12px] font-bold text-brand-primary"
+                    aria-hidden
+                  >
+                    {initialsFromName(report.callerName)}
                   </div>
+                  <div className="min-w-0">
+                    <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
+                      <span className="text-[14px] font-semibold text-text-primary">
+                        {report.callerName}
+                      </span>
+                      <span
+                        className="text-[12px] text-text-muted"
+                        title={formatActivityTimestamp(report.createdAt)}
+                      >
+                        {formatActivityTimestampRelative(report.createdAt)}
+                      </span>
+                    </div>
+                    <p className="mt-0.5 truncate text-[12px] text-text-secondary">
+                      {report.customerName} · {report.propertyName}
+                    </p>
+                  </div>
+                </div>
 
+                <div className="flex shrink-0 flex-wrap items-center justify-end gap-2">
                   <button
                     type="button"
                     onClick={copyId}
-                    className="inline-flex shrink-0 items-center gap-1.5 rounded-md px-2 py-1 font-mono text-[12px] text-text-secondary transition-colors hover:bg-app-bg hover:text-text-primary"
+                    className="inline-flex items-center gap-1.5 rounded-md px-2 py-1 font-mono text-[12px] text-text-secondary transition-colors hover:bg-app-bg hover:text-text-primary"
                     title="Copy report ID"
                   >
                     #{displayId}
@@ -347,15 +363,51 @@ export function ReportDetailPage({
                       <Copy className="h-3.5 w-3.5" strokeWidth={2} />
                     )}
                   </button>
+                  {isEditing ? (
+                    <>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        onClick={handleCancel}
+                        className="!h-8 !px-3"
+                      >
+                        Cancel
+                      </Button>
+                      <Button
+                        type="button"
+                        onClick={handleSave}
+                        loading={updateReport.isPending || assignReport.isPending}
+                        className="!h-8 !px-3"
+                      >
+                        Save changes
+                      </Button>
+                    </>
+                  ) : canStartEdit ? (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      onClick={() => setIsEditing(true)}
+                      className="!h-8 !gap-1.5 !px-3"
+                    >
+                      <Pencil className="h-3.5 w-3.5" strokeWidth={2} />
+                      Edit issue
+                    </Button>
+                  ) : null}
                 </div>
+              </div>
 
-                <h1 className="mt-4 text-[22px] font-bold leading-tight tracking-tight text-text-primary">
-                  {report.issueName}
-                </h1>
-                <p className="mt-3 whitespace-pre-wrap text-[14px] leading-relaxed text-text-primary/90">
+              <h1 className="text-[22px] font-bold leading-tight tracking-tight text-text-primary">
+                {isEditing ? form.issueName : report.issueName}
+              </h1>
+
+              {!isEditing ? (
+                <p className="whitespace-pre-wrap text-[14px] leading-relaxed text-text-primary/90">
                   {report.callNotes.trim() || "No call notes recorded."}
                 </p>
-                <div className="mt-4 flex flex-wrap items-center gap-2">
+              ) : null}
+
+              {!isEditing ? (
+                <div className="flex flex-wrap items-center gap-2">
                   <span className="inline-flex rounded-full bg-violet-500/10 px-2.5 py-1 text-[11px] font-semibold text-violet-700">
                     {report.issueType}
                   </span>
@@ -367,185 +419,167 @@ export function ReportDetailPage({
                   </span>
                   <ReportStatusBadge status={report.status} />
                 </div>
-              </article>
+              ) : null}
 
-              <div className="rounded-md border border-border-color bg-card-bg p-5 shadow-sm">
-                <ReportConversations
-                  entries={thread}
-                  reporterAgentId={report.createdByAgentId}
-                  currentActorId={actor.id}
-                  sortOrder={sortOrder}
-                  onSortChange={setSortOrder}
-                  replyPending={addComment.isPending}
-                  editPending={updateComment.isPending}
-                  onReply={(parentId, body) => {
-                    addComment.mutate({ body, parentId });
-                  }}
-                  onEdit={(commentId, body) => {
-                    updateComment.mutate({ commentId, input: { body } });
-                  }}
-                />
-              </div>
-            </div>
+              <section className="space-y-3 border-t border-border-color pt-5">
+                <h3 className="text-[11px] font-bold uppercase tracking-wide text-text-muted">
+                  Issue information
+                </h3>
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                  <div className="sm:col-span-2">
+                    <Field label="Issue summary">
+                      <Input
+                        value={form.issueName}
+                        onChange={(v) => update("issueName", v)}
+                        readOnly={!fieldsEditable}
+                      />
+                    </Field>
+                  </div>
+                  <Field label="Issue type">
+                    <Select
+                      value={form.issueType}
+                      onChange={(v) => update("issueType", v)}
+                      options={INCIDENT_TYPES}
+                      disabled={!fieldsEditable}
+                    />
+                  </Field>
+                  <Field label="Priority">
+                    <Select
+                      value={form.priority}
+                      onChange={(v) => update("priority", v as Priority)}
+                      options={Object.keys(priorityMeta) as Priority[]}
+                      optionLabels={Object.fromEntries(
+                        (Object.keys(priorityMeta) as Priority[]).map((key) => [
+                          key,
+                          priorityMeta[key].name,
+                        ]),
+                      )}
+                      disabled={!fieldsEditable}
+                    />
+                  </Field>
+                  <div className="sm:col-span-2">
+                    <Field label="Status">
+                      <Select
+                        value={form.status}
+                        onChange={(v) => update("status", v as ReportStatus)}
+                        options={Object.keys(REPORT_STATUS_LABELS) as ReportStatus[]}
+                        optionLabels={REPORT_STATUS_LABELS}
+                        disabled={!fieldsEditable}
+                      />
+                    </Field>
+                  </div>
+                </div>
+              </section>
 
-            <div className="shrink-0 bg-app-bg pt-3">
-              <CommentComposer
-                value={comment}
-                onChange={setComment}
-                onSubmit={handleRootComment}
-                pending={addComment.isPending}
-              />
-            </div>
-          </div>
+              <section className="space-y-3 border-t border-border-color pt-5">
+                <h3 className="text-[11px] font-bold uppercase tracking-wide text-text-muted">
+                  Call notes
+                </h3>
+                <Field label="Call notes">
+                  <Textarea
+                    value={form.callNotes}
+                    onChange={(v) => update("callNotes", v)}
+                    readOnly={!fieldsEditable}
+                    rows={4}
+                  />
+                </Field>
+              </section>
 
-          <aside className="flex min-h-0 min-w-0 flex-col overflow-hidden lg:max-h-full">
-            <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-md border border-border-color bg-card-bg shadow-sm">
-              <div className="flex shrink-0 items-center justify-between gap-3 border-b border-border-color px-4 py-3">
-                <h2 className="text-[14px] font-semibold text-text-primary">Edit issue</h2>
-                <div className="flex items-center gap-2">
-                  <Button type="button" variant="ghost" onClick={handleCancel} className="!h-8 !px-3">
-                    Cancel
-                  </Button>
-                  {canEdit || canAssign ? (
-                    <Button
-                      type="button"
-                      onClick={handleSave}
-                      loading={updateReport.isPending || assignReport.isPending}
-                      className="!h-8 !px-3"
-                    >
-                      Save changes
-                    </Button>
+              <section className="space-y-3 border-t border-border-color pt-5">
+                <h3 className="text-[11px] font-bold uppercase tracking-wide text-text-muted">
+                  Caller & booking
+                </h3>
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                  <Field label="Caller name">
+                    <Input
+                      value={form.callerName}
+                      onChange={(v) => update("callerName", v)}
+                      readOnly={!fieldsEditable}
+                    />
+                  </Field>
+                  <Field label="Caller contact">
+                    <Input
+                      value={form.callerContact}
+                      onChange={(v) => update("callerContact", v)}
+                      readOnly={!fieldsEditable}
+                    />
+                  </Field>
+                  <Field label="Reservation">
+                    <Input
+                      value={form.reservationNumber}
+                      onChange={(v) => update("reservationNumber", v)}
+                      readOnly={!fieldsEditable}
+                    />
+                  </Field>
+                  <Field label="Name on booking">
+                    <Input
+                      value={form.nameOnBooking}
+                      onChange={(v) => update("nameOnBooking", v)}
+                      readOnly={!fieldsEditable}
+                    />
+                  </Field>
+                </div>
+              </section>
+
+              <section className="space-y-3 border-t border-border-color pt-5">
+                <h3 className="text-[11px] font-bold uppercase tracking-wide text-text-muted">
+                  Additional context
+                </h3>
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                  <Field label="Property">
+                    <Input value={report.propertyName} readOnly />
+                  </Field>
+                  <Field label="Assigned to">
+                    <Select
+                      value={form.assignedAgentId}
+                      onChange={(v) => update("assignedAgentId", v)}
+                      options={agents.map((a) => a.id)}
+                      optionLabels={Object.fromEntries(agents.map((a) => [a.id, a.name]))}
+                      disabled={!assignEditable}
+                    />
+                  </Field>
+                  {assignEditable && form.assignedAgentId !== report.assignedAgentId ? (
+                    <div className="sm:col-span-2">
+                      <Field label="Assignment note (optional)">
+                        <Input value={assignNote} onChange={setAssignNote} />
+                      </Field>
+                    </div>
                   ) : null}
                 </div>
-              </div>
-
-              <div className="min-h-0 flex-1 space-y-5 overflow-y-auto p-4">
-                <section className="space-y-3">
-                  <h3 className="text-[11px] font-bold uppercase tracking-wide text-text-muted">
-                    Issue information
-                  </h3>
-                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                    <div className="sm:col-span-2">
-                      <Field label="Issue summary">
-                        <Input
-                          value={form.issueName}
-                          onChange={(v) => update("issueName", v)}
-                          readOnly={!canEdit}
-                        />
-                      </Field>
-                    </div>
-                    <Field label="Issue type">
-                      <Select
-                        value={form.issueType}
-                        onChange={(v) => update("issueType", v)}
-                        options={INCIDENT_TYPES}
-                        disabled={!canEdit}
-                      />
-                    </Field>
-                    <Field label="Priority">
-                      <Select
-                        value={form.priority}
-                        onChange={(v) => update("priority", v as Priority)}
-                        options={Object.keys(priorityMeta) as Priority[]}
-                        optionLabels={Object.fromEntries(
-                          (Object.keys(priorityMeta) as Priority[]).map((key) => [
-                            key,
-                            priorityMeta[key].name,
-                          ]),
-                        )}
-                        disabled={!canEdit}
-                      />
-                    </Field>
-                    <div className="sm:col-span-2">
-                      <Field label="Status">
-                        <Select
-                          value={form.status}
-                          onChange={(v) => update("status", v as ReportStatus)}
-                          options={Object.keys(REPORT_STATUS_LABELS) as ReportStatus[]}
-                          optionLabels={REPORT_STATUS_LABELS}
-                          disabled={!canEdit}
-                        />
-                      </Field>
-                    </div>
-                    <div className="sm:col-span-2">
-                      <Field label="Call notes">
-                        <Textarea
-                          value={form.callNotes}
-                          onChange={(v) => update("callNotes", v)}
-                          readOnly={!canEdit}
-                          rows={4}
-                        />
-                      </Field>
-                    </div>
-                  </div>
-                </section>
-
-                <section className="space-y-3 border-t border-border-color pt-5">
-                  <h3 className="text-[11px] font-bold uppercase tracking-wide text-text-muted">
-                    Caller & booking
-                  </h3>
-                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                    <Field label="Caller name">
-                      <Input
-                        value={form.callerName}
-                        onChange={(v) => update("callerName", v)}
-                        readOnly={!canEdit}
-                      />
-                    </Field>
-                    <Field label="Caller contact">
-                      <Input
-                        value={form.callerContact}
-                        onChange={(v) => update("callerContact", v)}
-                        readOnly={!canEdit}
-                      />
-                    </Field>
-                    <Field label="Reservation">
-                      <Input
-                        value={form.reservationNumber}
-                        onChange={(v) => update("reservationNumber", v)}
-                        readOnly={!canEdit}
-                      />
-                    </Field>
-                    <Field label="Name on booking">
-                      <Input
-                        value={form.nameOnBooking}
-                        onChange={(v) => update("nameOnBooking", v)}
-                        readOnly={!canEdit}
-                      />
-                    </Field>
-                  </div>
-                </section>
-
-                <section className="space-y-3 border-t border-border-color pt-5">
-                  <h3 className="text-[11px] font-bold uppercase tracking-wide text-text-muted">
-                    Additional context
-                  </h3>
-                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                    <Field label="Property">
-                      <Input value={report.propertyName} readOnly />
-                    </Field>
-                    <Field label="Assigned to">
-                      <Select
-                        value={form.assignedAgentId}
-                        onChange={(v) => update("assignedAgentId", v)}
-                        options={agents.map((a) => a.id)}
-                        optionLabels={Object.fromEntries(agents.map((a) => [a.id, a.name]))}
-                        disabled={!canAssign}
-                      />
-                    </Field>
-                    {canAssign && form.assignedAgentId !== report.assignedAgentId && (
-                      <div className="sm:col-span-2">
-                        <Field label="Assignment note (optional)">
-                          <Input value={assignNote} onChange={setAssignNote} />
-                        </Field>
-                      </div>
-                    )}
-                  </div>
-                </section>
-              </div>
+              </section>
             </div>
-          </aside>
+          </article>
         </div>
+
+        <div className="flex min-h-0 min-w-0 flex-col overflow-hidden">
+          <div className="min-h-0 flex-1 overflow-y-auto rounded-md border border-border-color bg-card-bg p-5 shadow-sm">
+            <ReportConversations
+              entries={thread}
+              reporterAgentId={report.createdByAgentId}
+              currentActorId={actor.id}
+              sortOrder={sortOrder}
+              onSortChange={setSortOrder}
+              replyPending={addComment.isPending}
+              editPending={updateComment.isPending}
+              onReply={(parentId, body) => {
+                addComment.mutate({ body, parentId });
+              }}
+              onEdit={(commentId, body) => {
+                updateComment.mutate({ commentId, input: { body } });
+              }}
+            />
+          </div>
+
+          <div className="shrink-0 bg-app-bg pt-3">
+            <CommentComposer
+              value={comment}
+              onChange={setComment}
+              onSubmit={handleRootComment}
+              pending={addComment.isPending}
+            />
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

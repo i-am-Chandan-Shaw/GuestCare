@@ -4,8 +4,8 @@ import type { ReactNode } from "react";
 
 export type WorkspaceStepState = "incomplete" | "current" | "completed";
 
-const STEP_CLIP =
-  "polygon(0% 0%, calc(100% - 14px) 0%, 100% 50%, calc(100% - 14px) 100%, 0% 100%)";
+/** Soft blunt tip — not needle-sharp. */
+const TIP_CLIP = "polygon(0 0, 45% 0, 100% 50%, 45% 100%, 0 100%)";
 
 export function WorkspaceStep({
   stepNumber,
@@ -26,26 +26,18 @@ export function WorkspaceStep({
 
   const fill =
     isCurrent ? "bg-blue-50" : isCompleted ? "bg-emerald-50" : "bg-gray-100";
-  const edge =
-    isCurrent ? "bg-blue-100" : isCompleted ? "bg-emerald-100" : "bg-gray-200";
 
   return (
     <div
-      className="relative inline-flex h-10 min-w-0 max-w-full"
+      className="relative inline-flex h-12 min-w-0 max-w-full"
       aria-current={isCurrent ? "step" : undefined}
     >
-      <span
-        aria-hidden
-        className={cn("absolute inset-0", edge)}
-        style={{ clipPath: STEP_CLIP }}
-      />
-      <span
-        aria-hidden
-        className={cn("absolute inset-px", fill)}
-        style={{ clipPath: STEP_CLIP }}
-      />
-
-      <div className="relative z-[1] inline-flex h-10 min-w-0 max-w-full items-center gap-2.5 py-2 pl-3 pr-7">
+      <div
+        className={cn(
+          "inline-flex h-12 min-w-0 max-w-full items-center gap-2.5 rounded-l-lg py-3 pl-4 pr-3",
+          fill,
+        )}
+      >
         <span
           className={cn(
             "inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[12px] font-bold tabular-nums leading-none",
@@ -86,13 +78,19 @@ export function WorkspaceStep({
           {displayLabel}
         </span>
       </div>
+
+      <span
+        aria-hidden
+        className={cn("-ml-px h-12 w-7 shrink-0", fill)}
+        style={{ clipPath: TIP_CLIP }}
+      />
     </div>
   );
 }
 
 export function WorkspaceStepSeparator() {
   return (
-    <div className="flex h-10 w-7 shrink-0 items-center justify-center" aria-hidden>
+    <div className="flex h-12 w-7 shrink-0 items-center justify-center" aria-hidden>
       <ChevronRight className="h-4 w-4 text-gray-300" strokeWidth={2} />
     </div>
   );
