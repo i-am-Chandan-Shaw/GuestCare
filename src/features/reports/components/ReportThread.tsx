@@ -27,7 +27,10 @@ function threadSummary(entry: ReportThreadEntry): string {
       return entry.body ?? "Comment";
     case "assignment": {
       const to = entry.metadata?.toAgentName ?? "another agent";
-      return `assigned to ${to}`;
+      if (entry.metadata?.action === "removed") {
+        return `removed ${to}`;
+      }
+      return `added ${to}`;
     }
     case "status_change": {
       const from = entry.metadata?.fromStatus

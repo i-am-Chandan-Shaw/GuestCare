@@ -16,9 +16,10 @@ import {
 import { Button } from "@/components/ui/Button";
 import { Field, Input, Select, Textarea } from "@/features/incidents/components/incident-form-controls";
 import {
+  useAddReportAssigneeMutation,
   useAddReportCommentMutation,
-  useAssignReportMutation,
   useAssignmentAgentsQuery,
+  useRemoveReportAssigneeMutation,
   useReportActor,
   useReportDetailQuery,
   useUpdateReportCommentMutation,
@@ -29,6 +30,7 @@ import {
   ReportStatusBadge,
   type ThreadSortOrder,
 } from "@/features/reports/components/ReportThread";
+import { ReportMembers } from "@/features/reports/components/ReportMembers";
 import { REPORT_STATUS_LABELS } from "@/features/reports/lib/report-status";
 import { agentCanAssignReport, agentCanEditReport } from "@/features/reports/lib/report-scope";
 import { priorityMeta } from "@/shared/constants/agent";
@@ -53,7 +55,6 @@ type ReportFormState = Pick<
   | "status"
   | "callNotes"
   | "actionsTaken"
-  | "assignedAgentId"
   | "version"
 >;
 
@@ -69,7 +70,6 @@ function toFormState(report: Report): ReportFormState {
     status: report.status,
     callNotes: report.callNotes,
     actionsTaken: report.actionsTaken,
-    assignedAgentId: report.assignedAgentId,
     version: report.version,
   };
 }
@@ -167,13 +167,13 @@ export function ReportDetailPage({
   const { data, isLoading } = useReportDetailQuery(reportId);
   const { data: agents = [] } = useAssignmentAgentsQuery();
   const updateReport = useUpdateReportMutation(reportId);
-  const assignReport = useAssignReportMutation(reportId);
+  const addAssignee = useAddReportAssigneeMutation(reportId);
+  const removeAssignee = useRemoveReportAssigneeMutation(reportId);
   const addComment = useAddReportCommentMutation(reportId);
   const updateComment = useUpdateReportCommentMutation(reportId);
 
   const [form, setForm] = useState<ReportFormState | null>(null);
   const [comment, setComment] = useState("");
-  const [assignNote, setAssignNote] = useState("");
   const [sortOrder, setSortOrder] = useState<ThreadSortOrder>("oldest");
   const [copied, setCopied] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
@@ -222,9 +222,8 @@ export function ReportDetailPage({
   const { report, thread } = data;
   const canEdit = agentCanEditReport(actor, report);
   const canAssign = agentCanAssignReport(actor, report);
-  const canStartEdit = canEdit || canAssign;
+  const canStartEdit = canEdit;
   const fieldsEditable = isEditing && canEdit;
-  const assignEditable = isEditing && canAssign;
   const priority = priorityMeta[report.priority];
   const displayId = formatReportId(report.id);
 
@@ -234,13 +233,13 @@ export function ReportDetailPage({
 
   const isBusy =
     updateReport.isPending ||
-    assignReport.isPending ||
+    addAssignee.isPending ||
+    removeAssignee.isPending ||
     addComment.isPending ||
     updateComment.isPending;
 
   const handleCancel = () => {
     setForm(toFormState(report));
-    setAssignNote("");
     setIsEditing(false);
   };
 
@@ -263,13 +262,6 @@ export function ReportDetailPage({
         onSuccess: () => setIsEditing(false),
       },
     );
-
-    if (canAssign && form.assignedAgentId !== report.assignedAgentId) {
-      assignReport.mutate({
-        toAgentId: form.assignedAgentId,
-        note: assignNote || undefined,
-      });
-    }
   };
 
   const handleRootComment = () => {
@@ -369,7 +361,7 @@ export function ReportDetailPage({
                       <Button
                         type="button"
                         onClick={handleSave}
-                        loading={updateReport.isPending || assignReport.isPending}
+                        loading={updateReport.isPending}
                         className="!h-8 !px-3"
                       >
                         Save changes
@@ -399,20 +391,31 @@ export function ReportDetailPage({
                 </p>
               ) : null}
 
-              {!isEditing ? (
-                <div className="flex flex-wrap items-center gap-2">
-                  <span className="inline-flex rounded-full bg-violet-500/10 px-2.5 py-1 text-[11px] font-semibold text-violet-700">
-                    {report.issueType}
-                  </span>
-                  <span
-                    className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-semibold ${priority.tone}`}
-                  >
-                    <span className={`h-1.5 w-1.5 rounded-full ${priority.dot}`} />
-                    {priority.name}
-                  </span>
-                  <ReportStatusBadge status={report.status} />
-                </div>
-              ) : null}
+              <div className="flex flex-wrap items-center gap-2">
+                <ReportMembers
+                  variant="header"
+                  assignees={report.assignees ?? []}
+                  agents={agents}
+                  canAssign={canAssign}
+                  pending={addAssignee.isPending || removeAssignee.isPending}
+                  onAdd={(agentId) => addAssignee.mutate({ agentId })}
+                  onRemove={(agentId) => removeAssignee.mutate({ agentId })}
+                />
+                {!isEditing ? (
+                  <>
+                    <span className="inline-flex rounded-full bg-violet-500/10 px-2.5 py-1 text-[11px] font-semibold text-violet-700">
+                      {report.issueType}
+                    </span>
+                    <span
+                      className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-semibold ${priority.tone}`}
+                    >
+                      <span className={`h-1.5 w-1.5 rounded-full ${priority.dot}`} />
+                      {priority.name}
+                    </span>
+                    <ReportStatusBadge status={report.status} />
+                  </>
+                ) : null}
+              </div>
 
               <section className="space-y-3 border-t border-border-color pt-5">
                 <h3 className="text-[11px] font-bold uppercase tracking-wide text-text-muted">
@@ -522,22 +525,6 @@ export function ReportDetailPage({
                   <Field label="Property">
                     <Input value={report.propertyName} readOnly />
                   </Field>
-                  <Field label="Assigned to">
-                    <Select
-                      value={form.assignedAgentId}
-                      onChange={(v) => update("assignedAgentId", v)}
-                      options={agents.map((a) => a.id)}
-                      optionLabels={Object.fromEntries(agents.map((a) => [a.id, a.name]))}
-                      disabled={!assignEditable}
-                    />
-                  </Field>
-                  {assignEditable && form.assignedAgentId !== report.assignedAgentId ? (
-                    <div className="sm:col-span-2">
-                      <Field label="Assignment note (optional)">
-                        <Input value={assignNote} onChange={setAssignNote} />
-                      </Field>
-                    </div>
-                  ) : null}
                 </div>
               </section>
             </div>

@@ -1,15 +1,25 @@
 import { CUSTOMERS } from "@/data/mocks/customers.mock";
 import { PROPERTIES } from "@/data/properties";
 import { listAgents, findAgentById } from "@/features/agents/lib/agent-store";
+import {
+  ensureAssignees,
+  formatAssigneesLabel,
+  syncDerivedAssigneeFields,
+} from "@/features/reports/lib/report-assignees";
 import { createEmptyReportStore } from "@/features/reports/lib/seed-reports";
-import { filterReportsByActor } from "@/features/reports/lib/report-scope";
+import {
+  agentCanAssignReport,
+  filterReportsByActor,
+} from "@/features/reports/lib/report-scope";
 import { nowIso } from "@/shared/lib/datetime";
 import type { ReportActor } from "@/shared/types/agent";
 import type {
+  AddReportAssigneeInput,
   AddReportCommentInput,
   AssignReportInput,
   CreateReportInput,
   PaginatedReports,
+  RemoveReportAssigneeInput,
   Report,
   ReportDetail,
   ReportListItem,
@@ -61,6 +71,7 @@ function touchReport(
 
 function toListItem(report: Report): ReportListItem {
   const threadCount = threadStore.filter((t) => t.reportId === report.id).length;
+  const assignees = ensureAssignees(report);
   return {
     id: report.id,
     issueName: report.issueName,
@@ -69,7 +80,7 @@ function toListItem(report: Report): ReportListItem {
     status: report.status,
     propertyName: report.propertyName,
     customerName: report.customerName,
-    assignedAgentName: report.assignedAgentName,
+    assignedAgentName: formatAssigneesLabel(assignees),
     callerName: report.callerName,
     createdAt: report.createdAt,
     lastActivityAt: report.lastActivityAt,
@@ -115,7 +126,9 @@ function filterReports(query: ReportsQuery, actor?: ReportActor): Report[] {
 
   if (query.assignedAgentIds && query.assignedAgentIds.length > 0) {
     const allowed = new Set(query.assignedAgentIds);
-    results = results.filter((r) => allowed.has(r.assignedAgentId));
+    results = results.filter((r) =>
+      ensureAssignees(r).some((a) => allowed.has(a.agentId)),
+    );
   }
 
   if (query.propertyIds && query.propertyIds.length > 0) {
@@ -152,7 +165,7 @@ function filterReports(query: ReportsQuery, actor?: ReportActor): Report[] {
         r.propertyName,
         r.customerName,
         r.callNotes,
-        r.assignedAgentName,
+        formatAssigneesLabel(ensureAssignees(r)),
       ]
         .join(" ")
         .toLowerCase();
@@ -193,11 +206,14 @@ export async function getReportById(id: string, actor?: ReportActor): Promise<Re
   if (!report) return null;
   if (actor && !filterReportsByActor([report], actor).length) return null;
 
+  report.assignees = ensureAssignees(report);
+  syncDerivedAssigneeFields(report);
+
   const thread = threadStore
     .filter((t) => t.reportId === id)
     .sort((a, b) => (a.createdAt < b.createdAt ? -1 : 1));
 
-  return { report: { ...report }, thread };
+  return { report: { ...report, assignees: [...report.assignees] }, thread };
 }
 
 export async function createReport(
@@ -234,6 +250,14 @@ export async function createReport(
     propertyName,
     assignedAgentName: actor.name,
     createdByAgentName: actor.name,
+    assignees: [
+      {
+        agentId: actor.id,
+        agentName: actor.name,
+        assignedAt: now,
+        assignedByAgentId: actor.id,
+      },
+    ],
     createdAt: now,
     updatedAt: now,
     lastActivityAt: now,
@@ -269,7 +293,7 @@ export async function updateReport(
   const assign = (field: keyof Report, value: unknown) => {
     if (value !== undefined && report[field] !== value) {
       changedFields.push(field);
-      (report as Record<string, unknown>)[field] = value;
+      (report as unknown as Record<string, unknown>)[field] = value;
     }
   };
 
@@ -335,6 +359,88 @@ export async function updateReport(
   return report;
 }
 
+export async function addReportAssignee(
+  id: string,
+  input: AddReportAssigneeInput,
+  actor: ReportActor,
+): Promise<Report> {
+  const report = reportStore.find((r) => r.id === id);
+  if (!report) throw new Error("Report not found");
+  if (!agentCanAssignReport(actor, report)) {
+    throw new Error("Not allowed to assign agents on this report");
+  }
+
+  const agent = findAgentById(input.agentId);
+  if (!agent) throw new Error("Agent not found");
+
+  report.assignees = ensureAssignees(report);
+  if (report.assignees.some((a) => a.agentId === agent.id)) {
+    return report;
+  }
+
+  const now = nowIso();
+  report.assignees.push({
+    agentId: agent.id,
+    agentName: agent.name,
+    assignedAt: now,
+    assignedByAgentId: actor.id,
+  });
+  syncDerivedAssigneeFields(report);
+
+  touchReport(report, {
+    id: `thr-${id}-assign-add-${Date.now()}`,
+    reportId: id,
+    type: "assignment",
+    authorAgentId: actor.id,
+    authorAgentName: actor.name,
+    body: input.note,
+    metadata: {
+      action: "added",
+      toAgentId: agent.id,
+      toAgentName: agent.name,
+    },
+  });
+
+  report.version += 1;
+  return report;
+}
+
+export async function removeReportAssignee(
+  id: string,
+  input: RemoveReportAssigneeInput,
+  actor: ReportActor,
+): Promise<Report> {
+  const report = reportStore.find((r) => r.id === id);
+  if (!report) throw new Error("Report not found");
+  if (!agentCanAssignReport(actor, report)) {
+    throw new Error("Not allowed to assign agents on this report");
+  }
+
+  report.assignees = ensureAssignees(report);
+  const existing = report.assignees.find((a) => a.agentId === input.agentId);
+  if (!existing) return report;
+
+  report.assignees = report.assignees.filter((a) => a.agentId !== input.agentId);
+  syncDerivedAssigneeFields(report);
+
+  touchReport(report, {
+    id: `thr-${id}-assign-remove-${Date.now()}`,
+    reportId: id,
+    type: "assignment",
+    authorAgentId: actor.id,
+    authorAgentName: actor.name,
+    metadata: {
+      action: "removed",
+      toAgentId: existing.agentId,
+      toAgentName: existing.agentName,
+    },
+  });
+
+  report.version += 1;
+  return report;
+}
+
+/** @deprecated Prefer addReportAssignee / removeReportAssignee. Replaces members with a single agent. */
 export async function assignReport(
   id: string,
   input: AssignReportInput,
@@ -342,15 +448,27 @@ export async function assignReport(
 ): Promise<Report> {
   const report = reportStore.find((r) => r.id === id);
   if (!report) throw new Error("Report not found");
+  if (!agentCanAssignReport(actor, report)) {
+    throw new Error("Not allowed to assign agents on this report");
+  }
 
   const toAgent = findAgentById(input.toAgentId);
   if (!toAgent) throw new Error("Agent not found");
 
-  const fromAgentId = report.assignedAgentId;
-  const fromAgentName = report.assignedAgentName;
+  const previous = ensureAssignees(report);
+  const fromAgentId = previous[0]?.agentId;
+  const fromAgentName = previous[0]?.agentName;
+  const now = nowIso();
 
-  report.assignedAgentId = toAgent.id;
-  report.assignedAgentName = toAgent.name;
+  report.assignees = [
+    {
+      agentId: toAgent.id,
+      agentName: toAgent.name,
+      assignedAt: now,
+      assignedByAgentId: actor.id,
+    },
+  ];
+  syncDerivedAssigneeFields(report);
 
   touchReport(report, {
     id: `thr-${id}-assign-${Date.now()}`,
@@ -360,6 +478,7 @@ export async function assignReport(
     authorAgentName: actor.name,
     body: input.note,
     metadata: {
+      action: "added",
       fromAgentId,
       fromAgentName,
       toAgentId: toAgent.id,

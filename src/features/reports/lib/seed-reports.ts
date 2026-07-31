@@ -72,6 +72,14 @@ export function seedReportsFromIncidents(): { reports: Report[]; threads: Report
       propertyName: log.propertyLabel,
       assignedAgentName: agent.name,
       createdByAgentName: agent.name,
+      assignees: [
+        {
+          agentId: agent.id,
+          agentName: agent.name,
+          assignedAt: createdAt,
+          assignedByAgentId: agent.id,
+        },
+      ],
       createdAt,
       updatedAt: createdAt,
       lastActivityAt: createdAt,

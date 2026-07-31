@@ -1,19 +1,23 @@
 import { useMemo } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
+  addReportAssignee,
   addReportComment,
   assignReport,
   getAgentsForAssignment,
   getReportById,
   getReportsPaginated,
+  removeReportAssignee,
   updateReport,
   updateReportComment,
 } from "@/features/reports/api/reports.api";
 import { toReportActor } from "@/features/reports/lib/report-scope";
 import { useAuth } from "@/features/auth/hooks/useAuth";
 import type {
+  AddReportAssigneeInput,
   AddReportCommentInput,
   AssignReportInput,
+  RemoveReportAssigneeInput,
   ReportsQuery,
   UpdateReportCommentInput,
   UpdateReportInput,
@@ -68,6 +72,33 @@ export function useAssignReportMutation(reportId: string) {
 
   return useMutation({
     mutationFn: (input: AssignReportInput) => assignReport(reportId, input, actor),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ["report", reportId] });
+      void queryClient.invalidateQueries({ queryKey: ["reports"] });
+    },
+  });
+}
+
+export function useAddReportAssigneeMutation(reportId: string) {
+  const actor = useReportActor();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (input: AddReportAssigneeInput) => addReportAssignee(reportId, input, actor),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ["report", reportId] });
+      void queryClient.invalidateQueries({ queryKey: ["reports"] });
+    },
+  });
+}
+
+export function useRemoveReportAssigneeMutation(reportId: string) {
+  const actor = useReportActor();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (input: RemoveReportAssigneeInput) =>
+      removeReportAssignee(reportId, input, actor),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: ["report", reportId] });
       void queryClient.invalidateQueries({ queryKey: ["reports"] });
