@@ -349,79 +349,102 @@ export function ReportConversations({
             const showThread = children.length > 0 && open;
 
             return (
-              <li key={root.id} className="flex gap-3">
-                <div className="flex w-9 shrink-0 flex-col items-center self-stretch">
-                  <div className="relative z-[1] shrink-0 rounded-full bg-card-bg">
-                    <Avatar
-                      name={root.authorAgentName}
-                      seed={root.authorAgentId}
-                      size="md"
+              <li key={root.id}>
+                {/* Root row: rail only spans the parent comment, not replies below */}
+                <div className="flex gap-3">
+                  <div className="flex w-9 shrink-0 flex-col items-center self-stretch">
+                    <div className="relative z-[1] shrink-0 rounded-full bg-card-bg">
+                      <Avatar
+                        name={root.authorAgentName}
+                        seed={root.authorAgentId}
+                        size="md"
+                      />
+                    </div>
+                    {showThread ? (
+                      <div
+                        className="w-0 flex-1 border-l border-dashed border-border-color"
+                        aria-hidden
+                      />
+                    ) : null}
+                  </div>
+
+                  <div className="min-w-0 flex-1">
+                    <CommentBody
+                      entry={root}
+                      isReporter={root.authorAgentId === reporterAgentId}
+                      canEdit={root.authorAgentId === currentActorId}
+                      isRoot
+                      onReply={() => setReplyingTo(root.id)}
+                      onSaveEdit={(body) => onEdit(root.id, body)}
+                      editPending={editPending}
+                      replyCount={children.length}
+                      repliesExpanded={open}
+                      onToggleReplies={
+                        children.length > 0
+                          ? () =>
+                              setExpanded((prev) => ({
+                                ...prev,
+                                [root.id]: !isExpanded(root.id),
+                              }))
+                          : undefined
+                      }
                     />
                   </div>
-                  {showThread ? (
-                    <div
-                      className="mt-0 w-0 flex-1 border-l border-dashed border-border-color"
-                      aria-hidden
-                    />
-                  ) : null}
                 </div>
 
-                <div className="min-w-0 flex-1">
-                  <CommentBody
-                    entry={root}
-                    isReporter={root.authorAgentId === reporterAgentId}
-                    canEdit={root.authorAgentId === currentActorId}
-                    isRoot
-                    onReply={() => setReplyingTo(root.id)}
-                    onSaveEdit={(body) => onEdit(root.id, body)}
-                    editPending={editPending}
-                    replyCount={children.length}
-                    repliesExpanded={open}
-                    onToggleReplies={
-                      children.length > 0
-                        ? () =>
-                            setExpanded((prev) => ({
-                              ...prev,
-                              [root.id]: !isExpanded(root.id),
-                            }))
-                        : undefined
-                    }
-                  />
-
-                  {showThread && (
-                    <ul className="mt-3 space-y-4">
-                      {children.map((child) => (
-                        <li key={child.id} className="relative flex gap-3">
-                          <span
-                            className="absolute -left-[30px] top-3.5 z-0 h-0 w-[30px] border-t border-dashed border-border-color"
-                            aria-hidden
-                          />
-                          <span
-                            className="absolute -left-[30px] top-[11px] z-[1] h-2 w-2 -translate-x-1/2 rounded-full bg-border-color"
-                            aria-hidden
-                          />
-                          <div className="relative z-[1] shrink-0 rounded-full bg-card-bg">
-                            <Avatar
-                              name={child.authorAgentName}
-                              seed={child.authorAgentId}
-                              size="sm"
+                {/* Reply rows: vertical rail stops at the last elbow (no hanging line) */}
+                {showThread ? (
+                  <ul>
+                    {children.map((child, index) => {
+                      const isLast = index === children.length - 1;
+                      return (
+                        <li key={child.id} className="flex gap-3">
+                          <div className="relative w-9 shrink-0">
+                            <span
+                              className={cn(
+                                "pointer-events-none absolute left-1/2 w-0 -translate-x-px border-l border-dashed border-border-color",
+                                isLast ? "top-0 h-[26px]" : "inset-y-0",
+                              )}
+                              aria-hidden
+                            />
+                            <span
+                              className="pointer-events-none absolute left-1/2 top-[26px] h-0 w-[calc(50%+0.75rem)] border-t border-dashed border-border-color"
+                              aria-hidden
+                            />
+                            <span
+                              className="pointer-events-none absolute left-1/2 top-[22px] z-[1] h-2 w-2 -translate-x-1/2 rounded-full bg-border-color"
+                              aria-hidden
                             />
                           </div>
-                          <CommentBody
-                            entry={child}
-                            isReporter={child.authorAgentId === reporterAgentId}
-                            canEdit={child.authorAgentId === currentActorId}
-                            isRoot={false}
-                            onSaveEdit={(body) => onEdit(child.id, body)}
-                            editPending={editPending}
-                          />
+                          <div className="flex min-w-0 flex-1 gap-3 pt-3">
+                            <div className="relative z-[1] shrink-0 rounded-full bg-card-bg">
+                              <Avatar
+                                name={child.authorAgentName}
+                                seed={child.authorAgentId}
+                                size="sm"
+                              />
+                            </div>
+                            <CommentBody
+                              entry={child}
+                              isReporter={
+                                child.authorAgentId === reporterAgentId
+                              }
+                              canEdit={child.authorAgentId === currentActorId}
+                              isRoot={false}
+                              onSaveEdit={(body) => onEdit(child.id, body)}
+                              editPending={editPending}
+                            />
+                          </div>
                         </li>
-                      ))}
-                    </ul>
-                  )}
+                      );
+                    })}
+                  </ul>
+                ) : null}
 
-                  {replyingTo === root.id && (
-                    <div className="mt-2">
+                {replyingTo === root.id ? (
+                  <div className="mt-2 flex gap-3">
+                    <div className="w-9 shrink-0" aria-hidden />
+                    <div className="min-w-0 flex-1">
                       <InlineReplyComposer
                         pending={replyPending}
                         onCancel={() => setReplyingTo(null)}
@@ -432,8 +455,8 @@ export function ReportConversations({
                         }}
                       />
                     </div>
-                  )}
-                </div>
+                  </div>
+                ) : null}
               </li>
             );
           })}
