@@ -12,6 +12,7 @@ import {
   REPORT_STATUS_LABELS,
   REPORT_STATUS_TONES,
 } from "@/features/reports/lib/report-status";
+import { Avatar } from "@/shared/components/Avatar";
 import {
   formatActivityTimestamp,
   formatActivityTimestampRelative,
@@ -20,20 +21,16 @@ import type { ReportThreadEntry } from "@/shared/types/report";
 
 export type ThreadSortOrder = "oldest" | "newest";
 
-function initialsFromName(name: string): string {
-  const parts = name.trim().split(/\s+/).filter(Boolean);
-  if (parts.length === 0) return "?";
-  if (parts.length === 1) return parts[0]!.slice(0, 2).toUpperCase();
-  return `${parts[0]![0] ?? ""}${parts[1]![0] ?? ""}`.toUpperCase();
-}
-
-function threadSummary(entry: ReportThreadEntry): string {
+export function threadSummary(entry: ReportThreadEntry): string {
   switch (entry.type) {
     case "comment":
       return entry.body ?? "Comment";
     case "assignment": {
       const to = entry.metadata?.toAgentName ?? "another agent";
-      return `assigned to ${to}`;
+      if (entry.metadata?.action === "removed") {
+        return `removed ${to}`;
+      }
+      return `added ${to}`;
     }
     case "status_change": {
       const from = entry.metadata?.fromStatus
@@ -50,38 +47,6 @@ function threadSummary(entry: ReportThreadEntry): string {
     default:
       return entry.body ?? "System event";
   }
-}
-
-function Avatar({ name, size = "md" }: { name: string; size?: "sm" | "md" }) {
-  return (
-    <div
-      className={cn(
-        "flex shrink-0 items-center justify-center rounded-full bg-brand-primary/10 font-bold text-brand-primary",
-        size === "md" ? "h-9 w-9 text-[12px]" : "h-7 w-7 text-[10px]",
-      )}
-      aria-hidden
-    >
-      {initialsFromName(name)}
-    </div>
-  );
-}
-
-function ActivityLine({ entry }: { entry: ReportThreadEntry }) {
-  return (
-    <li className="flex items-start gap-2 px-1 py-1.5 text-[12.5px] text-text-secondary">
-      <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-text-muted/50" aria-hidden />
-      <p>
-        <span className="font-medium text-text-primary">{entry.authorAgentName}</span>
-        <span> {threadSummary(entry)}</span>
-        <span
-          className="ml-1.5 text-[11px] text-text-muted"
-          title={formatActivityTimestamp(entry.createdAt)}
-        >
-          · {formatActivityTimestampRelative(entry.createdAt)}
-        </span>
-      </p>
-    </li>
-  );
 }
 
 function CommentBody({
@@ -289,10 +254,6 @@ export function ReportConversations({
     () => entries.filter((e) => e.type === "comment"),
     [entries],
   );
-  const activity = useMemo(
-    () => entries.filter((e) => e.type !== "comment"),
-    [entries],
-  );
 
   const roots = useMemo(() => {
     const list = comments.filter((c) => !c.parentId);
@@ -346,14 +307,6 @@ export function ReportConversations({
         </label>
       </div>
 
-      {activity.length > 0 && (
-        <ul className="space-y-0.5 rounded-md border border-border-color/60 bg-app-bg/50 px-3 py-2">
-          {activity.map((entry) => (
-            <ActivityLine key={entry.id} entry={entry} />
-          ))}
-        </ul>
-      )}
-
       {roots.length === 0 ? (
         <p className="rounded-md border border-dashed border-border-color bg-app-bg px-4 py-8 text-center text-[13px] text-text-secondary">
           No comments yet. Start the conversation below.
@@ -366,71 +319,102 @@ export function ReportConversations({
             const showThread = children.length > 0 && open;
 
             return (
-              <li key={root.id} className="flex gap-3">
-                <div className="flex w-9 shrink-0 flex-col items-center self-stretch">
-                  <div className="relative z-[1] shrink-0 rounded-full bg-card-bg">
-                    <Avatar name={root.authorAgentName} />
+              <li key={root.id}>
+                {/* Root row: rail only spans the parent comment, not replies below */}
+                <div className="flex gap-3">
+                  <div className="flex w-9 shrink-0 flex-col items-center self-stretch">
+                    <div className="relative z-[1] shrink-0 rounded-full bg-card-bg">
+                      <Avatar
+                        name={root.authorAgentName}
+                        seed={root.authorAgentId}
+                        size="md"
+                      />
+                    </div>
+                    {showThread ? (
+                      <div
+                        className="w-0 flex-1 border-l border-dashed border-border-color"
+                        aria-hidden
+                      />
+                    ) : null}
                   </div>
-                  {showThread ? (
-                    <div
-                      className="mt-0 w-0 flex-1 border-l border-dashed border-border-color"
-                      aria-hidden
+
+                  <div className="min-w-0 flex-1">
+                    <CommentBody
+                      entry={root}
+                      isReporter={root.authorAgentId === reporterAgentId}
+                      canEdit={root.authorAgentId === currentActorId}
+                      isRoot
+                      onReply={() => setReplyingTo(root.id)}
+                      onSaveEdit={(body) => onEdit(root.id, body)}
+                      editPending={editPending}
+                      replyCount={children.length}
+                      repliesExpanded={open}
+                      onToggleReplies={
+                        children.length > 0
+                          ? () =>
+                              setExpanded((prev) => ({
+                                ...prev,
+                                [root.id]: !isExpanded(root.id),
+                              }))
+                          : undefined
+                      }
                     />
-                  ) : null}
+                  </div>
                 </div>
 
-                <div className="min-w-0 flex-1">
-                  <CommentBody
-                    entry={root}
-                    isReporter={root.authorAgentId === reporterAgentId}
-                    canEdit={root.authorAgentId === currentActorId}
-                    isRoot
-                    onReply={() => setReplyingTo(root.id)}
-                    onSaveEdit={(body) => onEdit(root.id, body)}
-                    editPending={editPending}
-                    replyCount={children.length}
-                    repliesExpanded={open}
-                    onToggleReplies={
-                      children.length > 0
-                        ? () =>
-                            setExpanded((prev) => ({
-                              ...prev,
-                              [root.id]: !isExpanded(root.id),
-                            }))
-                        : undefined
-                    }
-                  />
-
-                  {showThread && (
-                    <ul className="mt-3 space-y-4">
-                      {children.map((child) => (
-                        <li key={child.id} className="relative flex gap-3">
-                          <span
-                            className="absolute -left-[30px] top-3.5 z-0 h-0 w-[30px] border-t border-dashed border-border-color"
-                            aria-hidden
-                          />
-                          <span
-                            className="absolute -left-[30px] top-[11px] z-[1] h-2 w-2 -translate-x-1/2 rounded-full bg-border-color"
-                            aria-hidden
-                          />
-                          <div className="relative z-[1] shrink-0 rounded-full bg-card-bg">
-                            <Avatar name={child.authorAgentName} size="sm" />
+                {/* Reply rows: vertical rail stops at the last elbow (no hanging line) */}
+                {showThread ? (
+                  <ul>
+                    {children.map((child, index) => {
+                      const isLast = index === children.length - 1;
+                      return (
+                        <li key={child.id} className="flex gap-3">
+                          <div className="relative w-9 shrink-0">
+                            <span
+                              className={cn(
+                                "pointer-events-none absolute left-1/2 w-0 -translate-x-px border-l border-dashed border-border-color",
+                                isLast ? "top-0 h-[26px]" : "inset-y-0",
+                              )}
+                              aria-hidden
+                            />
+                            <span
+                              className="pointer-events-none absolute left-1/2 top-[26px] h-0 w-[calc(50%+0.75rem)] border-t border-dashed border-border-color"
+                              aria-hidden
+                            />
+                            <span
+                              className="pointer-events-none absolute left-1/2 top-[22px] z-[1] h-2 w-2 -translate-x-1/2 rounded-full bg-border-color"
+                              aria-hidden
+                            />
                           </div>
-                          <CommentBody
-                            entry={child}
-                            isReporter={child.authorAgentId === reporterAgentId}
-                            canEdit={child.authorAgentId === currentActorId}
-                            isRoot={false}
-                            onSaveEdit={(body) => onEdit(child.id, body)}
-                            editPending={editPending}
-                          />
+                          <div className="flex min-w-0 flex-1 gap-3 pt-3">
+                            <div className="relative z-[1] shrink-0 rounded-full bg-card-bg">
+                              <Avatar
+                                name={child.authorAgentName}
+                                seed={child.authorAgentId}
+                                size="sm"
+                              />
+                            </div>
+                            <CommentBody
+                              entry={child}
+                              isReporter={
+                                child.authorAgentId === reporterAgentId
+                              }
+                              canEdit={child.authorAgentId === currentActorId}
+                              isRoot={false}
+                              onSaveEdit={(body) => onEdit(child.id, body)}
+                              editPending={editPending}
+                            />
+                          </div>
                         </li>
-                      ))}
-                    </ul>
-                  )}
+                      );
+                    })}
+                  </ul>
+                ) : null}
 
-                  {replyingTo === root.id && (
-                    <div className="mt-2">
+                {replyingTo === root.id ? (
+                  <div className="mt-2 flex gap-3">
+                    <div className="w-9 shrink-0" aria-hidden />
+                    <div className="min-w-0 flex-1">
                       <InlineReplyComposer
                         pending={replyPending}
                         onCancel={() => setReplyingTo(null)}
@@ -441,8 +425,8 @@ export function ReportConversations({
                         }}
                       />
                     </div>
-                  )}
-                </div>
+                  </div>
+                ) : null}
               </li>
             );
           })}

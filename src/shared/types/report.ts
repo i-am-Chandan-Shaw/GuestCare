@@ -6,6 +6,13 @@ export type ReportSource = "copilot" | "manual";
 
 export type ReportStatusFilter = "all" | ReportStatus;
 
+export interface ReportAssignee {
+  agentId: string;
+  agentName: string;
+  assignedAt: IsoDateTime;
+  assignedByAgentId: string;
+}
+
 export interface ReportListItem {
   id: string;
   issueName: string;
@@ -14,6 +21,7 @@ export interface ReportListItem {
   status: ReportStatus;
   propertyName: string;
   customerName: string;
+  /** Derived display label from assignees (e.g. "Ada, Bob +1"). */
   assignedAgentName: string;
   callerName: string;
   createdAt: IsoDateTime;
@@ -31,6 +39,7 @@ export interface Report {
 
   customerId: string;
   propertyId?: string;
+  /** @deprecated Prefer assignees[]; kept in sync for legacy adapters. */
   assignedAgentId: string;
   createdByAgentId: string;
 
@@ -46,8 +55,12 @@ export interface Report {
 
   customerName: string;
   propertyName: string;
+  /** @deprecated Prefer assignees[]; kept in sync as formatted label. */
   assignedAgentName: string;
   createdByAgentName: string;
+
+  /** Agents currently on this report (Trello-style members). */
+  assignees: ReportAssignee[];
 
   createdAt: IsoDateTime;
   updatedAt: IsoDateTime;
@@ -73,6 +86,7 @@ export interface ReportThreadEntry {
   /** Present only on replies to a root comment (max depth 1). */
   parentId?: string;
   metadata?: {
+    action?: "added" | "removed";
     fromAgentId?: string;
     fromAgentName?: string;
     toAgentId?: string;
@@ -143,6 +157,15 @@ export interface UpdateReportInput extends Partial<CreateReportInput> {
 export interface AssignReportInput {
   toAgentId: string;
   note?: string;
+}
+
+export interface AddReportAssigneeInput {
+  agentId: string;
+  note?: string;
+}
+
+export interface RemoveReportAssigneeInput {
+  agentId: string;
 }
 
 export interface AddReportCommentInput {

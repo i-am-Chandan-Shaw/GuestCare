@@ -1,5 +1,6 @@
 import type { Agent, ReportActor } from "@/shared/types/agent";
 import { normalizeReportActor } from "@/features/auth/lib/normalize-agent";
+import { reportHasAssignee } from "@/features/reports/lib/report-assignees";
 import type { Report } from "@/shared/types/report";
 
 export function toReportActor(agent: Agent | ReportActor | unknown): ReportActor {
@@ -28,7 +29,10 @@ export function agentCanEditReport(actor: ReportActor, report: Report): boolean 
   if (actor.role === "admin" || actor.role === "manager") {
     return agentCanAccessCustomer(actor, report.customerId);
   }
-  return report.assignedAgentId === actor.id && agentCanAccessCustomer(actor, report.customerId);
+  return (
+    reportHasAssignee(report, actor.id) &&
+    agentCanAccessCustomer(actor, report.customerId)
+  );
 }
 
 export function agentCanAssignReport(actor: ReportActor, report: Report): boolean {

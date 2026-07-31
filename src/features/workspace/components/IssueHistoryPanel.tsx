@@ -50,9 +50,9 @@ function HistoryItem({
         {showPropertyLabel && log.propertyLabel && (
           <p className="mt-0.5 truncate text-[12px] text-text-secondary">{log.propertyLabel}</p>
         )}
-        <p className="mt-1 text-[11px] text-text-muted">
-          {isOpen ? `Reported by ${log.submittedBy}` : `Resolved by ${log.agent}`}
-        </p>
+        {isOpen ? (
+          <p className="mt-1 text-[11px] text-text-muted">Reported by {log.submittedBy}</p>
+        ) : null}
       </div>
     </li>
   );

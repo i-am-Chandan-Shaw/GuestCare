@@ -24,7 +24,6 @@ export function CallWorkspace() {
     selectIssue,
     changeCustomer,
     changeProperty,
-    changeIssue,
     hydrateFromSearch,
   } = workspace;
 
@@ -59,13 +58,6 @@ export function CallWorkspace() {
     if (customer) syncUrl({ customerId: customer.id });
   };
 
-  const handleClearIssue = () => {
-    changeIssue();
-    if (customer && property) {
-      syncUrl({ customerId: customer.id, propertyId: property.id });
-    }
-  };
-
   const handleSelectProperty = (next: Property) => {
     selectProperty(next);
     if (customer) {
@@ -94,9 +86,6 @@ export function CallWorkspace() {
         customer={customer}
         property={property}
         issue={issue}
-        onClearCustomer={handleClearCustomer}
-        onClearProperty={handleClearProperty}
-        onClearIssue={handleClearIssue}
         onClearAll={handleClearAll}
       />
 

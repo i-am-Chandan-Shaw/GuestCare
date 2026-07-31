@@ -30,66 +30,50 @@ export function WorkspaceSelectorRow({
   customer,
   property,
   issue,
-  onClearCustomer,
-  onClearProperty,
-  onClearIssue,
   onClearAll,
 }: {
   phase: WorkspacePhase;
   customer: Customer | null;
   property: Property | null;
   issue: Issue | null;
-  onClearCustomer: () => void;
-  onClearProperty: () => void;
-  onClearIssue: () => void;
   onClearAll: () => void;
 }) {
   const states = resolveStepStates(phase, customer, property, issue);
   const hasSelection = Boolean(customer || property || issue);
 
   return (
-    <nav
-      className="flex w-full min-w-0 items-center gap-1 rounded-lg bg-white py-2"
-      aria-label="Workspace steps"
-    >
-      <div className="flex min-w-0 flex-1 basis-0 justify-start overflow-hidden">
+    <nav className="flex w-full min-w-0 items-center" aria-label="Workspace steps">
+      <div className="flex min-w-0 flex-1 items-center overflow-hidden">
         <WorkspaceStep
           stepNumber={1}
-          label="Select customer"
+          label="Customer"
           value={customer?.name}
           icon={<User strokeWidth={1.75} />}
           state={states.customer}
-          onClear={states.customer === "completed" ? onClearCustomer : undefined}
         />
-      </div>
 
-      <WorkspaceStepSeparator />
+        <WorkspaceStepSeparator />
 
-      <div className="flex min-w-0 flex-1 basis-0 justify-center overflow-hidden">
         <WorkspaceStep
           stepNumber={2}
-          label="Select property"
+          label="Property"
           value={property?.name}
           icon={<Building2 strokeWidth={1.75} />}
           state={states.property}
-          onClear={states.property === "completed" ? onClearProperty : undefined}
         />
-      </div>
 
-      <WorkspaceStepSeparator />
+        <WorkspaceStepSeparator />
 
-      <div className="flex min-w-0 flex-1 basis-0 justify-center overflow-hidden">
         <WorkspaceStep
           stepNumber={3}
-          label="Select issue"
+          label="Issue"
           value={issue?.name}
           icon={<ClipboardList strokeWidth={1.75} />}
           state={states.issue}
-          onClear={states.issue === "completed" ? onClearIssue : undefined}
         />
       </div>
 
-      {hasSelection && (
+      {hasSelection ? (
         <>
           <div className="mx-2 h-5 w-px shrink-0 bg-border-color" aria-hidden />
           <button
@@ -97,11 +81,11 @@ export function WorkspaceSelectorRow({
             onClick={onClearAll}
             className="inline-flex shrink-0 items-center gap-1.5 px-1 text-[12px] font-semibold text-danger transition-colors hover:text-danger/80"
           >
-            <Trash2 className="h-3.5 w-3.5 text-text-secondary" strokeWidth={1.75} />
+            <Trash2 className="h-3.5 w-3.5" strokeWidth={1.75} />
             Clear all
           </button>
         </>
-      )}
+      ) : null}
     </nav>
   );
 }

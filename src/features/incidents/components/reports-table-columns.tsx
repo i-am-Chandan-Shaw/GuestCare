@@ -119,11 +119,11 @@ export function createReportsTableColumnDefs(options: {
       minWidth: 140,
     },
     {
-      headerName: "AGENT",
+      headerName: "MEMBERS",
       field: "assignedAgentName",
       colId: "agent",
       flex: 1,
-      minWidth: 120,
+      minWidth: 140,
     },
     {
       headerName: "CALLER",

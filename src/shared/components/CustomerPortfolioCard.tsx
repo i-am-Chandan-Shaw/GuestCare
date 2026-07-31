@@ -1,4 +1,5 @@
 import { formatRelativeTime } from "@/shared/lib/format-relative-time";
+import { Avatar } from "@/shared/components/Avatar";
 import {
   PORTFOLIO_CARD_TITLE_CLASS,
   PortfolioMetricColumn,
@@ -59,13 +60,21 @@ export function CustomerPortfolioCard({
           : "hover:bg-app-bg",
       )}
     >
-      <div className="min-w-0 w-[200px] shrink-0 border-r border-border-color pr-4">
-        <h3 className={cn(PORTFOLIO_CARD_TITLE_CLASS, "min-w-0 truncate text-[14px]")}>
-          {customer.name}
-        </h3>
-        <p className="mt-0.5 truncate text-[12px] font-medium text-card-subtext">
-          {customer.email}
-        </p>
+      <div className="flex min-w-0 w-[240px] shrink-0 items-center gap-3 border-r border-border-color pr-4">
+        <Avatar
+          name={customer.name}
+          seed={customer.id}
+          src={customer.imageUrl}
+          size="lg"
+        />
+        <div className="min-w-0">
+          <h3 className={cn(PORTFOLIO_CARD_TITLE_CLASS, "min-w-0 truncate text-[14px]")}>
+            {customer.name}
+          </h3>
+          <p className="mt-0.5 truncate text-[12px] font-medium text-card-subtext">
+            {customer.email}
+          </p>
+        </div>
       </div>
 
       <div className="flex min-w-0 flex-1 items-stretch pl-4">

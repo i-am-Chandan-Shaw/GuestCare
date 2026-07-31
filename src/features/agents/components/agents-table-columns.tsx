@@ -1,9 +1,20 @@
 import type { ColDef, ICellRendererParams } from "ag-grid-community";
 import { Pencil } from "lucide-react";
 import { StatusChip } from "@/components/ui/StatusChip";
+import { Avatar } from "@/shared/components/Avatar";
 import { formatAgentRole } from "@/shared/lib/agent-display";
 import { formatActivityTimestamp } from "@/shared/lib/datetime";
 import type { AgentListItem } from "@/shared/types/agent";
+
+function AgentNameCell({ data }: ICellRendererParams<AgentListItem>) {
+  if (!data) return null;
+  return (
+    <span className="flex min-w-0 items-center gap-2.5">
+      <Avatar name={data.name} seed={data.id} src={data.imageUrl} size="md" />
+      <span className="truncate text-[13px] font-medium text-text-primary">{data.name}</span>
+    </span>
+  );
+}
 
 function ActiveCell({ data }: ICellRendererParams<AgentListItem>) {
   if (!data) return null;
@@ -65,7 +76,8 @@ export function createAgentsTableColumnDefs({
       field: "name",
       colId: "name",
       flex: 1,
-      minWidth: 180,
+      minWidth: 200,
+      cellRenderer: AgentNameCell,
     },
     {
       headerName: "EMAIL",

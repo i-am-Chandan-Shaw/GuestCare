@@ -14,6 +14,8 @@ export interface Agent {
   role: AgentRole;
   isActive: boolean;
   customerScope: AgentCustomerScope;
+  /** Profile image URL when available; UI falls back to initials. */
+  imageUrl?: string;
   createdAt: IsoDateTime;
   updatedAt: IsoDateTime;
 }
@@ -25,6 +27,8 @@ export interface AgentListItem {
   role: AgentRole;
   isActive: boolean;
   customerScopeLabel: string;
+  /** Profile image URL when available; UI falls back to initials. */
+  imageUrl?: string;
   createdAt: IsoDateTime;
 }
 
