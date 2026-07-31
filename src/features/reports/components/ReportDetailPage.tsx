@@ -34,6 +34,7 @@ import {
   ReportStatusBadge,
   type ThreadSortOrder,
 } from "@/features/reports/components/ReportThread";
+import { ReportActivityTimeline } from "@/features/reports/components/ReportActivityTimeline";
 import { ReportMembers } from "@/features/reports/components/ReportMembers";
 import { ReportEditDialog } from "@/features/reports/components/ReportEditDialog";
 import { agentCanAssignReport, agentCanEditReport } from "@/features/reports/lib/report-scope";
@@ -366,7 +367,6 @@ export function ReportDetailPage({
           <p className="font-mono text-[11px] tabular-nums text-text-secondary">{displayId}</p>
           <h2 className="truncate text-[14px] font-bold text-text-primary">{report.issueName}</h2>
         </div>
-        <ReportStatusBadge status={report.status} />
       </div>
 
       <div className="grid min-h-0 flex-1 grid-cols-1 gap-4 overflow-hidden p-4 lg:grid-cols-[minmax(0,1.1fr)_minmax(360px,0.9fr)]">
@@ -457,6 +457,8 @@ export function ReportDetailPage({
               </div>
 
               <ReportDetailView report={report} />
+
+              <ReportActivityTimeline entries={thread} />
             </div>
           </article>
         </div>

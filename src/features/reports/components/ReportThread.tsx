@@ -21,7 +21,7 @@ import type { ReportThreadEntry } from "@/shared/types/report";
 
 export type ThreadSortOrder = "oldest" | "newest";
 
-function threadSummary(entry: ReportThreadEntry): string {
+export function threadSummary(entry: ReportThreadEntry): string {
   switch (entry.type) {
     case "comment":
       return entry.body ?? "Comment";
@@ -47,24 +47,6 @@ function threadSummary(entry: ReportThreadEntry): string {
     default:
       return entry.body ?? "System event";
   }
-}
-
-function ActivityLine({ entry }: { entry: ReportThreadEntry }) {
-  return (
-    <li className="flex items-start gap-2 px-1 py-1.5 text-[12.5px] text-text-secondary">
-      <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-text-muted/50" aria-hidden />
-      <p>
-        <span className="font-medium text-text-primary">{entry.authorAgentName}</span>
-        <span> {threadSummary(entry)}</span>
-        <span
-          className="ml-1.5 text-[11px] text-text-muted"
-          title={formatActivityTimestamp(entry.createdAt)}
-        >
-          · {formatActivityTimestampRelative(entry.createdAt)}
-        </span>
-      </p>
-    </li>
-  );
 }
 
 function CommentBody({
@@ -272,10 +254,6 @@ export function ReportConversations({
     () => entries.filter((e) => e.type === "comment"),
     [entries],
   );
-  const activity = useMemo(
-    () => entries.filter((e) => e.type !== "comment"),
-    [entries],
-  );
 
   const roots = useMemo(() => {
     const list = comments.filter((c) => !c.parentId);
@@ -328,14 +306,6 @@ export function ReportConversations({
           />
         </label>
       </div>
-
-      {activity.length > 0 && (
-        <ul className="space-y-0.5 rounded-md border border-border-color/60 bg-app-bg/50 px-3 py-2">
-          {activity.map((entry) => (
-            <ActivityLine key={entry.id} entry={entry} />
-          ))}
-        </ul>
-      )}
 
       {roots.length === 0 ? (
         <p className="rounded-md border border-dashed border-border-color bg-app-bg px-4 py-8 text-center text-[13px] text-text-secondary">
