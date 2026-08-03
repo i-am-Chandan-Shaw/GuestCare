@@ -28,14 +28,13 @@ import {
   watchIncidentPopupClosed,
 } from "@/features/incidents/lib/incident-window-sync";
 import { useCreateIncidentMutation } from "@/features/incidents/hooks/useIncidents";
-import { useAuth } from "@/features/auth/hooks/useAuth";
 import { useWorkspaceContext } from "@/features/workspace/context/WorkspaceProvider";
 import {
   clearPersistedCompose,
   readPersistedCompose,
   writePersistedCompose,
 } from "@/features/workspace/lib/workspace-persistence";
-import { syncFormFromIssue, syncNotesFromSteps } from "@/features/workspace/lib/workspace-state";
+import { syncFormFromIssue } from "@/features/workspace/lib/workspace-state";
 
 type IncidentComposeProviderProps = {
   children: ReactNode;
@@ -46,10 +45,9 @@ const IncidentComposeContext = createContext<IncidentComposeContextValue | null>
 
 export function IncidentComposeProvider({ children, syncRef }: IncidentComposeProviderProps) {
   const workspace = useWorkspaceContext();
-  const { agent } = useAuth();
   const { selection, checklist } = workspace.state;
   const { customer, property, issue } = selection;
-  const { checked, outcome } = checklist;
+  const { outcome } = checklist;
 
   const isPopupWindow = isIncidentPopupWindow();
   const popupRef = useRef<Window | null>(null);
@@ -65,6 +63,21 @@ export function IncidentComposeProvider({ children, syncRef }: IncidentComposePr
   const [form, setFormState] = useState<FormState>(
     () => readPersistedCompose()?.form ?? emptyForm(),
   );
+
+  // One-time wipe of legacy auto-filled call notes (from protocol steps / action chips).
+  useEffect(() => {
+    const flagKey = "gc_cleared_autofill_notes_v1";
+    try {
+      if (typeof sessionStorage !== "undefined" && sessionStorage.getItem(flagKey)) return;
+      sessionStorage?.setItem(flagKey, "1");
+    } catch {
+      /* private mode */
+    }
+    setFormState((current) => {
+      if (!current.callNotes && current.actions.length === 0) return current;
+      return { ...current, callNotes: "", actions: [] };
+    });
+  }, []);
 
   const buildSnapshot = useCallback(
     (overrides?: Partial<IncidentWindowState>): IncidentWindowState => ({
@@ -247,20 +260,15 @@ export function IncidentComposeProvider({ children, syncRef }: IncidentComposePr
       propertyId: property?.id,
       propertyLabel: property?.name,
       protocolIssueId: issue?.id,
-      agentName: agent.name,
-      submittedBy: getAgentHandle(agent),
+      agentName: "",
+      submittedBy: "",
     });
-  }, [createIncident, form, customer, property, issue, agent]);
+  }, [createIncident, form, customer, property, issue]);
 
   useEffect(() => {
     if (!issue) return;
     setFormState((current) => syncFormFromIssue(current, issue));
   }, [issue]);
-
-  useEffect(() => {
-    if (!issue) return;
-    setFormState((current) => syncNotesFromSteps(current, issue, checked));
-  }, [checked, issue]);
 
   useEffect(() => {
     if (!outcome) return;
@@ -322,19 +330,17 @@ export function IncidentComposeProvider({ children, syncRef }: IncidentComposePr
 
   useEffect(() => {
     applyRemotePatchRef.current = applyRemotePatch;
-  }, [applyRemotePatch]);
-  useEffect(() => {
     applyRemoteSnapshotRef.current = applyRemoteSnapshot;
-  }, [applyRemoteSnapshot]);
-  useEffect(() => {
     buildSnapshotRef.current = buildSnapshot;
-  }, [buildSnapshot]);
-  useEffect(() => {
     closeDetachedWindowRef.current = closeDetachedWindow;
-  }, [closeDetachedWindow]);
-  useEffect(() => {
     clearComposeStateRef.current = clearComposeState;
-  }, [clearComposeState]);
+  }, [
+    applyRemotePatch,
+    applyRemoteSnapshot,
+    buildSnapshot,
+    closeDetachedWindow,
+    clearComposeState,
+  ]);
 
   useEffect(() => {
     const sync = syncRef.current;
@@ -457,14 +463,18 @@ export function IncidentComposeProvider({ children, syncRef }: IncidentComposePr
   );
 }
 
-/** Incident panel UI: form state, PiP window, and submit. */
-export function useIncidentCompose() {
+function useIncidentComposeContext() {
   const ctx = use(IncidentComposeContext);
   if (!ctx) {
     throw new Error("useIncidentCompose must be used within IncidentComposeProvider.");
   }
+  return ctx;
+}
 
-  const { state, actions, meta } = ctx;
+export function useIncidentCompose() {
+  return useIncidentComposeContext();
+}
 
-  return { state, actions, meta };
+export function useIncidentComposeActions() {
+  return useIncidentComposeContext().actions;
 }

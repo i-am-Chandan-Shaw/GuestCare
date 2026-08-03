@@ -7,8 +7,12 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { SectionCard } from "@/shared/components/ui-kit";
-import { useIncidentCompose } from "@/features/incidents/context/IncidentComposeProvider";
 import type { Issue } from "@/shared/types";
+
+function verificationId(issueId: string, index: number, text: string): string {
+  const slug = text.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 40);
+  return `${issueId}-v-${index}-${slug || "check"}`;
+}
 
 export function IssueProtocolTab({
   issue,
@@ -22,6 +26,7 @@ export function IssueProtocolTab({
   setStepExpanded,
   outcome,
   setOutcome,
+  onOutcomeSelected,
 }: {
   issue: Issue;
   checked: Record<string, boolean>;
@@ -34,13 +39,15 @@ export function IssueProtocolTab({
   setStepExpanded: React.Dispatch<React.SetStateAction<Record<string, boolean>>>;
   outcome: "resolve" | "escalate" | null;
   setOutcome: (o: "resolve" | "escalate") => void;
+  onOutcomeSelected?: (o: "resolve" | "escalate") => void;
 }) {
-  const { actions: incidentActions } = useIncidentCompose();
   const firstUncheckedIdx = issue.steps.findIndex((s) => !checked[s.id]);
   const activeStepIdx = firstUncheckedIdx === -1 ? issue.steps.length : firstUncheckedIdx;
   const verificationRequired = issue.reservationVerification === "Required";
   const verificationOptional = issue.reservationVerification === "Required on Escalated";
-  const verificationDone = issue.verification.filter((_, i) => verificationChecked[`v${i}`]).length;
+  const verificationDone = issue.verification.filter((text, i) =>
+    verificationChecked[verificationId(issue.id, i, text)],
+  ).length;
 
   return (
     <>
@@ -66,7 +73,7 @@ export function IssueProtocolTab({
           )}
           <ul className="space-y-3.5">
             {issue.verification.map((v, i) => {
-              const id = `v${i}`;
+              const id = verificationId(issue.id, i, v);
               const done = !!verificationChecked[id];
               return (
                 <li key={id}>
@@ -207,7 +214,7 @@ export function IssueProtocolTab({
           <button
             onClick={() => {
               setOutcome("resolve");
-              incidentActions.openIncidentPanel("expanded");
+              onOutcomeSelected?.("resolve");
             }}
             className={cn(
               "flex flex-1 cursor-pointer items-center justify-center gap-2 rounded-lg border border-success/20 bg-success/10 px-4 py-2.5 text-[13px] font-bold text-success shadow-sm transition-colors hover:bg-success/15",
@@ -220,7 +227,7 @@ export function IssueProtocolTab({
           <button
             onClick={() => {
               setOutcome("escalate");
-              incidentActions.openIncidentPanel("expanded");
+              onOutcomeSelected?.("escalate");
             }}
             className={cn(
               "flex flex-1 cursor-pointer items-center justify-center gap-2 rounded-lg border border-danger/20 bg-danger/10 px-4 py-2.5 text-[13px] font-bold text-danger shadow-sm transition-colors hover:bg-danger/15",

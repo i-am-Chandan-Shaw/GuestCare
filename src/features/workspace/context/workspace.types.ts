@@ -15,11 +15,6 @@ export interface WorkspaceChecklistState {
   outcome: "resolve" | "escalate" | null;
 }
 
-export interface WorkspaceStateSlice {
-  selection: WorkspaceSelectionState;
-  checklist: WorkspaceChecklistState;
-}
-
 export interface WorkspaceActions {
   selectCustomer: (next: Customer) => void;
   selectProperty: (next: Property) => void;
@@ -32,9 +27,4 @@ export interface WorkspaceActions {
   toggleStep: (id: string) => void;
   toggleVerification: (id: string) => void;
   setOutcome: (outcome: "resolve" | "escalate") => void;
-}
-
-export interface WorkspaceContextValue {
-  state: WorkspaceStateSlice;
-  actions: WorkspaceActions;
 }

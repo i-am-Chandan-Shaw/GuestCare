@@ -11,8 +11,6 @@ export const queryKeys = {
   },
   issues: {
     all: ["issues"] as const,
-    recent: () => [...queryKeys.issues.all, "recent"] as const,
-    suggested: (propertyId: string) => [...queryKeys.issues.all, "suggested", propertyId] as const,
   },
   contacts: {
     detail: (id: string) => ["contacts", id] as const,
@@ -23,5 +21,11 @@ export const queryKeys = {
   },
   agents: {
     all: ["agents"] as const,
+  },
+  reports: {
+    all: ["reports"] as const,
+    list: (query: unknown, actorId: string) =>
+      [...queryKeys.reports.all, "list", query, actorId] as const,
+    detail: (id: string) => [...queryKeys.reports.all, "detail", id] as const,
   },
 };

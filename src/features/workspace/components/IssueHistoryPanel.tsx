@@ -12,11 +12,17 @@ import { CircleAlert, CircleCheck, ChevronRight, History } from "lucide-react";
 function HistoryItem({
   log,
   showPropertyLabel,
+  customerId,
 }: {
   log: IncidentLog;
   showPropertyLabel: boolean;
+  customerId?: string;
 }) {
   const isOpen = isOpenIncident(log);
+  const reportSearch = {
+    reportId: log.id,
+    ...(customerId ? { customerId } : {}),
+  };
 
   return (
     <li className="relative flex gap-3 pb-5 last:pb-0">
@@ -53,6 +59,14 @@ function HistoryItem({
         {isOpen ? (
           <p className="mt-1 text-[11px] text-text-muted">Reported by {log.submittedBy}</p>
         ) : null}
+        <Link
+          to="/reports"
+          search={reportSearch}
+          className="mt-2 inline-flex items-center gap-1 text-[12px] font-semibold text-brand-primary transition-colors hover:text-brand-secondary"
+        >
+          View full report
+          <ChevronRight className="h-3.5 w-3.5" strokeWidth={2} />
+        </Link>
       </div>
     </li>
   );
@@ -65,6 +79,7 @@ function HistoryBody({
   emptyLabel,
   data,
   showPropertyLabel,
+  customerId,
 }: {
   isLoading: boolean;
   isError: boolean;
@@ -72,6 +87,7 @@ function HistoryBody({
   emptyLabel: string;
   data: IncidentLog[] | undefined;
   showPropertyLabel: boolean;
+  customerId?: string;
 }) {
   if (isLoading) return <LoadingState label="Loading history…" />;
   if (isError) return <QueryErrorState onRetry={onRetry} />;
@@ -86,7 +102,12 @@ function HistoryBody({
         aria-hidden
       />
       {data.map((log) => (
-        <HistoryItem key={log.id} log={log} showPropertyLabel={showPropertyLabel} />
+        <HistoryItem
+          key={log.id}
+          log={log}
+          showPropertyLabel={showPropertyLabel}
+          customerId={customerId}
+        />
       ))}
     </ul>
   );
@@ -158,6 +179,7 @@ export function IssueHistoryPanel({
             emptyLabel={emptyLabel}
             data={data}
             showPropertyLabel={showPropertyLabel}
+            customerId={customerId}
           />
         </div>
         <div className="shrink-0 border-t border-border px-5 py-3">{footer}</div>
@@ -182,6 +204,7 @@ export function IssueHistoryPanel({
           emptyLabel={emptyLabel}
           data={data}
           showPropertyLabel={showPropertyLabel}
+          customerId={customerId}
         />
       </div>
 

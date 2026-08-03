@@ -3,7 +3,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { IGetRowsParams } from "ag-grid-community";
 import type { AgGridReact } from "ag-grid-react";
 import { getReportsPaginated } from "@/features/reports/api/reports.api";
-import { createReportsTableColumnDefs } from "@/features/incidents/components/reports-table-columns";
+import { createReportsTableColumnDefs } from "@/features/reports/components/reports-table-columns";
 import { ReportDetailPage } from "@/features/reports/components/ReportDetailPage";
 import { ReportsFiltersPopover } from "@/features/reports/components/ReportsFiltersPopover";
 import { useReportActor } from "@/features/reports/hooks/useReports";
@@ -30,7 +30,7 @@ function useDebouncedValue<T>(value: T, delayMs: number): T {
   return debounced;
 }
 
-export function IncidentReportsPage({
+export function ReportsPage({
   customerId,
   reportId: reportIdFromSearch,
 }: {

@@ -1,4 +1,4 @@
-import type { IncidentLog } from "./types";
+import type { IncidentLog } from "@/shared/types";
 
 export const INCIDENT_LOGS: IncidentLog[] = [
   {
@@ -52,7 +52,7 @@ export const INCIDENT_LOGS: IncidentLog[] = [
     protocolIssueId: "i-cant-find-lockbox",
     status: "Unresolved - Escalation Handover",
     callNotes:
-      "Guest could not locate lockbox under bridge (code 1807). Shared map pin and photos. Still unable to find. Escalated to host Faisal for on-site assistance.",
+      "Guest could not locate lockbox under bridge (code DEMO-CODE). Shared map pin and photos. Still unable to find. Escalated to host Faisal for on-site assistance.",
     agent: "Priya Ramanathan",
     submittedBy: "@priya",
     timestamp: "26 Jul 2026, 22:48:11",
@@ -71,7 +71,7 @@ export const INCIDENT_LOGS: IncidentLog[] = [
     protocolIssueId: "i-wifi",
     status: "Resolved",
     callNotes:
-      "Confirmed network SKYPPSWV. Guest had typo in password. Reconnected successfully. Router below TV.",
+      "Confirmed network DEMO-WIFI. Guest had typo in password. Reconnected successfully. Router below TV.",
     agent: "Priya Ramanathan",
     submittedBy: "@priya",
     timestamp: "26 Jul 2026, 16:20:05",
@@ -147,7 +147,7 @@ export const INCIDENT_LOGS: IncidentLog[] = [
     protocolIssueId: "i-unable-checkin",
     status: "Resolved",
     callNotes:
-      "Guest struggled with lockbox 2005. Confirmed squeeze both side buttons. Reminded DO NOT LOCK BOTTOM LOCK. Entry confirmed.",
+      "Guest struggled with lockbox DEMO-CODE. Confirmed squeeze both side buttons. Reminded DO NOT LOCK BOTTOM LOCK. Entry confirmed.",
     agent: "Priya Ramanathan",
     submittedBy: "@priya",
     timestamp: "24 Jul 2026, 16:42:18",
@@ -249,6 +249,3 @@ export const INCIDENT_LOGS: IncidentLog[] = [
     priority: "P4",
   },
 ];
-
-/** Legacy alias for older UI that expected RECENT_INCIDENTS shape */
-export const RECENT_INCIDENTS = INCIDENT_LOGS;

@@ -1,27 +1,4 @@
-import { AGENT_SEED, DEFAULT_AGENT_ID } from "@/data/agents.seed";
-import {
-  formatAgentRole,
-  getAgentHandle,
-  getAgentInitials,
-} from "@/shared/lib/agent-display";
-import type { AgentProfile, Priority } from "@/shared/types";
-
-function toAgentProfile(agent: (typeof AGENT_SEED)[number]): AgentProfile {
-  return {
-    id: agent.id,
-    name: agent.name,
-    handle: getAgentHandle(agent),
-    initials: getAgentInitials(agent),
-    role: formatAgentRole(agent.role),
-    shift: "—",
-  };
-}
-
-export const CURRENT_AGENT: AgentProfile = toAgentProfile(
-  AGENT_SEED.find((a) => a.id === DEFAULT_AGENT_ID) ?? AGENT_SEED[0]!,
-);
-
-export const AGENTS: AgentProfile[] = AGENT_SEED.map(toAgentProfile);
+import type { Priority } from "@/shared/types";
 
 export const priorityMeta: Record<
   Priority,

@@ -1,6 +1,8 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { createIncident, getIncidentLogs } from "@/features/incidents/api/incidents.api";
+import { useAuth } from "@/features/auth/hooks/useAuth";
+import { toReportActor } from "@/features/reports/lib/report-scope";
 import { queryKeys } from "@/shared/lib/query-keys";
 import type { CreateIncidentInput, IncidentLogFilters } from "@/shared/types";
 
@@ -10,13 +12,13 @@ function useInvalidateIncidentQueries() {
     queryClient.invalidateQueries({ queryKey: queryKeys.incidents.all });
     queryClient.invalidateQueries({ queryKey: queryKeys.customers.all });
     queryClient.invalidateQueries({ queryKey: queryKeys.properties.all });
-    queryClient.invalidateQueries({ queryKey: ["reports"] });
+    queryClient.invalidateQueries({ queryKey: queryKeys.reports.all });
   };
 }
 
 export function useIncidentLogs(filters: IncidentLogFilters = {}, options?: { enabled?: boolean }) {
   return useQuery({
-    queryKey: queryKeys.incidents.list(filters),
+    queryKey: queryKeys.incidents.list(filters as Record<string, unknown>),
     queryFn: () => getIncidentLogs(filters),
     enabled: options?.enabled ?? true,
   });
@@ -24,9 +26,11 @@ export function useIncidentLogs(filters: IncidentLogFilters = {}, options?: { en
 
 export function useCreateIncidentMutation(options?: { onSuccess?: () => void }) {
   const invalidate = useInvalidateIncidentQueries();
+  const { agent } = useAuth();
+  const actor = toReportActor(agent);
 
   return useMutation({
-    mutationFn: (input: CreateIncidentInput) => createIncident(input),
+    mutationFn: (input: CreateIncidentInput) => createIncident(input, actor),
     onSuccess: () => {
       invalidate();
       toast.success("Report submitted");

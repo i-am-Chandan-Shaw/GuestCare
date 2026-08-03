@@ -1,7 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import {
   getCustomerSummaries,
-  getCustomerSummary,
   getPropertySummaries,
 } from "@/features/customers/api/customers.api";
 import { queryKeys } from "@/shared/lib/query-keys";
@@ -18,14 +17,6 @@ export function useCustomerSummaries(actor?: ReportActor) {
         : actor?.customerScope?.type ?? "none",
     ],
     queryFn: () => getCustomerSummaries(actor),
-  });
-}
-
-export function useCustomerSummary(customerId: string | null) {
-  return useQuery({
-    queryKey: queryKeys.customers.detail(customerId ?? ""),
-    queryFn: () => getCustomerSummary(customerId!),
-    enabled: Boolean(customerId),
   });
 }
 

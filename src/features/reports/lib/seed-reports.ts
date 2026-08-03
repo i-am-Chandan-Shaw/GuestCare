@@ -43,7 +43,7 @@ export function seedReportsFromIncidents(): { reports: Report[]; threads: Report
 
   INCIDENT_LOGS.forEach((log, index) => {
     const seq = String(index + 1).padStart(5, "0");
-    const id = `RPT-2026-${seq}`;
+    const id = `GCR-2026-${seq}`;
     const agent = findAgentByName(log.agent) ?? findAgentByName("Priya Ramanathan")!;
     const customerId = resolveCustomerId(log.propertyId, log.customerId);
     const createdAt = parseLegacyDisplayTimestamp(log.timestamp);

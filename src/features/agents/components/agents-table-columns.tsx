@@ -131,9 +131,3 @@ export function createAgentsTableColumnDefs({
     },
   ];
 }
-
-/** @deprecated Use createAgentsTableColumnDefs */
-export const agentsTableColumnDefs = createAgentsTableColumnDefs({
-  canEdit: () => false,
-  onEdit: () => undefined,
-});

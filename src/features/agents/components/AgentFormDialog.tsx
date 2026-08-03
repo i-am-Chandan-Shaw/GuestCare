@@ -1,17 +1,5 @@
 import { useEffect, useEffectEvent, useMemo, useRef, useState, type ReactNode } from "react";
-import {
-  Check,
-  ChevronDown,
-  Eye,
-  EyeOff,
-  Globe2,
-  Lock,
-  Mail,
-  Search,
-  Shield,
-  User,
-  UserPlus,
-} from "lucide-react";
+import { Check, ChevronDown, Globe2, Search, User, UserPlus } from "lucide-react";
 import { toast } from "sonner";
 import { createAgent, getAgentById, updateAgent } from "@/features/agents/api/agents.api";
 import {
@@ -35,6 +23,11 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  Input,
+  Select,
+  usePasswordEndAction,
+} from "@/shared/components/form-controls";
 import { CUSTOMERS } from "@/data/mocks/customers.mock";
 import { cn } from "@/lib/utils";
 import { Avatar } from "@/shared/components/Avatar";
@@ -83,36 +76,6 @@ function formFromAgent(agent: Agent, canAll: boolean): AgentFormValues {
     changePassword: false,
   };
 }
-
-function IconField({
-  label,
-  icon,
-  children,
-}: {
-  label: string;
-  icon: ReactNode;
-  children: ReactNode;
-}) {
-  return (
-    <label className="block space-y-1.5">
-      <span className="text-[12px] font-semibold text-text-primary">{label}</span>
-      <div className="relative">
-        <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-text-muted">
-          {icon}
-        </span>
-        {children}
-      </div>
-    </label>
-  );
-}
-
-const fieldClassName =
-  "h-11 w-full rounded-md border border-border-color bg-card-bg pl-10 pr-3 text-[13px] text-text-primary outline-none transition-colors placeholder:text-text-muted focus:border-brand-primary/40";
-
-const selectClassName = cn(
-  fieldClassName,
-  "appearance-none bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20width%3D%2220%22%20height%3D%2220%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Cpath%20d%3D%22M5%208l5%205%205-5%22%20stroke%3D%22%23666%22%20stroke-width%3D%221.5%22%20fill%3D%22none%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%2F%3E%3C%2Fsvg%3E')] bg-no-repeat bg-[position:right_0.5rem_center] pr-9 font-medium disabled:cursor-not-allowed disabled:opacity-60",
-);
 
 function PasswordRequirementPills({ password }: { password: string }) {
   const requirements = getPasswordRequirementState(password);
@@ -213,12 +176,6 @@ function SectionNav({
   );
 }
 
-function validateInfo(form: AgentFormValues, mode: "create" | "edit"): string | null {
-  if (!form.name.trim()) return "Full name is required.";
-  if (!form.email.trim() || !form.email.includes("@")) return "Enter a valid email address.";
-  return validateAgentPasswords(form, mode);
-}
-
 export function AgentFormDialog({
   open,
   mode,
@@ -234,10 +191,8 @@ export function AgentFormDialog({
   onOpenChange: (open: boolean) => void;
   onSaved: () => void;
 }) {
-  const roles = useMemo(() => creatableRoles(actor), [actor]);
+  const roles = creatableRoles(actor);
   const canAll = canGrantAllCustomers(actor);
-  const allowedCustomerIds = useMemo(() => assignableCustomerIds(actor), [actor]);
-
   const defaultRole = roles[0] ?? "user";
   const defaultScopeType = canAll ? "all" : "specific";
 
@@ -262,8 +217,15 @@ export function AgentFormDialog({
   const scrollingToSectionRef = useRef(false);
 
   const isEditingSelf = mode === "edit" && agentId === actor.id;
-  const showPasswordFields = mode === "create" || form.changePassword;
+  const isCreate = mode === "create";
+  const showPasswordFields = isCreate || form.changePassword;
   const customersDisabled = form.scopeType !== "specific";
+  const passwordEndAction = usePasswordEndAction(showPassword, () =>
+    setShowPassword((current) => !current),
+  );
+  const confirmPasswordEndAction = usePasswordEndAction(showConfirmPassword, () =>
+    setShowConfirmPassword((current) => !current),
+  );
 
   const updateAccessMinHeight = useEffectEvent(() => {
     const root = scrollRef.current;
@@ -288,7 +250,7 @@ export function AgentFormDialog({
       if (mode === "edit" && agentId) {
         setHydrating(true);
         try {
-          const agent = await getAgentById(agentId);
+          const agent = await getAgentById(agentId, actor);
           if (cancelled) return;
           if (!agent) {
             setError("Agent not found.");
@@ -320,11 +282,11 @@ export function AgentFormDialog({
   }, [open, mode, agentId, canAll, defaultRole, defaultScopeType]);
 
   const assignableCustomers = useMemo(() => {
-    const allowed = new Set(allowedCustomerIds);
+    const allowed = new Set(assignableCustomerIds(actor));
     return CUSTOMERS.filter((c) => allowed.has(c.id)).sort((a, b) =>
       a.name.localeCompare(b.name),
     );
-  }, [allowedCustomerIds]);
+  }, [actor]);
 
   const selectedCustomers = useMemo(() => {
     const selected = new Set(form.customerIds);
@@ -422,9 +384,19 @@ export function AgentFormDialog({
       return;
     }
 
-    const infoError = validateInfo(form, mode);
-    if (infoError) {
-      setError(infoError);
+    if (!form.name.trim()) {
+      setError("Full name is required.");
+      scrollToSection("info");
+      return;
+    }
+    if (!form.email.trim() || !form.email.includes("@")) {
+      setError("Enter a valid email address.");
+      scrollToSection("info");
+      return;
+    }
+    const passwordError = validateAgentPasswords(form, mode);
+    if (passwordError) {
+      setError(passwordError);
       scrollToSection("info");
       return;
     }
@@ -435,32 +407,24 @@ export function AgentFormDialog({
       return;
     }
 
-    const customerScope = formValuesToCustomerScope(form);
+    const shared = {
+      name: form.name,
+      email: form.email,
+      role: form.role,
+      isActive: form.isActive,
+      customerScope: formValuesToCustomerScope(form),
+    };
 
     setLoading(true);
     try {
-      if (mode === "create") {
-        await createAgent(
-          {
-            name: form.name,
-            email: form.email,
-            role: form.role,
-            isActive: form.isActive,
-            customerScope,
-            password: form.password,
-          },
-          actor,
-        );
+      if (isCreate) {
+        await createAgent({ ...shared, password: form.password }, actor);
         toast.success("Agent created");
       } else if (agentId) {
         await updateAgent(
           agentId,
           {
-            name: form.name,
-            email: form.email,
-            role: form.role,
-            isActive: form.isActive,
-            customerScope,
+            ...shared,
             password: form.changePassword ? form.password : undefined,
           },
           actor,
@@ -481,10 +445,10 @@ export function AgentFormDialog({
       <DialogContent className="flex h-[min(92vh,820px)] max-h-[min(92vh,820px)] max-w-3xl flex-col gap-0 overflow-hidden p-0 sm:rounded-xl">
         <DialogHeader className="shrink-0 space-y-0 border-b border-border-color px-6 py-5 text-left">
           <DialogTitle className="text-[18px] font-bold tracking-tight text-text-primary">
-            {mode === "create" ? "Add agent" : "Edit agent"}
+            {isCreate ? "Add agent" : "Edit agent"}
           </DialogTitle>
           <DialogDescription className="text-[13px] text-text-secondary">
-            {mode === "create"
+            {isCreate
               ? "Create a new agent and define their access."
               : "Update this agent’s details and access."}
           </DialogDescription>
@@ -506,74 +470,40 @@ export function AgentFormDialog({
                     <h3 className="text-[15px] font-bold text-text-primary">Info</h3>
 
                     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                      <IconField
+                      <Input
                         label="Full name"
-                        icon={<User className="h-4 w-4" strokeWidth={2} />}
-                      >
-                        <input
-                          value={form.name}
-                          onChange={(e) => patch({ name: e.target.value })}
-                          placeholder="Enter full name"
-                          className={fieldClassName}
-                        />
-                      </IconField>
-                      <IconField
+                        value={form.name}
+                        onChange={(v) => patch({ name: v })}
+                      />
+                      <Input
                         label="Email address"
-                        icon={<Mail className="h-4 w-4" strokeWidth={2} />}
-                      >
-                        <input
-                          type="email"
-                          value={form.email}
-                          onChange={(e) => patch({ email: e.target.value })}
-                          placeholder="name@guestcare.com"
-                          className={fieldClassName}
-                        />
-                      </IconField>
+                        type="email"
+                        value={form.email}
+                        onChange={(v) => patch({ email: v })}
+                      />
                     </div>
 
                     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                      <label className="block space-y-1.5">
-                        <span className="text-[12px] font-semibold text-text-primary">Role</span>
-                        <div className="relative">
-                          <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-violet-600">
-                            <Shield className="h-4 w-4" strokeWidth={2} />
-                          </span>
-                          <select
-                            value={form.role}
-                            onChange={(e) => patch({ role: e.target.value as AgentRole })}
-                            disabled={isEditingSelf || roles.length === 0}
-                            className={selectClassName}
-                          >
-                            {roles.map((role) => (
-                              <option key={role} value={role}>
-                                {roleOptionLabels(roles)[role]}
-                              </option>
-                            ))}
-                          </select>
-                        </div>
-                      </label>
-
-                      <label className="block space-y-1.5">
-                        <span className="text-[12px] font-semibold text-text-primary">Status</span>
-                        <div className="relative">
-                          <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-text-muted">
-                            <Check className="h-4 w-4" strokeWidth={2} />
-                          </span>
-                          <select
-                            value={form.isActive ? "active" : "inactive"}
-                            onChange={(e) => patch({ isActive: e.target.value === "active" })}
-                            disabled={isEditingSelf}
-                            className={selectClassName}
-                          >
-                            <option value="active">Active</option>
-                            <option value="inactive">Inactive</option>
-                          </select>
-                        </div>
-                      </label>
+                      <Select
+                        label="Role"
+                        value={form.role}
+                        onChange={(v) => patch({ role: v as AgentRole })}
+                        disabled={isEditingSelf || roles.length === 0}
+                        options={roles}
+                        optionLabels={roleOptionLabels(roles)}
+                      />
+                      <Select
+                        label="Status"
+                        value={form.isActive ? "active" : "inactive"}
+                        onChange={(v) => patch({ isActive: v === "active" })}
+                        disabled={isEditingSelf}
+                        options={["active", "inactive"]}
+                        optionLabels={{ active: "Active", inactive: "Inactive" }}
+                      />
                     </div>
 
                     <div className="space-y-3 border-t border-border-color pt-4">
-                      {mode === "edit" && !form.changePassword ? (
+                      {!isCreate && !form.changePassword ? (
                         <div className="flex justify-end">
                           <button
                             type="button"
@@ -593,7 +523,7 @@ export function AgentFormDialog({
 
                       {showPasswordFields ? (
                         <>
-                          {mode === "edit" ? (
+                          {!isCreate ? (
                             <div className="flex justify-end">
                               <button
                                 type="button"
@@ -611,58 +541,22 @@ export function AgentFormDialog({
                             </div>
                           ) : null}
                           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                            <IconField
-                              label={mode === "create" ? "Password" : "New password"}
-                              icon={<Lock className="h-4 w-4" strokeWidth={2} />}
-                            >
-                              <input
-                                type={showPassword ? "text" : "password"}
-                                value={form.password}
-                                onChange={(e) => patch({ password: e.target.value })}
-                                placeholder="At least 8 characters"
-                                className={cn(fieldClassName, "pr-10")}
-                              />
-                              <button
-                                type="button"
-                                onClick={() => setShowPassword((v) => !v)}
-                                className="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted hover:text-text-primary"
-                                aria-label={showPassword ? "Hide password" : "Show password"}
-                              >
-                                {showPassword ? (
-                                  <EyeOff className="h-4 w-4" strokeWidth={2} />
-                                ) : (
-                                  <Eye className="h-4 w-4" strokeWidth={2} />
-                                )}
-                              </button>
-                            </IconField>
-                            <IconField
+                            <Input
+                              label={isCreate ? "Password" : "New password"}
+                              type={showPassword ? "text" : "password"}
+                              value={form.password}
+                              onChange={(v) => patch({ password: v })}
+                              endAction={passwordEndAction}
+                              autoComplete="new-password"
+                            />
+                            <Input
                               label="Confirm password"
-                              icon={<Lock className="h-4 w-4" strokeWidth={2} />}
-                            >
-                              <input
-                                type={showConfirmPassword ? "text" : "password"}
-                                value={form.confirmPassword}
-                                onChange={(e) => patch({ confirmPassword: e.target.value })}
-                                placeholder="Repeat password"
-                                className={cn(fieldClassName, "pr-10")}
-                              />
-                              <button
-                                type="button"
-                                onClick={() => setShowConfirmPassword((v) => !v)}
-                                className="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted hover:text-text-primary"
-                                aria-label={
-                                  showConfirmPassword
-                                    ? "Hide confirm password"
-                                    : "Show confirm password"
-                                }
-                              >
-                                {showConfirmPassword ? (
-                                  <EyeOff className="h-4 w-4" strokeWidth={2} />
-                                ) : (
-                                  <Eye className="h-4 w-4" strokeWidth={2} />
-                                )}
-                              </button>
-                            </IconField>
+                              type={showConfirmPassword ? "text" : "password"}
+                              value={form.confirmPassword}
+                              onChange={(v) => patch({ confirmPassword: v })}
+                              endAction={confirmPasswordEndAction}
+                              autoComplete="new-password"
+                            />
                           </div>
                           <PasswordRequirementPills password={form.password} />
                         </>
@@ -850,26 +744,26 @@ export function AgentFormDialog({
               ) : null}
             </div>
 
-            <DialogFooter className="shrink-0 gap-2 border-t border-border-color px-6 py-4 sm:flex-row sm:justify-end">
+            <DialogFooter className="shrink-0 gap-3 border-t border-border-color px-6 py-4 sm:flex-row sm:justify-end">
               <Button
                 type="button"
                 variant="secondary"
+                size="lg"
                 onClick={() => onOpenChange(false)}
                 disabled={loading}
-                className="!h-9 !rounded-md !px-4"
               >
                 Cancel
               </Button>
               <Button
                 type="button"
+                size="lg"
                 onClick={() => void handleSubmit()}
                 loading={loading}
                 disabled={hydrating || roles.length === 0}
-                className="!h-9 !rounded-md !px-4"
               >
-                {mode === "create" ? (
+                {isCreate ? (
                   <>
-                    <UserPlus className="mr-1.5 h-4 w-4" strokeWidth={2} />
+                    <UserPlus className="h-5 w-5" strokeWidth={2} />
                     Create agent
                   </>
                 ) : (

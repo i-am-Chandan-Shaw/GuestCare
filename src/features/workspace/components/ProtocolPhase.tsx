@@ -1,27 +1,26 @@
 import { IssuePanel, PropertyPanel } from "@/features/copilot/components";
-import type { WorkspaceState } from "@/features/workspace/hooks/useWorkspace";
+import {
+  useProtocolChecklist,
+  useWorkspaceSelection,
+} from "@/features/workspace/hooks/useWorkspace";
 import type { Issue } from "@/shared/types";
 
 export function ProtocolPhase({
-  workspace,
   onPickIssue,
   onBack,
 }: {
-  workspace: WorkspaceState;
   onPickIssue?: (issue: Issue) => void;
   onBack?: () => void;
 }) {
+  const { property, issue, selectIssue } = useWorkspaceSelection();
   const {
-    property,
-    issue,
     checked,
     verificationChecked,
     outcome,
     setOutcome,
     toggleStep,
     toggleVerification,
-    selectIssue,
-  } = workspace;
+  } = useProtocolChecklist();
 
   if (!property) return null;
 

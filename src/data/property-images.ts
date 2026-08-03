@@ -1,4 +1,3 @@
-/** Mock storefront / exterior photos for property cards. */
 export const PROPERTY_IMAGE_URLS: Record<string, string> = {
   almorah:
     "https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=240&h=240&q=80",

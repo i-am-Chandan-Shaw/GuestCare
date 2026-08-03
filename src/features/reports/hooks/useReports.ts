@@ -13,6 +13,7 @@ import {
 } from "@/features/reports/api/reports.api";
 import { toReportActor } from "@/features/reports/lib/report-scope";
 import { useAuth } from "@/features/auth/hooks/useAuth";
+import { queryKeys } from "@/shared/lib/query-keys";
 import type {
   AddReportAssigneeInput,
   AddReportCommentInput,
@@ -31,7 +32,7 @@ export function useReportActor() {
 export function useReportsPaginatedQuery(query: ReportsQuery) {
   const actor = useReportActor();
   return useQuery({
-    queryKey: ["reports", query, actor.id],
+    queryKey: queryKeys.reports.list(query, actor.id),
     queryFn: () => getReportsPaginated(query, actor),
   });
 }
@@ -39,7 +40,7 @@ export function useReportsPaginatedQuery(query: ReportsQuery) {
 export function useReportDetailQuery(reportId: string | null) {
   const actor = useReportActor();
   return useQuery({
-    queryKey: ["report", reportId, actor.id],
+    queryKey: reportId ? queryKeys.reports.detail(reportId) : queryKeys.reports.all,
     queryFn: () => (reportId ? getReportById(reportId, actor) : null),
     enabled: Boolean(reportId),
   });
@@ -60,8 +61,8 @@ export function useUpdateReportMutation(reportId: string) {
   return useMutation({
     mutationFn: (input: UpdateReportInput) => updateReport(reportId, input, actor),
     onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: ["report", reportId] });
-      void queryClient.invalidateQueries({ queryKey: ["reports"] });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.reports.detail(reportId) });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.reports.all });
     },
   });
 }
@@ -73,8 +74,8 @@ export function useAssignReportMutation(reportId: string) {
   return useMutation({
     mutationFn: (input: AssignReportInput) => assignReport(reportId, input, actor),
     onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: ["report", reportId] });
-      void queryClient.invalidateQueries({ queryKey: ["reports"] });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.reports.detail(reportId) });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.reports.all });
     },
   });
 }
@@ -86,8 +87,8 @@ export function useAddReportAssigneeMutation(reportId: string) {
   return useMutation({
     mutationFn: (input: AddReportAssigneeInput) => addReportAssignee(reportId, input, actor),
     onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: ["report", reportId] });
-      void queryClient.invalidateQueries({ queryKey: ["reports"] });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.reports.detail(reportId) });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.reports.all });
     },
   });
 }
@@ -100,8 +101,8 @@ export function useRemoveReportAssigneeMutation(reportId: string) {
     mutationFn: (input: RemoveReportAssigneeInput) =>
       removeReportAssignee(reportId, input, actor),
     onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: ["report", reportId] });
-      void queryClient.invalidateQueries({ queryKey: ["reports"] });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.reports.detail(reportId) });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.reports.all });
     },
   });
 }
@@ -113,8 +114,8 @@ export function useAddReportCommentMutation(reportId: string) {
   return useMutation({
     mutationFn: (input: AddReportCommentInput) => addReportComment(reportId, input, actor),
     onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: ["report", reportId] });
-      void queryClient.invalidateQueries({ queryKey: ["reports"] });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.reports.detail(reportId) });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.reports.all });
     },
   });
 }
@@ -132,8 +133,8 @@ export function useUpdateReportCommentMutation(reportId: string) {
       input: UpdateReportCommentInput;
     }) => updateReportComment(reportId, commentId, input, actor),
     onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: ["report", reportId] });
-      void queryClient.invalidateQueries({ queryKey: ["reports"] });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.reports.detail(reportId) });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.reports.all });
     },
   });
 }

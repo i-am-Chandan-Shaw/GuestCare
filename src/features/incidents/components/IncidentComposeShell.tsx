@@ -1,6 +1,7 @@
 import { FilePlus2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
+import { useRouterState } from "@tanstack/react-router";
 import { IncidentComposePopupPage } from "@/features/incidents/components/IncidentComposePopupPage";
 import { IncidentComposeWindow } from "@/features/incidents/components/IncidentComposeWindow";
 import { useIncidentCompose } from "@/features/incidents/context/IncidentComposeProvider";
@@ -8,6 +9,8 @@ import { useWorkspaceContext } from "@/features/workspace/context/WorkspaceProvi
 
 export function IncidentComposeShell() {
   const [mounted, setMounted] = useState(false);
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const isWorkspaceRoute = pathname === "/";
   const { state: workspaceState } = useWorkspaceContext();
   const { customer, property, issue } = workspaceState.selection;
   const { state, actions, meta } = useIncidentCompose();
@@ -22,7 +25,7 @@ export function IncidentComposeShell() {
 
   return createPortal(
     <>
-      {!meta.isDetached && state.panelMode === "closed" && (
+      {isWorkspaceRoute && !meta.isDetached && state.panelMode === "closed" && (
         <button
           type="button"
           onClick={() => actions.openIncidentPanel("expanded")}

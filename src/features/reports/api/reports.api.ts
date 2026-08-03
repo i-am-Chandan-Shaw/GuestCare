@@ -8,7 +8,9 @@ import {
 } from "@/features/reports/lib/report-assignees";
 import { createEmptyReportStore } from "@/features/reports/lib/seed-reports";
 import {
+  agentCanAccessCustomer,
   agentCanAssignReport,
+  agentCanEditReport,
   filterReportsByActor,
 } from "@/features/reports/lib/report-scope";
 import { nowIso } from "@/shared/lib/datetime";
@@ -178,7 +180,7 @@ function filterReports(query: ReportsQuery, actor?: ReportActor): Report[] {
 }
 
 function nextReportId(): string {
-  const id = `RPT-2026-${String(reportIdCounter).padStart(5, "0")}`;
+  const id = `GCR-2026-${String(reportIdCounter).padStart(5, "0")}`;
   reportIdCounter += 1;
   return id;
 }
@@ -220,13 +222,15 @@ export async function createReport(
   input: CreateReportInput,
   actor: ReportActor,
 ): Promise<Report> {
+  if (!agentCanAccessCustomer(actor, input.customerId)) {
+    throw new Error("Not allowed to create a report for this customer");
+  }
+
   const now = nowIso();
   const id = nextReportId();
   const status: ReportStatus = input.status ?? "OPEN";
   const customerName = resolveCustomerName(input.customerId);
-  const propertyName = input.propertyId
-    ? resolvePropertyName(input.propertyId)
-    : "—";
+  const propertyName = resolvePropertyName(input.propertyId);
 
   const report: Report = {
     id,
@@ -285,15 +289,18 @@ export async function updateReport(
 ): Promise<Report> {
   const report = reportStore.find((r) => r.id === id);
   if (!report) throw new Error("Report not found");
+  if (!agentCanEditReport(actor, report)) {
+    throw new Error("Not allowed to update this report");
+  }
   if (input.version !== report.version) throw new Error("Report was updated by someone else");
 
   const previousStatus = report.status;
   const changedFields: string[] = [];
 
-  const assign = (field: keyof Report, value: unknown) => {
+  const assign = <K extends keyof Report>(field: K, value: Report[K] | undefined) => {
     if (value !== undefined && report[field] !== value) {
       changedFields.push(field);
-      (report as unknown as Record<string, unknown>)[field] = value;
+      report[field] = value;
     }
   };
 
@@ -314,9 +321,7 @@ export async function updateReport(
   }
   if (input.propertyId !== undefined) {
     assign("propertyId", input.propertyId);
-    report.propertyName = input.propertyId
-      ? resolvePropertyName(input.propertyId)
-      : "—";
+    report.propertyName = resolvePropertyName(input.propertyId);
   }
 
   const statusChanged =
@@ -497,6 +502,9 @@ export async function addReportComment(
 ): Promise<ReportThreadEntry> {
   const report = reportStore.find((r) => r.id === id);
   if (!report) throw new Error("Report not found");
+  if (!filterReportsByActor([report], actor).length) {
+    throw new Error("Not allowed to comment on this report");
+  }
 
   const body = input.body.trim();
   if (!body) throw new Error("Comment body is required");
@@ -556,20 +564,17 @@ export async function updateReportComment(
 }
 
 export async function getAgentsForAssignment(actor?: ReportActor) {
-  let agents = listAgents().filter((a) => a.isActive);
-  if (actor && actor.role !== "admin" && actor.customerScope.type === "specific") {
-    agents = agents.filter(
-      (a) =>
-        a.role === "admin" ||
-        a.customerScope.type === "all" ||
-        a.customerScope.customerIds.some((id) =>
-          actor.customerScope.type === "specific"
-            ? actor.customerScope.customerIds.includes(id)
-            : false,
-        ),
-    );
+  const agents = listAgents().filter((a) => a.isActive);
+  if (!actor || actor.role === "admin" || actor.customerScope.type !== "specific") {
+    return agents;
   }
-  return agents;
+  const actorCustomerIds = actor.customerScope.customerIds;
+  return agents.filter(
+    (a) =>
+      a.role === "admin" ||
+      a.customerScope.type === "all" ||
+      a.customerScope.customerIds.some((id) => actorCustomerIds.includes(id)),
+  );
 }
 
 /** Internal: expose store for legacy adapters */

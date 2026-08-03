@@ -1,7 +1,7 @@
-import { CUSTOMERS } from "@/data/mock";
+import { CUSTOMERS } from "@/data/mocks/customers.mock";
 import { PROPERTIES } from "@/data/properties";
 import { getIncidentLogs } from "@/features/incidents/api/incidents.api";
-import { agentCanAccessCustomer } from "@/features/reports/lib/report-scope";
+import { agentCanAccessCustomer } from "@/shared/lib/access";
 import type {
   Customer,
   CustomerSummary,
@@ -30,12 +30,15 @@ function summarizeCustomer(customer: Customer, logs: IncidentLog[]): CustomerSum
       (log.customerId && log.customerId === customer.id) ||
       (log.propertyId && propertyIds.has(log.propertyId)),
   );
-  const openReportsCount = customerLogs.filter(isOpenIncident).length;
-  const resolvedCount = customerLogs.filter((log) => log.status === "Resolved").length;
-  const criticalOpenCount = customerLogs.filter(
+  const sortedLogs = [...customerLogs].sort(
+    (a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime(),
+  );
+  const openReportsCount = sortedLogs.filter(isOpenIncident).length;
+  const resolvedCount = sortedLogs.filter((log) => log.status === "Resolved").length;
+  const criticalOpenCount = sortedLogs.filter(
     (log) => isOpenIncident(log) && log.priority === "P1",
   ).length;
-  const lastIssue = customerLogs[0] ? toLastIssue(customerLogs[0]) : undefined;
+  const lastIssue = sortedLogs[0] ? toLastIssue(sortedLogs[0]) : undefined;
 
   return {
     ...customer,
@@ -83,13 +86,6 @@ export async function getCustomerSummaries(actor?: ReportActor): Promise<Custome
     ? CUSTOMERS.filter((customer) => agentCanAccessCustomer(actor, customer.id))
     : CUSTOMERS;
   return visible.map((customer) => summarizeCustomer(customer, logs));
-}
-
-export async function getCustomerSummary(customerId: string): Promise<CustomerSummary | null> {
-  const customer = CUSTOMERS.find((c) => c.id === customerId);
-  if (!customer) return null;
-  const logs = await getIncidentLogs({ customerId });
-  return summarizeCustomer(customer, logs);
 }
 
 export async function getPropertySummaries(customerId: string): Promise<PropertySummary[]> {

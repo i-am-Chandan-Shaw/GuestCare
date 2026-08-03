@@ -17,7 +17,6 @@ function MetricCell({ children }: { children: ReactNode }) {
   );
 }
 
-/** e.g. "2 days ago" → "2 Days ago" for chip display */
 function formatLastIssueAgo(timestamp: string): string {
   return formatRelativeTime(timestamp).replace(
     /\b(day|days|hour|hours|week|weeks|min)\b/gi,

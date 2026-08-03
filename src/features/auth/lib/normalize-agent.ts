@@ -1,4 +1,3 @@
-import { DEFAULT_AGENT_ID } from "@/data/agents.seed";
 import { findAgentByEmail, findAgentById } from "@/features/agents/lib/agent-store";
 import type { Agent, AgentCustomerScope, AgentRole } from "@/shared/types/agent";
 
@@ -10,10 +9,10 @@ type LegacyAgentProfile = {
   role?: string;
 };
 
-const VALID_ROLES: AgentRole[] = ["admin", "manager", "user"];
+const VALID_ROLES: readonly string[] = ["admin", "manager", "user"];
 
 function isValidRole(role: unknown): role is AgentRole {
-  return typeof role === "string" && VALID_ROLES.includes(role as AgentRole);
+  return typeof role === "string" && VALID_ROLES.includes(role);
 }
 
 function isValidScope(scope: unknown): scope is AgentCustomerScope {
@@ -23,17 +22,21 @@ function isValidScope(scope: unknown): scope is AgentCustomerScope {
   return typed.type === "specific" && Array.isArray(typed.customerIds);
 }
 
-/** Upgrade legacy session payloads (AgentProfile cookies) to full Agent records. */
+/**
+ * Resolve session agent from slim cookie payload or legacy full-agent cookies.
+ * Returns null when the agent cannot be found — never falls back to a default manager.
+ */
 export function normalizeSessionAgent(raw: unknown): Agent | null {
   if (!raw || typeof raw !== "object") return null;
 
-  const candidate = raw as Partial<Agent> & LegacyAgentProfile;
-  const seedById = candidate.id ? findAgentById(candidate.id) : undefined;
+  const candidate = raw as Partial<Agent> & LegacyAgentProfile & { agentId?: string };
+  const id = candidate.agentId ?? candidate.id;
+  const seedById = id ? findAgentById(id) : undefined;
   const emailFromHandle =
     candidate.handle?.startsWith("@") ? `${candidate.handle.slice(1)}@guestcare.com` : undefined;
   const email = candidate.email ?? emailFromHandle;
   const seedByEmail = email ? findAgentByEmail(email) : undefined;
-  const seed = seedById ?? seedByEmail ?? findAgentById(DEFAULT_AGENT_ID);
+  const seed = seedById ?? seedByEmail;
 
   if (!seed) return null;
 
@@ -59,6 +62,11 @@ export function normalizeSessionAgent(raw: unknown): Agent | null {
   return seed;
 }
 
+/** Resolve a report actor from session/agent payload. Never invents a default manager. */
 export function normalizeReportActor(raw: unknown): Agent {
-  return normalizeSessionAgent(raw) ?? findAgentById(DEFAULT_AGENT_ID)!;
+  const agent = normalizeSessionAgent(raw);
+  if (!agent) {
+    throw new Error("Unable to resolve report actor from session.");
+  }
+  return agent;
 }

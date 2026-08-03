@@ -9,11 +9,12 @@ const PROPERTY_HERO_IMAGE =
 
 export function PropertyHero({ property }: { property: Property }) {
   const [imagePreviewOpen, setImagePreviewOpen] = useState(false);
+  const heroSrc = property.imageUrl || PROPERTY_HERO_IMAGE;
 
   return (
     <div className="space-y-4">
       <div className="relative h-40 w-full shrink-0 overflow-hidden rounded-xl bg-muted shadow-sm">
-        <img src={PROPERTY_HERO_IMAGE} alt={property.name} className="h-full w-full object-cover" />
+        <img src={heroSrc} alt={property.name} className="h-full w-full object-cover" />
         <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-black/10 to-transparent" />
         <button
           type="button"
@@ -42,7 +43,7 @@ export function PropertyHero({ property }: { property: Property }) {
         >
           <DialogTitle className="sr-only">{property.name} photo</DialogTitle>
           <img
-            src={PROPERTY_HERO_IMAGE}
+            src={heroSrc}
             alt={property.name}
             className="max-h-[90vh] w-full rounded-lg object-contain"
           />

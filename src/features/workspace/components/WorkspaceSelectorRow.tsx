@@ -31,12 +31,18 @@ export function WorkspaceSelectorRow({
   property,
   issue,
   onClearAll,
+  onClearCustomer,
+  onClearProperty,
+  onClearIssue,
 }: {
   phase: WorkspacePhase;
   customer: Customer | null;
   property: Property | null;
   issue: Issue | null;
   onClearAll: () => void;
+  onClearCustomer?: () => void;
+  onClearProperty?: () => void;
+  onClearIssue?: () => void;
 }) {
   const states = resolveStepStates(phase, customer, property, issue);
   const hasSelection = Boolean(customer || property || issue);
@@ -50,6 +56,7 @@ export function WorkspaceSelectorRow({
           value={customer?.name}
           icon={<User strokeWidth={1.75} />}
           state={states.customer}
+          onClear={customer ? onClearCustomer : undefined}
         />
 
         <WorkspaceStepSeparator />
@@ -60,6 +67,7 @@ export function WorkspaceSelectorRow({
           value={property?.name}
           icon={<Building2 strokeWidth={1.75} />}
           state={states.property}
+          onClear={property ? onClearProperty : undefined}
         />
 
         <WorkspaceStepSeparator />
@@ -70,6 +78,7 @@ export function WorkspaceSelectorRow({
           value={issue?.name}
           icon={<ClipboardList strokeWidth={1.75} />}
           state={states.issue}
+          onClear={issue ? onClearIssue : undefined}
         />
       </div>
 

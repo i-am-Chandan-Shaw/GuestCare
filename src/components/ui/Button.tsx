@@ -5,27 +5,46 @@ import { type ButtonHTMLAttributes, forwardRef } from "react";
 type ButtonVariant = "primary" | "secondary" | "cancel" | "danger" | "ghost";
 type ButtonSize = "default" | "lg";
 
-const variantClass: Record<ButtonVariant, string> = {
-  primary:
-    "btn-primary-gradient shadow-md hover:shadow-lg focus-visible:ring-2 focus-visible:ring-brand-primary/50 text-white",
-  secondary:
-    "bg-border-color/50 text-text-secondary hover:bg-border-color hover:text-text-primary border border-border-color",
-  cancel:
-    "text-text-muted bg-transparent hover:text-text-primary uppercase tracking-widest text-[11px]",
-  danger: "bg-danger text-white shadow-sm hover:opacity-90",
-  ghost:
-    "bg-transparent text-text-secondary hover:bg-app-bg hover:text-text-primary border border-transparent hover:border-border-color",
+/** Primary shape/type — secondary reuses this and only swaps colors. */
+const primaryBase =
+  "border border-solid border-[#e7e7e5] normal-case font-[family-name:var(--font-display)] focus-visible:outline-none";
+
+const primarySize: Record<ButtonSize, string> = {
+  default: "h-9 rounded-[16px] px-4 text-[15px] font-semibold",
+  lg: "h-[52px] rounded-[16px] px-5 text-[15px] font-semibold",
 };
 
-const sizeClass: Record<ButtonSize, string> = {
-  default: "h-9 px-6 text-xs font-bold rounded-lg",
-  lg: "h-12 px-6 text-sm font-bold rounded-lg",
+const baseVariantClass: Record<ButtonVariant, string> = {
+  primary: cn(primaryBase, "bg-brand-primary text-white"),
+  secondary: cn(
+    primaryBase,
+    "bg-white text-[#2e2a25] focus-visible:border-brand-primary",
+  ),
+  cancel:
+    "border-solid border-transparent bg-transparent text-text-muted uppercase tracking-widest font-sans",
+  danger:
+    "border border-solid border-danger bg-danger text-white focus-visible:outline-none normal-case font-[family-name:var(--font-display)]",
+  ghost:
+    "border border-solid border-transparent bg-transparent text-text-secondary normal-case font-sans",
+};
+
+const sizeVariantClass: Record<ButtonVariant, Record<ButtonSize, string>> = {
+  primary: primarySize,
+  secondary: primarySize,
+  cancel: {
+    default: "h-9 border-0 px-2 text-[11px] font-semibold",
+    lg: "h-[52px] border-0 px-3 text-[11px] font-semibold",
+  },
+  danger: primarySize,
+  ghost: {
+    default: "h-9 rounded-[16px] px-3 text-[15px] font-semibold",
+    lg: "h-[52px] rounded-[16px] px-4 text-[15px] font-semibold",
+  },
 };
 
 export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: ButtonVariant;
   size?: ButtonSize;
-  /** Shows inline spinner and disables the button without shifting layout. */
   loading?: boolean;
 }
 
@@ -49,9 +68,9 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       disabled={disabled || loading}
       aria-busy={loading || undefined}
       className={cn(
-        "relative inline-flex items-center justify-center gap-2 transition-all active:scale-[0.98] disabled:pointer-events-none disabled:opacity-50",
-        variantClass[variant],
-        sizeClass[size],
+        "relative inline-flex cursor-pointer items-center justify-center gap-2 transition-[opacity] duration-300 ease-out enabled:hover:opacity-80 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50",
+        baseVariantClass[variant],
+        sizeVariantClass[variant][size],
         className,
       )}
       {...props}

@@ -1,9 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useQueryClient } from "@tanstack/react-query";
 import { Plus, Search, X } from "lucide-react";
-import { AgentFormDialog } from "@/features/agents/components/AgentFormDialog";
-import { canEditAgent } from "@/features/agents/lib/agent-permissions";
-import { useReportActor } from "@/features/reports/hooks/useReports";
 import { Avatar } from "@/shared/components/Avatar";
 import { cn } from "@/lib/utils";
 import type { Agent } from "@/shared/types/agent";
@@ -35,11 +31,8 @@ export function ReportMembers({
   /** `header` hides the Members label for placement beside tag pills. */
   variant?: "default" | "header";
 }) {
-  const actor = useReportActor();
-  const queryClient = useQueryClient();
   const [panel, setPanel] = useState<MembersPanel>(null);
   const [query, setQuery] = useState("");
-  const [editAgentId, setEditAgentId] = useState<string | null>(null);
   const rootRef = useRef<HTMLDivElement>(null);
 
   const overlaps = assignees.length > STACK_VISIBLE_LIMIT;
@@ -49,7 +42,7 @@ export function ReportMembers({
   const hidden = overlaps ? assignees.slice(STACK_VISIBLE_LIMIT) : [];
 
   useEffect(() => {
-    if (!panel || editAgentId) return;
+    if (!panel) return;
     const onPointerDown = (event: MouseEvent) => {
       if (!rootRef.current?.contains(event.target as Node)) {
         setPanel(null);
@@ -64,7 +57,7 @@ export function ReportMembers({
       document.removeEventListener("mousedown", onPointerDown);
       document.removeEventListener("keydown", onKeyDown);
     };
-  }, [panel, editAgentId]);
+  }, [panel]);
 
   useEffect(() => {
     if (panel?.type !== "manage") setQuery("");
@@ -109,9 +102,6 @@ export function ReportMembers({
   const selectedAgent = selectedMember
     ? agentsById.get(selectedMember.agentId)
     : undefined;
-  const canEditSelected =
-    selectedAgent != null && canEditAgent(actor, selectedAgent);
-  const showMemberActions = canEditSelected || canAssign;
 
   const toggleManage = () => {
     setPanel((current) => (current?.type === "manage" ? null : { type: "manage" }));
@@ -131,22 +121,9 @@ export function ReportMembers({
     );
   };
 
-  const openEditAgent = (agentId: string) => {
-    setPanel(null);
-    setEditAgentId(agentId);
-  };
-
   const handleRemoveMember = (agentId: string) => {
     onRemove(agentId);
     setPanel(null);
-  };
-
-  const handleAgentSaved = () => {
-    void queryClient.invalidateQueries({ queryKey: ["assignment-agents"] });
-    void queryClient.invalidateQueries({ queryKey: ["agents"] });
-    void queryClient.invalidateQueries({ queryKey: ["report"] });
-    void queryClient.invalidateQueries({ queryKey: ["reports"] });
-    setEditAgentId(null);
   };
 
   return (
@@ -256,30 +233,16 @@ export function ReportMembers({
             </button>
           </div>
 
-          {showMemberActions ? (
+          {canAssign ? (
             <div className="border-t border-border-color py-1">
-              {canEditSelected ? (
-                <button
-                  type="button"
-                  onClick={() => openEditAgent(selectedMember.agentId)}
-                  className="flex w-full px-3 py-2 text-left text-[13px] font-medium text-text-primary transition-colors hover:bg-app-bg"
-                >
-                  Edit agent
-                </button>
-              ) : null}
-              {canEditSelected && canAssign ? (
-                <div className="mx-3 border-t border-border-color" />
-              ) : null}
-              {canAssign ? (
-                <button
-                  type="button"
-                  onClick={() => handleRemoveMember(selectedMember.agentId)}
-                  disabled={pending}
-                  className="flex w-full px-3 py-2 text-left text-[13px] font-medium text-destructive transition-colors hover:bg-app-bg disabled:opacity-50"
-                >
-                  Remove from report
-                </button>
-              ) : null}
+              <button
+                type="button"
+                onClick={() => handleRemoveMember(selectedMember.agentId)}
+                disabled={pending}
+                className="flex w-full px-3 py-2 text-left text-[13px] font-medium text-destructive transition-colors hover:bg-app-bg disabled:opacity-50"
+              >
+                Remove from report
+              </button>
             </div>
           ) : null}
         </div>
@@ -428,16 +391,6 @@ export function ReportMembers({
         </div>
       ) : null}
 
-      <AgentFormDialog
-        open={editAgentId != null}
-        mode="edit"
-        agentId={editAgentId}
-        actor={actor}
-        onOpenChange={(open) => {
-          if (!open) setEditAgentId(null);
-        }}
-        onSaved={handleAgentSaved}
-      />
     </div>
   );
 }

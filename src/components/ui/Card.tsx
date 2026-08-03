@@ -4,9 +4,10 @@ import { type HTMLAttributes, forwardRef } from "react";
 type CardVariant = "default" | "minimal" | "glass";
 
 const variantClass: Record<CardVariant, string> = {
-  default: "rounded-xl border border-border-color bg-card-bg shadow-sm",
-  minimal: "rounded-[12px] bg-white shadow-sm hover:shadow-md transition-shadow",
-  glass: "rounded-xl bg-white/70 backdrop-blur-md border border-white/60",
+  default: "rounded-[var(--kn-radius-xl)] border border-border-color bg-card-bg shadow-[var(--kn-shadow-1)]",
+  minimal:
+    "rounded-[var(--kn-radius-xl)] border border-border-color bg-card-bg hover:border-input-border transition-colors",
+  glass: "rounded-[var(--kn-radius-xl)] border border-border-color bg-card-bg",
 };
 
 export interface CardProps extends HTMLAttributes<HTMLDivElement> {

@@ -3,7 +3,7 @@ import type {
   Issue,
   Priority,
   ProtocolStep,
-} from "./types";
+} from "@/shared/types";
 
 type PriorityCategory =
   | "Urgent - Safety / No Habitability"
@@ -749,11 +749,4 @@ Confirm no recent heavy water usage.
 Ask the guest to wait 45 minutes and retry.
 If the issue continues, report as PM follow-up required.`,
   }),
-];
-
-export const RECENT_ISSUE_IDS = [
-  "i-unable-checkin",
-  "i-no-hot-water",
-  "i-lost-keys",
-  "i-wifi",
 ];

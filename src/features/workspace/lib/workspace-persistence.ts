@@ -4,7 +4,9 @@ import type { WorkspacePhase } from "@/features/workspace/lib/workspace-state";
 import type { WorkspaceSearch } from "@/features/workspace/lib/workspace-url";
 
 const WORKSPACE_KEY = "gc_workspace_v1";
-const COMPOSE_KEY = "gc_incident_compose_v1";
+/** v2 drops drafts that were auto-filled from protocol steps / action chips. */
+const COMPOSE_KEY = "gc_incident_compose_v2";
+const LEGACY_COMPOSE_KEYS = ["gc_incident_compose_v1"] as const;
 
 export type PersistedWorkspaceState = {
   phase: WorkspacePhase;
@@ -74,9 +76,14 @@ export function readIncidentsNavSearch(): WorkspaceSearch {
 export function readPersistedCompose(): PersistedComposeState | null {
   if (!canUseStorage()) return null;
   try {
+    for (const key of LEGACY_COMPOSE_KEYS) {
+      window.localStorage.removeItem(key);
+    }
     const raw = window.localStorage.getItem(COMPOSE_KEY);
     if (!raw) return null;
-    return JSON.parse(raw) as PersistedComposeState;
+    const parsed = JSON.parse(raw) as PersistedComposeState;
+    if (!parsed?.form || typeof parsed.form !== "object") return null;
+    return parsed;
   } catch {
     return null;
   }

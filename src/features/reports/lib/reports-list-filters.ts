@@ -25,7 +25,6 @@ export const EMPTY_REPORTS_LIST_FILTERS: ReportsListFilters = {
   dateTo: "",
 };
 
-/** Count of selected filter values in the Filters popover (excludes external search). */
 export function countActiveReportsFilters(filters: ReportsListFilters): number {
   let count = 0;
   count += filters.statuses.length;

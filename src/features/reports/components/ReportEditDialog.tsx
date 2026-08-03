@@ -8,7 +8,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Field, Input, Select, Textarea } from "@/features/incidents/components/incident-form-controls";
+import { Input, Select, Textarea } from "@/shared/components/form-controls";
 import { REPORT_STATUS_LABELS } from "@/features/reports/lib/report-status";
 import { priorityMeta } from "@/shared/constants/agent";
 import { INCIDENT_TYPES } from "@/shared/constants/incident";
@@ -69,21 +69,7 @@ export function ReportEditDialog({
     setForm((current) => ({ ...current, [key]: value }));
   };
 
-  const handleSave = () => {
-    onSave({
-      callerName: form.callerName,
-      callerContact: form.callerContact,
-      reservationNumber: form.reservationNumber,
-      nameOnBooking: form.nameOnBooking,
-      issueName: form.issueName,
-      issueType: form.issueType,
-      priority: form.priority,
-      status: form.status,
-      callNotes: form.callNotes,
-      actionsTaken: form.actionsTaken,
-      version: form.version,
-    });
-  };
+  const handleSave = () => onSave(form);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -102,98 +88,90 @@ export function ReportEditDialog({
             <h3 className="text-[13px] font-bold text-text-primary">Issue information</h3>
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               <div className="sm:col-span-2">
-                <Field label="Issue summary">
-                  <Input
-                    value={form.issueName}
-                    onChange={(v) => update("issueName", v)}
-                  />
-                </Field>
+                <Input
+                  label="Issue summary"
+                  value={form.issueName}
+                  onChange={(v) => update("issueName", v)}
+                />
               </div>
-              <Field label="Issue type">
-                <Select
-                  value={form.issueType}
-                  onChange={(v) => update("issueType", v)}
-                  options={INCIDENT_TYPES}
-                />
-              </Field>
-              <Field label="Priority">
-                <Select
-                  value={form.priority}
-                  onChange={(v) => update("priority", v as Priority)}
-                  options={Object.keys(priorityMeta) as Priority[]}
-                  optionLabels={Object.fromEntries(
-                    (Object.keys(priorityMeta) as Priority[]).map((key) => [
-                      key,
-                      priorityMeta[key].name,
-                    ]),
-                  )}
-                />
-              </Field>
+              <Select
+                label="Issue type"
+                value={form.issueType}
+                onChange={(v) => update("issueType", v)}
+                options={INCIDENT_TYPES}
+              />
+              <Select
+                label="Priority"
+                value={form.priority}
+                onChange={(v) => update("priority", v as Priority)}
+                options={Object.keys(priorityMeta) as Priority[]}
+                optionLabels={Object.fromEntries(
+                  (Object.keys(priorityMeta) as Priority[]).map((key) => [
+                    key,
+                    priorityMeta[key].name,
+                  ]),
+                )}
+              />
               <div className="sm:col-span-2">
-                <Field label="Status">
-                  <Select
-                    value={form.status}
-                    onChange={(v) => update("status", v as ReportStatus)}
-                    options={Object.keys(REPORT_STATUS_LABELS) as ReportStatus[]}
-                    optionLabels={REPORT_STATUS_LABELS}
-                  />
-                </Field>
+                <Select
+                  label="Status"
+                  value={form.status}
+                  onChange={(v) => update("status", v as ReportStatus)}
+                  options={Object.keys(REPORT_STATUS_LABELS) as ReportStatus[]}
+                  optionLabels={REPORT_STATUS_LABELS}
+                />
               </div>
             </div>
           </section>
 
           <section className="space-y-3 border-t border-border-color pt-5">
             <h3 className="text-[13px] font-bold text-text-primary">Call notes</h3>
-            <Field label="Call notes">
-              <Textarea
-                value={form.callNotes}
-                onChange={(v) => update("callNotes", v)}
-                rows={4}
-              />
-            </Field>
+            <Textarea
+              label="Call notes"
+              value={form.callNotes}
+              onChange={(v) => update("callNotes", v)}
+              rows={4}
+            />
           </section>
 
           <section className="space-y-3 border-t border-border-color pt-5">
             <h3 className="text-[13px] font-bold text-text-primary">Caller & booking</h3>
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-              <Field label="Caller name">
-                <Input
-                  value={form.callerName}
-                  onChange={(v) => update("callerName", v)}
-                />
-              </Field>
-              <Field label="Caller contact">
-                <Input
-                  value={form.callerContact}
-                  onChange={(v) => update("callerContact", v)}
-                />
-              </Field>
-              <Field label="Reservation">
-                <Input
-                  value={form.reservationNumber}
-                  onChange={(v) => update("reservationNumber", v)}
-                />
-              </Field>
-              <Field label="Name on booking">
-                <Input
-                  value={form.nameOnBooking}
-                  onChange={(v) => update("nameOnBooking", v)}
-                />
-              </Field>
+              <Input
+                label="Caller name"
+                value={form.callerName}
+                onChange={(v) => update("callerName", v)}
+              />
+              <Input
+                label="Caller contact"
+                value={form.callerContact}
+                onChange={(v) => update("callerContact", v)}
+              />
+              <Input
+                label="Reservation"
+                value={form.reservationNumber}
+                onChange={(v) => update("reservationNumber", v)}
+              />
+              <Input
+                label="Name on booking"
+                value={form.nameOnBooking}
+                onChange={(v) => update("nameOnBooking", v)}
+              />
             </div>
           </section>
         </div>
 
-        <DialogFooter className="shrink-0 border-t border-border-color px-6 py-4">
+        <DialogFooter className="shrink-0 gap-3 border-t border-border-color px-6 py-4 sm:justify-end">
           <Button
             type="button"
-            variant="ghost"
+            variant="secondary"
+            size="lg"
             onClick={() => onOpenChange(false)}
             disabled={pending}
           >
             Cancel
           </Button>
-          <Button type="button" onClick={handleSave} loading={pending}>
+          <Button type="button" size="lg" onClick={handleSave} loading={pending}>
             Save changes
           </Button>
         </DialogFooter>

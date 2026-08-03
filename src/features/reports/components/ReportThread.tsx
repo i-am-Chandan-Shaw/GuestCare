@@ -320,7 +320,6 @@ export function ReportConversations({
 
             return (
               <li key={root.id}>
-                {/* Root row: rail only spans the parent comment, not replies below */}
                 <div className="flex gap-3">
                   <div className="flex w-9 shrink-0 flex-col items-center self-stretch">
                     <div className="relative z-[1] shrink-0 rounded-full bg-card-bg">
@@ -362,7 +361,6 @@ export function ReportConversations({
                   </div>
                 </div>
 
-                {/* Reply rows: vertical rail stops at the last elbow (no hanging line) */}
                 {showThread ? (
                   <ul>
                     {children.map((child, index) => {
