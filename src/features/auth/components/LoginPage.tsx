@@ -4,13 +4,17 @@ import { Button } from "@/components/ui/Button";
 import { login } from "@/features/auth/api/auth.api";
 import { loginSchema } from "@/features/auth/lib/login-schema";
 import { safeRedirectPath } from "@/features/auth/lib/require-auth";
-import { Field, Input } from "@/features/incidents/components/incident-form-controls";
+import { Input, usePasswordEndAction } from "@/features/incidents/components/incident-form-controls";
 
 export function LoginPage({ redirectTo }: { redirectTo?: string }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const passwordAction = usePasswordEndAction(showPassword, () =>
+    setShowPassword((current) => !current),
+  );
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -47,25 +51,22 @@ export function LoginPage({ redirectTo }: { redirectTo?: string }) {
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-5">
-          <Field label="Email">
-            <Input
-              type="email"
-              value={email}
-              onChange={setEmail}
-              placeholder="you@guestcare.io"
-              className="h-11"
-            />
-          </Field>
+          <Input
+            label="Email"
+            type="email"
+            value={email}
+            onChange={setEmail}
+            autoComplete="email"
+          />
 
-          <Field label="Password">
-            <Input
-              type="password"
-              value={password}
-              onChange={setPassword}
-              placeholder="Enter your password"
-              className="h-11"
-            />
-          </Field>
+          <Input
+            label="Password"
+            type={showPassword ? "text" : "password"}
+            value={password}
+            onChange={setPassword}
+            autoComplete="current-password"
+            endAction={passwordAction}
+          />
 
           {error && (
             <p className="rounded-lg border border-danger/20 bg-danger/10 px-3 py-2 text-sm text-danger">

@@ -16,7 +16,7 @@ import type {
 import { IncidentPreview } from "./IncidentPreview";
 import { ProtocolProgressCard } from "./ProtocolProgressCard";
 import type { FormState } from "./incident-form.types";
-import { CopyIconButton, Field, Input, Select, Textarea } from "./incident-form-controls";
+import { Input, Select, Textarea, useCopyEndAction } from "./incident-form-controls";
 
 function ClearFormConfirmBanner({
   onCancel,
@@ -98,6 +98,8 @@ export function IncidentForm({
   const pMeta = priorityMeta[form.priority];
   const propertyLabel = property ? `${property.name} — ${property.address}` : "—";
   const issueOptions = issues.map((i) => i.name);
+  const propertyCopy = useCopyEndAction(property ? propertyLabel : "", "property");
+  const reservationCopy = useCopyEndAction(form.reservation, "reservation");
 
   const requestClear = () => setConfirmClear(true);
   const confirmClearForm = () => {
@@ -109,121 +111,103 @@ export function IncidentForm({
 
   const formFields = (
     <div className="space-y-4">
-      <Field label="Customer">
-        <Input value={customer?.name ?? ""} readOnly placeholder="Select customer in top bar" />
+      <div>
+        <Input
+          label="Customer"
+          value={customer?.name ?? ""}
+          readOnly
+        />
         {customer && (
           <p className="mt-1.5 text-[11.5px] text-text-muted">
             {customer.email} · {customer.phone}
           </p>
         )}
-      </Field>
+      </div>
 
-      <Field label="Property">
-        <div className="relative">
-          <Input
-            value={property ? propertyLabel : ""}
-            readOnly
-            placeholder="Select property in top bar"
-            className="pr-10"
-          />
-          <CopyIconButton value={propertyLabel} label="property" />
-        </div>
-      </Field>
+      <Input
+        label="Property"
+        value={property ? propertyLabel : ""}
+        readOnly
+        endAction={propertyCopy}
+      />
 
-      <Field label="Guest full name">
-        <Input
-          value={form.callerName}
-          onChange={(v) => update("callerName", v)}
-          placeholder="Name of guest on the call"
-        />
-      </Field>
+      <Input
+        label="Guest full name"
+        value={form.callerName}
+        onChange={(v) => update("callerName", v)}
+      />
 
-      <Field label="Guest contact">
-        <Input
-          value={form.callerContact}
-          onChange={(v) => update("callerContact", v)}
-          placeholder="Phone or email from the call"
-        />
-      </Field>
+      <Input
+        label="Guest contact"
+        value={form.callerContact}
+        onChange={(v) => update("callerContact", v)}
+      />
 
-      <Field label="Reservation number">
-        <div className="relative">
-          <Input
-            value={form.reservation}
-            onChange={(v) => update("reservation", v)}
-            placeholder="RSV-… or N/A"
-            mono
-            className="pr-10"
-          />
-          <CopyIconButton value={form.reservation} label="reservation" />
-        </div>
-      </Field>
+      <Input
+        label="Reservation number"
+        value={form.reservation}
+        onChange={(v) => update("reservation", v)}
+        mono
+        endAction={reservationCopy}
+      />
 
-      <Field label="Name on the booking">
-        <Input
-          value={form.nameOnBooking}
-          onChange={(v) => update("nameOnBooking", v)}
-          placeholder="May differ from guest on the call"
-        />
-      </Field>
+      <Input
+        label="Name on the booking"
+        value={form.nameOnBooking}
+        onChange={(v) => update("nameOnBooking", v)}
+      />
 
-      <Field label="Incident Type">
-        <Select
-          value={form.incidentType}
-          onChange={(v) => update("incidentType", v as IncidentType)}
-          options={INCIDENT_TYPES}
-        />
-      </Field>
+      <Select
+        label="Incident type"
+        value={form.incidentType}
+        onChange={(v) => update("incidentType", v as IncidentType)}
+        options={INCIDENT_TYPES}
+      />
 
-      <Field label="What is the Issue?">
-        <Select
-          value={form.issueSummary || (issue?.name ?? "")}
-          onChange={(v) => update("issueSummary", v)}
-          options={issueOptions.length ? issueOptions : ["Other"]}
-        />
-      </Field>
+      <Select
+        label="What is the issue?"
+        value={form.issueSummary || (issue?.name ?? "")}
+        onChange={(v) => update("issueSummary", v)}
+        options={issueOptions.length ? issueOptions : ["Other"]}
+      />
 
       <div className="grid grid-cols-2 gap-4">
-        <Field label="Priority">
-          <div className="relative">
-            <Select
-              className="pl-8"
-              value={form.priority}
-              onChange={(v) => update("priority", v.split(" ")[0] as Priority)}
-              options={["P1 · Critical", "P2 · High", "P3 · Medium", "P4 · Low"]}
-            />
-            <span
-              className={cn(
-                "absolute left-3 top-1/2 -translate-y-1/2 h-2 w-2 rounded-full",
-                pMeta.dot,
-              )}
-            />
-          </div>
-        </Field>
-        <Field label="Issue Status">
+        <div className="relative">
           <Select
-            value={form.status}
-            onChange={(v) => update("status", v as IncidentStatus)}
-            options={INCIDENT_STATUSES}
+            label="Priority"
+            className="[&_select]:pl-8"
+            value={form.priority}
+            onChange={(v) => update("priority", v.split(" ")[0] as Priority)}
+            options={["P1 · Critical", "P2 · High", "P3 · Medium", "P4 · Low"]}
           />
-        </Field>
+          <span
+            className={cn(
+              "pointer-events-none absolute left-3 top-[30px] h-2 w-2 rounded-full",
+              pMeta.dot,
+            )}
+          />
+        </div>
+        <Select
+          label="Issue status"
+          value={form.status}
+          onChange={(v) => update("status", v as IncidentStatus)}
+          options={INCIDENT_STATUSES}
+        />
       </div>
 
       <ProtocolProgressCard issue={issue} />
 
-      <Field label="Call Notes">
-        <div className="relative">
-          <Textarea
-            value={form.callNotes}
-            onChange={(v) => update("callNotes", v.slice(0, 2000))}
-            placeholder="What you tried, who you called, codes generated, next steps…"
-            rows={5}
-          />
-          <div className="absolute bottom-2 right-3 text-[11px] font-medium text-text-muted">
-            {form.callNotes.length} / 2000
-          </div>
+      <div className="relative">
+        <Textarea
+          label="Call notes"
+          value={form.callNotes}
+          onChange={(v) => update("callNotes", v.slice(0, 2000))}
+          rows={5}
+        />
+        <div className="pointer-events-none absolute bottom-2.5 right-3 text-[11px] font-medium text-text-muted">
+          {form.callNotes.length} / 2000
         </div>
-      </Field>
+      </div>
     </div>
   );
 
