@@ -1,20 +1,12 @@
-import { useRef, useState, type ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import {
-  Bold,
   Building2,
   CalendarDays,
   Check,
   ChevronLeft,
-  Code2,
   Copy,
-  Italic,
-  Link2,
-  List,
-  ListOrdered,
   Pencil,
   Phone,
-  Smile,
-  Strikethrough,
   User,
   type LucideIcon,
 } from "lucide-react";
@@ -49,18 +41,6 @@ import type { Report } from "@/shared/types/report";
 
 function formatReportId(id: string) {
   return id.replaceAll("-", "");
-}
-
-function wrapSelection(
-  textarea: HTMLTextAreaElement,
-  before: string,
-  after = before,
-): string {
-  const start = textarea.selectionStart;
-  const end = textarea.selectionEnd;
-  const value = textarea.value;
-  const selected = value.slice(start, end) || "text";
-  return value.slice(0, start) + before + selected + after + value.slice(end);
 }
 
 const ICON_TONES = {
@@ -146,53 +126,16 @@ function CommentComposer({
   onSubmit: () => void;
   pending?: boolean;
 }) {
-  const ref = useRef<HTMLTextAreaElement>(null);
-
-  const applyFormat = (before: string, after?: string) => {
-    const el = ref.current;
-    if (!el) {
-      onChange(`${before}${value || "text"}${after ?? before}`);
-      return;
-    }
-    onChange(wrapSelection(el, before, after));
-  };
-
-  const tools = [
-    { icon: Bold, label: "Bold", run: () => applyFormat("**") },
-    { icon: Italic, label: "Italic", run: () => applyFormat("_") },
-    { icon: Strikethrough, label: "Strikethrough", run: () => applyFormat("~~") },
-    { icon: List, label: "Bullet list", run: () => applyFormat("\n- ", "") },
-    { icon: ListOrdered, label: "Numbered list", run: () => applyFormat("\n1. ", "") },
-    { icon: Code2, label: "Code", run: () => applyFormat("`") },
-    { icon: Link2, label: "Link", run: () => applyFormat("[", "](url)") },
-    { icon: Smile, label: "Emoji", run: () => applyFormat("", " 🙂") },
-  ] as const;
-
   return (
     <div className="rounded-md border border-border-color bg-card-bg p-3 shadow-sm">
       <textarea
-        ref={ref}
         value={value}
         onChange={(e) => onChange(e.target.value)}
         rows={3}
         placeholder="Leave a comment…"
         className="w-full resize-none bg-transparent px-1 py-1 text-[13px] leading-relaxed text-text-primary outline-none placeholder:text-text-muted"
       />
-      <div className="mt-2 flex flex-wrap items-center justify-between gap-3 border-t border-border-color pt-3">
-        <div className="flex flex-wrap items-center gap-0.5">
-          {tools.map(({ icon: Icon, label, run }) => (
-            <button
-              key={label}
-              type="button"
-              title={label}
-              aria-label={label}
-              onClick={run}
-              className="inline-flex h-8 w-8 items-center justify-center rounded-md text-text-secondary transition-colors hover:bg-app-bg hover:text-text-primary"
-            >
-              <Icon className="h-4 w-4" strokeWidth={2} />
-            </button>
-          ))}
-        </div>
+      <div className="mt-2 flex justify-end border-t border-border-color pt-3">
         <Button type="button" onClick={onSubmit} loading={pending} disabled={!value.trim()}>
           Comment
         </Button>
