@@ -749,26 +749,26 @@ export function AgentFormDialog({
               ) : null}
             </div>
 
-            <DialogFooter className="shrink-0 gap-2 border-t border-border-color px-6 py-4 sm:flex-row sm:justify-end">
+            <DialogFooter className="shrink-0 gap-3 border-t border-border-color px-6 py-4 sm:flex-row sm:justify-end">
               <Button
                 type="button"
                 variant="secondary"
+                size="lg"
                 onClick={() => onOpenChange(false)}
                 disabled={loading}
-                className="!h-9 !rounded-md !px-4"
               >
                 Cancel
               </Button>
               <Button
                 type="button"
+                size="lg"
                 onClick={() => void handleSubmit()}
                 loading={loading}
                 disabled={hydrating || roles.length === 0}
-                className="!h-9 !rounded-md !px-4"
               >
                 {mode === "create" ? (
                   <>
-                    <UserPlus className="mr-1.5 h-4 w-4" strokeWidth={2} />
+                    <UserPlus className="h-5 w-5" strokeWidth={2} />
                     Create agent
                   </>
                 ) : (

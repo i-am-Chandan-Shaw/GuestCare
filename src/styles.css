@@ -55,7 +55,7 @@
   --color-sidebar-text-active: var(--kn-color-sidebar-text-active);
 
   --radius-card: var(--kn-radius-xl);
-  --radius-button: var(--kn-radius-pill);
+  --radius-button: var(--kn-radius-button, 15px);
   --radius-input: var(--kn-radius-lg);
   --radius-sm: var(--kn-radius-sm);
   --radius-md: var(--kn-radius-md);
@@ -155,20 +155,39 @@
   .cursor-pointer {
     cursor: pointer;
   }
+
+  input:-webkit-autofill,
+  input:-webkit-autofill:hover,
+  input:-webkit-autofill:focus,
+  textarea:-webkit-autofill,
+  textarea:-webkit-autofill:hover,
+  textarea:-webkit-autofill:focus {
+    -webkit-text-fill-color: var(--kn-color-text-primary);
+    caret-color: var(--kn-color-text-primary);
+    box-shadow: inset 0 0 0 1000px var(--kn-color-surface);
+    transition: background-color 99999s ease-in-out 0s;
+  }
 }
 
 @utility btn-primary-gradient {
   background: var(--kn-color-primary);
-  color: var(--kn-color-primary-foreground);
-  border: none;
+  color: #fff;
+  border: 2px solid var(--kn-color-primary);
+  border-radius: 15px;
+  font-size: 17px;
+  font-weight: 600;
+  text-transform: inherit;
   &:hover:not(:disabled) {
     background: var(--kn-color-primary-hover);
+    border-color: var(--kn-color-primary-hover);
   }
   &:active:not(:disabled) {
     background: var(--kn-color-primary-active);
+    border-color: var(--kn-color-primary-active);
   }
   &:disabled {
     background: var(--kn-color-primary-disabled);
+    border-color: var(--kn-color-primary-disabled);
     opacity: 1;
     cursor: not-allowed;
   }

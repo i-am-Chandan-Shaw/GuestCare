@@ -175,16 +175,17 @@ export function ReportEditDialog({
           </section>
         </div>
 
-        <DialogFooter className="shrink-0 border-t border-border-color px-6 py-4">
+        <DialogFooter className="shrink-0 gap-3 border-t border-border-color px-6 py-4 sm:justify-end">
           <Button
             type="button"
-            variant="ghost"
+            variant="secondary"
+            size="lg"
             onClick={() => onOpenChange(false)}
             disabled={pending}
           >
             Cancel
           </Button>
-          <Button type="button" onClick={handleSave} loading={pending}>
+          <Button type="button" size="lg" onClick={handleSave} loading={pending}>
             Save changes
           </Button>
         </DialogFooter>

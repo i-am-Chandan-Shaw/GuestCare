@@ -74,7 +74,7 @@ function FloatingShell({
   return (
     <div
       className={cn(
-        "relative rounded-[var(--kn-radius-lg)] border border-input-border bg-input-surface transition-colors duration-150",
+        "relative overflow-hidden rounded-[var(--kn-radius-lg)] border border-input-border bg-card-bg transition-colors duration-150",
         "focus-within:border-input-border-focus",
         (disabled || readOnly) && "bg-app-bg/60",
         disabled && "opacity-60",

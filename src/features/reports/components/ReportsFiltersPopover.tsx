@@ -546,16 +546,11 @@ export function ReportsFiltersPopover({
             </FilterSection>
           </div>
 
-          <div className="flex shrink-0 items-center justify-end gap-2 border-t border-border-color px-4 py-3">
-            <Button
-              type="button"
-              variant="ghost"
-              onClick={handleClear}
-              className="!h-8 !px-3"
-            >
+          <div className="flex shrink-0 items-center justify-end gap-3 border-t border-border-color px-4 py-4">
+            <Button type="button" variant="secondary" size="lg" onClick={handleClear}>
               Clear
             </Button>
-            <Button type="button" onClick={handleApply} className="!h-8 !px-3">
+            <Button type="button" size="lg" onClick={handleApply}>
               Apply filters
             </Button>
           </div>

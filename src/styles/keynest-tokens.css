@@ -1,7 +1,7 @@
 :root {
 
-  --kn-color-brand-green: #00b288;
-  --kn-color-action-green: #4fb28f;
+  --kn-color-brand-green: #00b189;
+  --kn-color-action-green: #00b189;
   --kn-color-ink: #2a2622;
   --kn-color-sage: #ecefea;
   --kn-color-cream: #f8f0df;
@@ -19,11 +19,11 @@
   --kn-color-neutral-900: #1c1917;
   --kn-color-neutral-950: #12100e;
 
-  --kn-color-primary: #4fb28f;
-  --kn-color-primary-hover: #3f9a7a;
-  --kn-color-primary-active: #348568;
-  --kn-color-primary-disabled: #a8d5c4;
-  --kn-color-primary-soft: #e5f5ef;
+  --kn-color-primary: #00b189;
+  --kn-color-primary-hover: #009a78;
+  --kn-color-primary-active: #008a6b;
+  --kn-color-primary-disabled: #7dd4bc;
+  --kn-color-primary-soft: #e5f7f1;
   --kn-color-primary-foreground: #ffffff;
 
   --kn-color-secondary: #ffffff;
@@ -49,7 +49,7 @@
 
   --kn-color-border: #ddd9d3;
   --kn-color-border-hover: #c4beb5;
-  --kn-color-border-focus: #4fb28f;
+  --kn-color-border-focus: #00b189;
   --kn-color-divider: #e5e2dc;
 
   --kn-color-text-primary: #2a2622;
@@ -62,11 +62,11 @@
   --kn-color-overlay: rgba(42, 38, 34, 0.45);
   --kn-color-skeleton: #ddd9d3;
   --kn-color-focus-ring: rgba(79, 178, 143, 0.35);
-  --kn-color-link: #3f9a7a;
-  --kn-color-link-hover: #348568;
-  --kn-color-link-active: #2a6b54;
+  --kn-color-link: #009a78;
+  --kn-color-link-hover: #008a6b;
+  --kn-color-link-active: #00785c;
 
-  --kn-color-chart-1: #4fb28f;
+  --kn-color-chart-1: #00b189;
   --kn-color-chart-2: #3d6f8f;
   --kn-color-chart-3: #c4841d;
   --kn-color-chart-4: #8b6b9e;
@@ -80,7 +80,7 @@
   --kn-color-sidebar-text: rgba(255, 255, 255, 0.72);
   --kn-color-sidebar-text-muted: rgba(255, 255, 255, 0.45);
   --kn-color-sidebar-text-active: #ffffff;
-  --kn-color-sidebar-accent: #4fb28f;
+  --kn-color-sidebar-accent: #00b189;
 
   --kn-font-display: "Poppins", ui-sans-serif, system-ui, sans-serif;
   --kn-font-body: "Lato", ui-sans-serif, system-ui, sans-serif;
@@ -109,6 +109,7 @@
   --kn-radius-md: 8px;
   --kn-radius-lg: 12px;
   --kn-radius-xl: 14px;
+  --kn-radius-button: 15px;
   --kn-radius-2xl: 20px;
   --kn-radius-pill: 9999px;
   --kn-radius-circle: 50%;
