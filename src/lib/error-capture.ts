@@ -1,17 +1,29 @@
-// Captures the original Error out-of-band so server.ts can recover the stack
-// when h3 has already swallowed the throw into a generic 500 Response.
+// Recovers the original Error stack after h3 swallows throws into a generic 500.
+// AsyncLocalStorage isolates concurrent SSR requests.
 
-let lastCapturedError: { error: unknown; at: number } | undefined;
+import { AsyncLocalStorage } from "node:async_hooks";
+
+type CapturedSlot = { error: unknown; at: number };
+
+const errorAls = new AsyncLocalStorage<CapturedSlot>();
+let fallbackCaptured: CapturedSlot | undefined;
 const TTL_MS = 5_000;
 
 function record(error: unknown) {
-  lastCapturedError = { error, at: Date.now() };
+  const slot = errorAls.getStore();
+  if (slot) {
+    slot.error = error;
+    slot.at = Date.now();
+    return;
+  }
+  fallbackCaptured = { error, at: Date.now() };
 }
 
-// h3's HTTPError serializes to {"status":500,"unhandled":true,"message":"HTTPError"} —
-// no stack, no cause — so a plain console.error(error) reaches the log pipeline with
-// the failure detail stripped. Expand Error-like args into a string that keeps the
-// message, stack, and the full cause chain.
+/** Run a request handler with an isolated error-capture slot. */
+export function runWithErrorCapture<T>(fn: () => T): T {
+  return errorAls.run({ error: undefined, at: 0 }, fn);
+}
+
 const CAUSE_DEPTH_LIMIT = 5;
 const DESCRIPTION_LENGTH_LIMIT = 8_000;
 
@@ -49,9 +61,6 @@ function isErrorLike(value: unknown): value is Error {
   return value instanceof Error;
 }
 
-// Wrap console.error so errors logged by any layer — including h3's internal
-// unhandled-error logging, which this file cannot hook directly — are both
-// recorded for consumeLastCapturedError and expanded before serialization.
 const originalConsoleError = console.error.bind(console);
 console.error = (...args: unknown[]) => {
   const expanded = args.map((arg) => {
@@ -70,12 +79,21 @@ if (typeof globalThis.addEventListener === "function") {
 }
 
 export function consumeLastCapturedError(): unknown {
-  if (!lastCapturedError) return undefined;
-  if (Date.now() - lastCapturedError.at > TTL_MS) {
-    lastCapturedError = undefined;
+  const slot = errorAls.getStore() ?? fallbackCaptured;
+  if (!slot?.error) return undefined;
+  if (Date.now() - slot.at > TTL_MS) {
+    if (slot === fallbackCaptured) fallbackCaptured = undefined;
+    else {
+      slot.error = undefined;
+      slot.at = 0;
+    }
     return undefined;
   }
-  const { error } = lastCapturedError;
-  lastCapturedError = undefined;
+  const { error } = slot;
+  if (slot === fallbackCaptured) fallbackCaptured = undefined;
+  else {
+    slot.error = undefined;
+    slot.at = 0;
+  }
   return error;
 }

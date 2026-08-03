@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod";
-import { IncidentReportsPage } from "@/features/incidents";
+import { ReportsPage } from "@/features/reports/components/ReportsPage";
 
 const searchSchema = z.object({
   customerId: z.string().optional(),
@@ -14,5 +14,5 @@ export const Route = createFileRoute("/_authenticated/_shell/reports")({
 
 function ReportsRoute() {
   const { customerId, reportId } = Route.useSearch();
-  return <IncidentReportsPage customerId={customerId} reportId={reportId} />;
+  return <ReportsPage customerId={customerId} reportId={reportId} />;
 }

@@ -65,18 +65,14 @@ export function IncidentPreview({
   );
 
   const agentLabel = `${agent.name} (${getAgentHandle(agent)})`;
-  const message = useMemo(
-    () =>
-      buildSlackMessage({
-        form,
-        customer,
-        property,
-        issue,
-        agentLabel,
-        timestamp,
-      }),
-    [form, customer, property, issue, agentLabel, timestamp],
-  );
+  const message = buildSlackMessage({
+    form,
+    customer,
+    property,
+    issue,
+    agentLabel,
+    timestamp,
+  });
 
   const copyMessage = async () => {
     try {

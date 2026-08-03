@@ -9,7 +9,6 @@ function initialsFromName(name: string): string {
     .join("");
 }
 
-/** Shared thumbnail dimensions for portfolio card headers (120×80). */
 export const PORTFOLIO_CARD_THUMBNAIL_CLASS =
   "h-[80px] w-[120px] shrink-0 rounded-md";
 

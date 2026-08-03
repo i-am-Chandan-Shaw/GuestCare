@@ -9,9 +9,6 @@ import {
 import { useEffect, type ReactNode } from "react";
 
 import appCss from "../styles.css?url";
-import agGridCss from "../styles/ag-grid.css?url";
-import agGridScrollbarCss from "../styles/ag-grid-scrollbar-visibility.css?url";
-import "@/lib/ag-grid-setup";
 import { Button } from "@/components/ui/Button";
 import { Toaster } from "@/components/ui/sonner";
 import { getSession } from "@/features/auth/api/auth.api";
@@ -82,8 +79,6 @@ export const Route = createRootRouteWithContext<RouterContext>()({
     ],
     links: [
       { rel: "stylesheet", href: appCss },
-      { rel: "stylesheet", href: agGridCss },
-      { rel: "stylesheet", href: agGridScrollbarCss },
       { rel: "icon", href: "/favicon.svg", type: "image/svg+xml" },
       { rel: "icon", href: "/favicon.ico", type: "image/x-icon" },
       { rel: "preconnect", href: "https://fonts.googleapis.com" },

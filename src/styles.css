@@ -18,14 +18,11 @@
 
   --color-app-bg: var(--kn-color-background);
   --color-card-bg: var(--kn-color-surface);
-  --color-input-surface: var(--kn-color-surface);
 
   --color-text-primary: var(--kn-color-text-primary);
   --color-text-secondary: var(--kn-color-text-secondary);
   --color-text-muted: var(--kn-color-text-tertiary);
   --color-input-text: var(--kn-color-text-primary);
-  --color-input-label: var(--kn-color-text-primary);
-  --color-input-label-focus: var(--kn-color-text-tertiary);
 
   --color-border-color: var(--kn-color-border);
   --color-input-border: var(--kn-color-border);
@@ -38,8 +35,6 @@
   --color-info: var(--kn-color-info);
   --color-danger: var(--kn-color-danger);
 
-  --color-chart-primary: var(--kn-color-chart-1);
-  --color-chart-secondary: var(--kn-color-chart-5);
   --color-scroll-track: var(--kn-color-neutral-50);
   --color-scroll-thumb: var(--kn-color-neutral-300);
   --color-scroll-thumb-hover: var(--kn-color-neutral-400);
@@ -54,9 +49,6 @@
   --color-sidebar-text-muted: var(--kn-color-sidebar-text-muted);
   --color-sidebar-text-active: var(--kn-color-sidebar-text-active);
 
-  --radius-card: var(--kn-radius-xl);
-  --radius-button: var(--kn-radius-button, 15px);
-  --radius-input: var(--kn-radius-lg);
   --radius-sm: var(--kn-radius-sm);
   --radius-md: var(--kn-radius-md);
   --radius-lg: var(--kn-radius-lg);
@@ -67,10 +59,8 @@
   --color-foreground: var(--foreground);
   --color-surface: var(--surface);
   --color-surface-2: var(--surface-2);
-  --color-panel: var(--panel);
   --color-card: var(--card);
   --color-card-foreground: var(--card-foreground);
-  --color-card-text: var(--card-text);
   --color-card-subtext: var(--card-subtext);
   --color-popover: var(--popover);
   --color-popover-foreground: var(--popover-foreground);
@@ -88,9 +78,6 @@
   --color-border-strong: var(--border-strong);
   --color-input: var(--input);
   --color-ring: var(--ring);
-
-  --shadow-elegant: var(--kn-shadow-1);
-  --shadow-glow: var(--kn-shadow-2);
 }
 
 :root {
@@ -98,10 +85,8 @@
   --foreground: var(--kn-color-text-primary);
   --surface: var(--kn-color-surface);
   --surface-2: var(--kn-color-neutral-50);
-  --panel: var(--kn-color-surface);
   --card: var(--kn-color-surface);
   --card-foreground: var(--kn-color-text-primary);
-  --card-text: var(--kn-color-text-primary);
   --card-subtext: var(--kn-color-text-secondary);
   --popover: var(--kn-color-surface-elevated);
   --popover-foreground: var(--kn-color-text-primary);
@@ -193,15 +178,6 @@
   }
 }
 
-@utility hover-lift {
-  transition: border-color var(--kn-duration-150) var(--kn-ease-standard),
-    box-shadow var(--kn-duration-150) var(--kn-ease-standard);
-  &:hover {
-    border-color: var(--kn-color-border-hover);
-    box-shadow: var(--kn-shadow-1);
-  }
-}
-
 @utility scrollbar-thin {
   scrollbar-width: thin;
   scrollbar-color: var(--color-scroll-thumb) var(--color-scroll-track);
@@ -219,80 +195,4 @@
   &::-webkit-scrollbar-thumb:hover {
     background: var(--color-scroll-thumb-hover);
   }
-}
-
-@utility kbd {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 1.25rem;
-  height: 1.25rem;
-  padding: 0 0.35rem;
-  border-radius: var(--kn-radius-xs);
-  border: 1px solid var(--border-strong);
-  background: var(--surface-2);
-  color: var(--muted-foreground);
-  font-family: var(--font-mono);
-  font-size: 10px;
-  line-height: 1;
-}
-
-@keyframes drawer-slide-in {
-  from {
-    transform: translateX(100%);
-  }
-  to {
-    transform: translateX(0);
-  }
-}
-@keyframes drawer-slide-out {
-  from {
-    transform: translateX(0);
-  }
-  to {
-    transform: translateX(100%);
-  }
-}
-@keyframes backdrop-fade-in {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
-@keyframes backdrop-fade-out {
-  from {
-    opacity: 1;
-  }
-  to {
-    opacity: 0;
-  }
-}
-
-@utility drawer-enter {
-  animation: drawer-slide-in var(--kn-duration-400) var(--kn-ease-entrance);
-}
-@utility drawer-exit {
-  animation: drawer-slide-out var(--kn-duration-300) var(--kn-ease-exit) forwards;
-}
-@utility backdrop-enter {
-  animation: backdrop-fade-in var(--kn-duration-200) var(--kn-ease-standard);
-}
-@utility backdrop-exit {
-  animation: backdrop-fade-out var(--kn-duration-150) var(--kn-ease-standard) forwards;
-}
-
-@keyframes popover-in {
-  from {
-    opacity: 0;
-    transform: translateY(-4px) scale(0.97);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
-}
-@utility popover-enter {
-  animation: popover-in var(--kn-duration-150) var(--kn-ease-entrance);
 }

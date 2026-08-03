@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/Button";
 import { login } from "@/features/auth/api/auth.api";
 import { loginSchema } from "@/features/auth/lib/login-schema";
 import { safeRedirectPath } from "@/features/auth/lib/require-auth";
-import { Input, usePasswordEndAction } from "@/features/incidents/components/incident-form-controls";
+import { Input, usePasswordEndAction } from "@/shared/components/form-controls";
 
 export function LoginPage({ redirectTo }: { redirectTo?: string }) {
   const [email, setEmail] = useState("");

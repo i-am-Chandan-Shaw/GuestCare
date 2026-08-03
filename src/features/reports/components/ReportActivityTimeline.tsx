@@ -55,16 +55,12 @@ export function ReportActivityTimeline({
 }: {
   entries: ReportThreadEntry[];
 }) {
-  const activity = useMemo(
-    () =>
-      entries
-        .filter((e) => e.type !== "comment")
-        .toSorted(
-          (a, b) =>
-            new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
-        ),
-    [entries],
-  );
+  const activity = useMemo(() => {
+    const filtered = entries.filter((e) => e.type !== "comment");
+    return filtered.sort(
+      (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+    );
+  }, [entries]);
 
   return (
     <section className="rounded-xl border border-border-color bg-card-bg p-5 sm:p-6 shadow-sm">

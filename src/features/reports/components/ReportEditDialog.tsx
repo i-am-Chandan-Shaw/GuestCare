@@ -8,7 +8,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Input, Select, Textarea } from "@/features/incidents/components/incident-form-controls";
+import { Input, Select, Textarea } from "@/shared/components/form-controls";
 import { REPORT_STATUS_LABELS } from "@/features/reports/lib/report-status";
 import { priorityMeta } from "@/shared/constants/agent";
 import { INCIDENT_TYPES } from "@/shared/constants/incident";
@@ -69,21 +69,7 @@ export function ReportEditDialog({
     setForm((current) => ({ ...current, [key]: value }));
   };
 
-  const handleSave = () => {
-    onSave({
-      callerName: form.callerName,
-      callerContact: form.callerContact,
-      reservationNumber: form.reservationNumber,
-      nameOnBooking: form.nameOnBooking,
-      issueName: form.issueName,
-      issueType: form.issueType,
-      priority: form.priority,
-      status: form.status,
-      callNotes: form.callNotes,
-      actionsTaken: form.actionsTaken,
-      version: form.version,
-    });
-  };
+  const handleSave = () => onSave(form);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>

@@ -1,40 +1,11 @@
 import { PictureInPicture2, X } from "lucide-react";
 import { useState } from "react";
-import { cn } from "@/lib/utils";
+import { DiscardDraftBanner } from "@/features/incidents/components/DiscardDraftBanner";
+import { HeaderIconButton } from "@/features/incidents/components/HeaderIconButton";
 import { IncidentForm } from "@/features/incidents/components/IncidentForm";
 import { useIncidentCompose } from "@/features/incidents/context/IncidentComposeProvider";
 import { formatIncidentTitle } from "@/features/incidents/lib/format-incident-title";
 import { useWorkspaceContext } from "@/features/workspace/context/WorkspaceProvider";
-
-function HeaderIconButton({
-  label,
-  onClick,
-  active = false,
-  children,
-}: {
-  label: string;
-  onClick: () => void;
-  active?: boolean;
-  children: React.ReactNode;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      title={label}
-      aria-label={label}
-      aria-pressed={active}
-      className={cn(
-        "rounded-md p-1.5 transition-colors",
-        active
-          ? "bg-brand-primary/15 text-brand-primary hover:bg-brand-primary/20"
-          : "text-muted-foreground hover:bg-surface hover:text-foreground",
-      )}
-    >
-      {children}
-    </button>
-  );
-}
 
 export function IncidentComposePopupPage({ alwaysOnTop = false }: { alwaysOnTop?: boolean }) {
   const { state: workspaceState } = useWorkspaceContext();
@@ -77,30 +48,15 @@ export function IncidentComposePopupPage({ alwaysOnTop = false }: { alwaysOnTop?
         </div>
       </header>
 
-      {confirmDiscard && (
-        <div className="flex shrink-0 items-center justify-between gap-2 border-b border-border bg-warning/10 px-3 py-2 text-[12px]">
-          <span className="text-foreground">Discard draft?</span>
-          <div className="flex gap-2">
-            <button
-              type="button"
-              onClick={() => setConfirmDiscard(false)}
-              className="rounded border border-border px-2 py-0.5 font-medium hover:bg-surface"
-            >
-              Keep editing
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                setConfirmDiscard(false);
-                actions.closeIncidentPanel();
-              }}
-              className="rounded bg-destructive px-2 py-0.5 font-medium text-destructive-foreground"
-            >
-              Discard
-            </button>
-          </div>
-        </div>
-      )}
+      {confirmDiscard ? (
+        <DiscardDraftBanner
+          onKeep={() => setConfirmDiscard(false)}
+          onDiscard={() => {
+            setConfirmDiscard(false);
+            actions.closeIncidentPanel();
+          }}
+        />
+      ) : null}
 
       <div className="min-h-0 flex-1 overflow-hidden">
         <IncidentForm

@@ -16,7 +16,7 @@ import type {
 import { IncidentPreview } from "./IncidentPreview";
 import { ProtocolProgressCard } from "./ProtocolProgressCard";
 import type { FormState } from "./incident-form.types";
-import { Input, Select, Textarea, useCopyEndAction } from "./incident-form-controls";
+import { Input, Select, Textarea, useCopyEndAction } from "@/shared/components/form-controls";
 
 function ClearFormConfirmBanner({
   onCancel,

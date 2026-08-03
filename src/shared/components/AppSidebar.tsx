@@ -1,4 +1,7 @@
 import { Link, useRouter, useRouterState } from "@tanstack/react-router";
+import { useMemo } from "react";
+import { canManageAgents } from "@/features/agents/lib/agent-permissions";
+import { toReportActor } from "@/features/reports/lib/report-scope";
 import { getAgentInitials, formatAgentRole } from "@/shared/lib/agent-display";
 import { readIncidentsNavSearch } from "@/features/workspace/lib/workspace-persistence";
 import { cn } from "@/lib/utils";
@@ -6,7 +9,7 @@ import { logout } from "@/features/auth/api/auth.api";
 import { useAuth } from "@/features/auth/hooks/useAuth";
 import { BarChart3, LayoutDashboard, UserCircle, LifeBuoy, LogOut } from "lucide-react";
 
-const nav = [
+const baseNav = [
   { id: "issues" as const, label: "Workspace", href: "/", icon: LayoutDashboard },
   { id: "reports" as const, label: "Reports", href: "/reports", icon: BarChart3 },
   { id: "agents" as const, label: "Agents", href: "/agents", icon: UserCircle },
@@ -24,6 +27,13 @@ export function AppSidebar() {
   const { agent } = useAuth();
   const active = useActiveNav();
   const incidentsSearch = readIncidentsNavSearch();
+  const nav = useMemo(
+    () =>
+      canManageAgents(toReportActor(agent))
+        ? baseNav
+        : baseNav.filter((item) => item.id !== "agents"),
+    [agent],
+  );
 
   const handleLogout = async () => {
     await logout();

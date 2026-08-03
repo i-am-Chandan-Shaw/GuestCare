@@ -19,7 +19,7 @@ export const getSessionFn = createServerFn({ method: "GET" }).handler(async () =
 export const loginFn = createServerFn({ method: "POST" })
   .validator(loginSchema)
   .handler(async ({ data }): Promise<AuthSession> => {
-    const user = findMockAuthUser(data.email, data.password);
+    const user = await findMockAuthUser(data.email, data.password);
     if (!user) {
       throw new Error("Invalid email or password");
     }

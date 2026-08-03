@@ -27,7 +27,7 @@ import {
   Input,
   Select,
   usePasswordEndAction,
-} from "@/features/incidents/components/incident-form-controls";
+} from "@/shared/components/form-controls";
 import { CUSTOMERS } from "@/data/mocks/customers.mock";
 import { cn } from "@/lib/utils";
 import { Avatar } from "@/shared/components/Avatar";
@@ -176,12 +176,6 @@ function SectionNav({
   );
 }
 
-function validateInfo(form: AgentFormValues, mode: "create" | "edit"): string | null {
-  if (!form.name.trim()) return "Full name is required.";
-  if (!form.email.trim() || !form.email.includes("@")) return "Enter a valid email address.";
-  return validateAgentPasswords(form, mode);
-}
-
 export function AgentFormDialog({
   open,
   mode,
@@ -197,10 +191,8 @@ export function AgentFormDialog({
   onOpenChange: (open: boolean) => void;
   onSaved: () => void;
 }) {
-  const roles = useMemo(() => creatableRoles(actor), [actor]);
+  const roles = creatableRoles(actor);
   const canAll = canGrantAllCustomers(actor);
-  const allowedCustomerIds = useMemo(() => assignableCustomerIds(actor), [actor]);
-
   const defaultRole = roles[0] ?? "user";
   const defaultScopeType = canAll ? "all" : "specific";
 
@@ -225,7 +217,8 @@ export function AgentFormDialog({
   const scrollingToSectionRef = useRef(false);
 
   const isEditingSelf = mode === "edit" && agentId === actor.id;
-  const showPasswordFields = mode === "create" || form.changePassword;
+  const isCreate = mode === "create";
+  const showPasswordFields = isCreate || form.changePassword;
   const customersDisabled = form.scopeType !== "specific";
   const passwordEndAction = usePasswordEndAction(showPassword, () =>
     setShowPassword((current) => !current),
@@ -257,7 +250,7 @@ export function AgentFormDialog({
       if (mode === "edit" && agentId) {
         setHydrating(true);
         try {
-          const agent = await getAgentById(agentId);
+          const agent = await getAgentById(agentId, actor);
           if (cancelled) return;
           if (!agent) {
             setError("Agent not found.");
@@ -289,11 +282,11 @@ export function AgentFormDialog({
   }, [open, mode, agentId, canAll, defaultRole, defaultScopeType]);
 
   const assignableCustomers = useMemo(() => {
-    const allowed = new Set(allowedCustomerIds);
+    const allowed = new Set(assignableCustomerIds(actor));
     return CUSTOMERS.filter((c) => allowed.has(c.id)).sort((a, b) =>
       a.name.localeCompare(b.name),
     );
-  }, [allowedCustomerIds]);
+  }, [actor]);
 
   const selectedCustomers = useMemo(() => {
     const selected = new Set(form.customerIds);
@@ -391,9 +384,19 @@ export function AgentFormDialog({
       return;
     }
 
-    const infoError = validateInfo(form, mode);
-    if (infoError) {
-      setError(infoError);
+    if (!form.name.trim()) {
+      setError("Full name is required.");
+      scrollToSection("info");
+      return;
+    }
+    if (!form.email.trim() || !form.email.includes("@")) {
+      setError("Enter a valid email address.");
+      scrollToSection("info");
+      return;
+    }
+    const passwordError = validateAgentPasswords(form, mode);
+    if (passwordError) {
+      setError(passwordError);
       scrollToSection("info");
       return;
     }
@@ -404,32 +407,24 @@ export function AgentFormDialog({
       return;
     }
 
-    const customerScope = formValuesToCustomerScope(form);
+    const shared = {
+      name: form.name,
+      email: form.email,
+      role: form.role,
+      isActive: form.isActive,
+      customerScope: formValuesToCustomerScope(form),
+    };
 
     setLoading(true);
     try {
-      if (mode === "create") {
-        await createAgent(
-          {
-            name: form.name,
-            email: form.email,
-            role: form.role,
-            isActive: form.isActive,
-            customerScope,
-            password: form.password,
-          },
-          actor,
-        );
+      if (isCreate) {
+        await createAgent({ ...shared, password: form.password }, actor);
         toast.success("Agent created");
       } else if (agentId) {
         await updateAgent(
           agentId,
           {
-            name: form.name,
-            email: form.email,
-            role: form.role,
-            isActive: form.isActive,
-            customerScope,
+            ...shared,
             password: form.changePassword ? form.password : undefined,
           },
           actor,
@@ -450,10 +445,10 @@ export function AgentFormDialog({
       <DialogContent className="flex h-[min(92vh,820px)] max-h-[min(92vh,820px)] max-w-3xl flex-col gap-0 overflow-hidden p-0 sm:rounded-xl">
         <DialogHeader className="shrink-0 space-y-0 border-b border-border-color px-6 py-5 text-left">
           <DialogTitle className="text-[18px] font-bold tracking-tight text-text-primary">
-            {mode === "create" ? "Add agent" : "Edit agent"}
+            {isCreate ? "Add agent" : "Edit agent"}
           </DialogTitle>
           <DialogDescription className="text-[13px] text-text-secondary">
-            {mode === "create"
+            {isCreate
               ? "Create a new agent and define their access."
               : "Update this agent’s details and access."}
           </DialogDescription>
@@ -508,7 +503,7 @@ export function AgentFormDialog({
                     </div>
 
                     <div className="space-y-3 border-t border-border-color pt-4">
-                      {mode === "edit" && !form.changePassword ? (
+                      {!isCreate && !form.changePassword ? (
                         <div className="flex justify-end">
                           <button
                             type="button"
@@ -528,7 +523,7 @@ export function AgentFormDialog({
 
                       {showPasswordFields ? (
                         <>
-                          {mode === "edit" ? (
+                          {!isCreate ? (
                             <div className="flex justify-end">
                               <button
                                 type="button"
@@ -547,7 +542,7 @@ export function AgentFormDialog({
                           ) : null}
                           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                             <Input
-                              label={mode === "create" ? "Password" : "New password"}
+                              label={isCreate ? "Password" : "New password"}
                               type={showPassword ? "text" : "password"}
                               value={form.password}
                               onChange={(v) => patch({ password: v })}
@@ -766,7 +761,7 @@ export function AgentFormDialog({
                 loading={loading}
                 disabled={hydrating || roles.length === 0}
               >
-                {mode === "create" ? (
+                {isCreate ? (
                   <>
                     <UserPlus className="h-5 w-5" strokeWidth={2} />
                     Create agent

@@ -102,10 +102,14 @@ export function ServerPaginatedTable<TData>({
     [datasource],
   );
 
-  const overlayNoRowsTemplate = useMemo(
-    () => `<span class="ag-overlay-no-rows-center">${emptyMessage}</span>`,
-    [emptyMessage],
-  );
+  const overlayNoRowsTemplate = useMemo(() => {
+    const safe = emptyMessage
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;");
+    return `<span class="ag-overlay-no-rows-center">${safe}</span>`;
+  }, [emptyMessage]);
 
   if (!mounted) {
     return (

@@ -1,42 +1,14 @@
 import { Maximize2, Minus, PictureInPicture2, X } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
+import { DiscardDraftBanner } from "@/features/incidents/components/DiscardDraftBanner";
+import { HeaderIconButton } from "@/features/incidents/components/HeaderIconButton";
 import { IncidentForm } from "@/features/incidents/components/IncidentForm";
 import { isDocumentPipSupported } from "@/features/incidents/lib/incident-pip";
 import type { IncidentPanelMode } from "@/features/incidents/lib/incident-window-sync";
 import { formatIncidentTitle } from "@/features/incidents/lib/format-incident-title";
 import type { Customer, Issue, Property } from "@/shared/types";
 import type { FormState } from "@/features/incidents/components/incident-form.types";
-
-function HeaderIconButton({
-  label,
-  onClick,
-  active = false,
-  children,
-}: {
-  label: string;
-  onClick: () => void;
-  active?: boolean;
-  children: React.ReactNode;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      title={label}
-      aria-label={label}
-      aria-pressed={active}
-      className={cn(
-        "rounded-md p-1.5 transition-colors",
-        active
-          ? "bg-brand-primary/15 text-brand-primary hover:bg-brand-primary/20"
-          : "text-muted-foreground hover:bg-surface hover:text-foreground",
-      )}
-    >
-      {children}
-    </button>
-  );
-}
 
 export function IncidentComposeWindow({
   mode,
@@ -84,11 +56,6 @@ export function IncidentComposeWindow({
     onRequestClose();
   };
 
-  const confirmClose = () => {
-    setConfirmDiscard(false);
-    onRequestClose();
-  };
-
   return (
     <div
       className={cn(
@@ -128,29 +95,17 @@ export function IncidentComposeWindow({
         </div>
       </header>
 
-      {confirmDiscard && (
-        <div className="flex shrink-0 items-center justify-between gap-2 border-b border-border bg-warning/10 px-3 py-2 text-[12px]">
-          <span className="text-foreground">Discard draft?</span>
-          <div className="flex gap-2">
-            <button
-              type="button"
-              onClick={() => setConfirmDiscard(false)}
-              className="rounded border border-border px-2 py-0.5 font-medium hover:bg-surface"
-            >
-              Keep editing
-            </button>
-            <button
-              type="button"
-              onClick={confirmClose}
-              className="rounded bg-destructive px-2 py-0.5 font-medium text-destructive-foreground"
-            >
-              Discard
-            </button>
-          </div>
-        </div>
-      )}
+      {confirmDiscard ? (
+        <DiscardDraftBanner
+          onKeep={() => setConfirmDiscard(false)}
+          onDiscard={() => {
+            setConfirmDiscard(false);
+            onRequestClose();
+          }}
+        />
+      ) : null}
 
-      {!isMinimized && (
+      {!isMinimized ? (
         <div className="min-h-0 flex-1 overflow-hidden">
           <IncidentForm
             embedded
@@ -164,7 +119,7 @@ export function IncidentComposeWindow({
             isSubmitting={isSubmitting}
           />
         </div>
-      )}
+      ) : null}
     </div>
   );
 }

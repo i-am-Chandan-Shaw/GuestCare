@@ -1,4 +1,5 @@
 import { getRequestHeader, setResponseHeader } from "@tanstack/react-start/server";
+import { findAgentById } from "@/features/agents/lib/agent-store";
 import { normalizeSessionAgent } from "@/features/auth/lib/normalize-agent";
 import type { Agent } from "@/shared/types/agent";
 import type { AuthSession } from "@/features/auth/types";
@@ -6,7 +7,15 @@ import type { AuthSession } from "@/features/auth/types";
 const COOKIE = "gc_session";
 const MAX_AGE_SECONDS = 8 * 60 * 60;
 
-interface SessionPayload {
+interface SlimSessionPayload {
+  userId: string;
+  email: string;
+  agentId: string;
+  exp: number;
+}
+
+/** Legacy cookies that embedded a full Agent object. */
+interface LegacySessionPayload {
   userId: string;
   email: string;
   agent: Agent;
@@ -14,7 +23,13 @@ interface SessionPayload {
 }
 
 function getSecret() {
-  return process.env.AUTH_SECRET ?? "dev-only-guestcare-auth-secret-min-32-chars!!";
+  const secret = process.env.AUTH_SECRET;
+  if (!secret) {
+    throw new Error(
+      "AUTH_SECRET is required. Copy .env.example to .env and set a value (≥32 chars).",
+    );
+  }
+  return secret;
 }
 
 function secureSuffix() {
@@ -59,7 +74,7 @@ async function hmacVerify(value: string, signature: string): Promise<boolean> {
   return crypto.subtle.verify(
     "HMAC",
     key,
-    fromBase64Url(signature),
+    Uint8Array.from(fromBase64Url(signature)),
     new TextEncoder().encode(value),
   );
 }
@@ -93,15 +108,27 @@ export function clearSessionCookie() {
 }
 
 export async function createSessionToken(session: AuthSession): Promise<string> {
-  const payload: SessionPayload = {
+  const payload: SlimSessionPayload = {
     userId: session.userId,
     email: session.email,
-    agent: session.agent,
+    agentId: session.agent.id,
     exp: Date.now() + MAX_AGE_SECONDS * 1000,
   };
   const encoded = toBase64Url(new TextEncoder().encode(JSON.stringify(payload)));
   const signature = await hmacSign(encoded);
   return `${encoded}.${signature}`;
+}
+
+function resolveAgentFromPayload(
+  payload: SlimSessionPayload | LegacySessionPayload,
+): Agent | null {
+  if ("agentId" in payload && typeof payload.agentId === "string") {
+    return findAgentById(payload.agentId) ?? null;
+  }
+  if ("agent" in payload) {
+    return normalizeSessionAgent(payload.agent);
+  }
+  return null;
 }
 
 export async function parseSessionToken(token: string): Promise<AuthSession | null> {
@@ -115,13 +142,13 @@ export async function parseSessionToken(token: string): Promise<AuthSession | nu
   try {
     const payload = JSON.parse(
       new TextDecoder().decode(fromBase64Url(encoded)),
-    ) as SessionPayload;
+    ) as SlimSessionPayload | LegacySessionPayload;
 
-    if (!payload.userId || !payload.email || !payload.agent) return null;
+    if (!payload.userId || !payload.email) return null;
     if (payload.exp <= Date.now()) return null;
 
-    const agent = normalizeSessionAgent(payload.agent);
-    if (!agent) return null;
+    const agent = resolveAgentFromPayload(payload);
+    if (!agent || !agent.isActive) return null;
 
     return {
       userId: payload.userId,

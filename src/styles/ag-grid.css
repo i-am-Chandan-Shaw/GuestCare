@@ -5,7 +5,7 @@
   --ag-foreground-color: var(--color-text-primary);
   --ag-background-color: var(--color-card-bg);
   --ag-odd-row-background-color: rgba(247, 248, 250, 0.55);
-  --ag-row-hover-color: rgba(0, 123, 255, 0.04);
+  --ag-row-hover-color: color-mix(in srgb, var(--kn-color-brand-primary, #00b189) 8%, transparent);
   --ag-border-color: var(--color-grid-divider);
   --ag-header-background-color: var(--color-grid-header-bg);
   width: 100%;

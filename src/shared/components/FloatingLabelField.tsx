@@ -68,15 +68,16 @@ function FloatingShell({
   const autoId = useId();
   const id = idProp ?? autoId;
   const [focused, setFocused] = useState(false);
+  const locked = Boolean(disabled || readOnly);
   const hasValue = value.trim().length > 0;
-  const floated = alwaysFloat || hasValue || focused;
+  const floated = alwaysFloat || hasValue || (!locked && focused);
 
   return (
     <div
       className={cn(
         "relative overflow-hidden rounded-[var(--kn-radius-lg)] border border-input-border bg-card-bg transition-colors duration-150",
-        "focus-within:border-input-border-focus",
-        (disabled || readOnly) && "bg-app-bg/60",
+        !locked && "focus-within:border-input-border-focus",
+        locked && "cursor-not-allowed bg-app-bg/60",
         disabled && "opacity-60",
         className,
       )}
@@ -94,7 +95,9 @@ function FloatingShell({
       </label>
       {children({
         id,
-        onFocus: () => setFocused(true),
+        onFocus: () => {
+          if (!locked) setFocused(true);
+        },
         onBlur: () => setFocused(false),
         className: cn(
           "w-full bg-transparent text-[13px] text-text-primary outline-none",
@@ -102,8 +105,7 @@ function FloatingShell({
           floated ? "pb-2.5 pt-5" : "py-3",
           endAction ? "pr-11" : "pr-3",
           "pl-3",
-          readOnly && "cursor-default text-text-secondary",
-          disabled && "cursor-not-allowed",
+          locked && "cursor-not-allowed text-text-secondary",
         ),
       })}
       {endAction ? (

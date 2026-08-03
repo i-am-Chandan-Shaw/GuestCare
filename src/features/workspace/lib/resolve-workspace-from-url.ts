@@ -1,14 +1,15 @@
 import { getCustomerById, getPropertyById } from "@/features/customers/api/customers.api";
 import { getIssueById } from "@/features/copilot/api/protocols.api";
 import type { FormState } from "@/features/incidents/components/incident-form.types";
+import type { WorkspaceChecklistState } from "@/features/workspace/context/workspace.types";
 import type { WorkspacePhase } from "@/features/workspace/lib/workspace-state";
 import type { WorkspaceSearch } from "@/features/workspace/lib/workspace-url";
 import type { Customer, Issue, Property } from "@/shared/types";
 
-const emptyChecklistPatch = {
-  checked: {} as Record<string, boolean>,
-  verificationChecked: {} as Record<string, boolean>,
-  outcome: null as "resolve" | "escalate" | null,
+const emptyChecklistPatch: WorkspaceChecklistState = {
+  checked: {},
+  verificationChecked: {},
+  outcome: null,
 };
 
 export type WorkspaceSyncPatch = {

@@ -3,7 +3,8 @@ import type { LoginInput } from "@/features/auth/lib/login-schema";
 import type { AuthSession } from "@/features/auth/types";
 
 let cachedSession: { value: AuthSession | null; ts: number } | null = null;
-const CACHE_TTL_MS = 5 * 60 * 1000;
+/** Short client cache; login/logout always replace/clear. */
+const CACHE_TTL_MS = 30 * 1000;
 
 function isCacheValid(): boolean {
   if (!cachedSession) return false;
@@ -11,7 +12,6 @@ function isCacheValid(): boolean {
   return Date.now() - cachedSession.ts < CACHE_TTL_MS;
 }
 
-/** Client auth entry point. Swap this file when wiring a real API. */
 export async function getSession(): Promise<AuthSession | null> {
   if (isCacheValid()) return cachedSession!.value;
   const session = await getSessionFn();

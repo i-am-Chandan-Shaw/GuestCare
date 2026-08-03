@@ -1,23 +1,18 @@
 import { z } from "zod";
-import { CUSTOMERS } from "@/data/mock";
-import { DEFAULT_AGENT_ID } from "@/data/agents.seed";
-import { findAgentById, findAgentByName } from "@/features/agents/lib/agent-store";
+import { CUSTOMERS } from "@/data/mocks/customers.mock";
 import {
   __getReportStoreSnapshot,
   createReport,
-  getReportsPaginated,
 } from "@/features/reports/api/reports.api";
 import { reportToIncidentLog } from "@/features/reports/lib/report-legacy";
 import { mapLegacyIncidentStatus } from "@/features/reports/lib/report-status";
-import { toReportActor } from "@/features/reports/lib/report-scope";
 import type {
   CreateIncidentInput,
   IncidentLog,
   IncidentLogFilters,
-  IncidentLogsQuery,
   IncidentStatus,
-  PaginatedIncidentLogs,
 } from "@/shared/types";
+import type { ReportActor } from "@/shared/types/agent";
 
 const createIncidentSchema = z.object({
   callerName: z.string(),
@@ -34,8 +29,10 @@ const createIncidentSchema = z.object({
   propertyId: z.string().optional(),
   propertyLabel: z.string().optional(),
   protocolIssueId: z.string().optional(),
-  agentName: z.string().min(1),
-  submittedBy: z.string().min(1),
+  /** @deprecated Ignored — actor comes from session. */
+  agentName: z.string().optional(),
+  /** @deprecated Ignored — actor comes from session. */
+  submittedBy: z.string().optional(),
 });
 
 function resolveCustomerIdForProperty(propertyId?: string): string | undefined {
@@ -80,61 +77,17 @@ export async function getIncidentLogs(filters: IncidentLogFilters = {}): Promise
   return getIncidentLogsFromStore(filters);
 }
 
-export async function getIncidentLogsPaginated(
-  query: IncidentLogsQuery,
-): Promise<PaginatedIncidentLogs> {
-  const { page, limit, search = "", status = "all", customerId } = query;
-
-  const reportStatus =
-    status === "open"
-      ? ("OPEN" as const)
-      : status === "resolved"
-        ? ("RESOLVED" as const)
-        : status === "all"
-          ? "all"
-          : undefined;
-
-  const result = await getReportsPaginated({
-    page,
-    limit,
-    search,
-    statuses:
-      reportStatus === "OPEN" || reportStatus === "RESOLVED" ? [reportStatus] : undefined,
-    customerId,
-  });
-
-  if (status === "open") {
-    const filtered = result.data.filter((r) => r.status !== "RESOLVED");
-    return {
-      data: filtered.map((item) =>
-        reportToIncidentLog(__getReportStoreSnapshot().find((r) => r.id === item.id)!),
-      ),
-      pagination: {
-        ...result.pagination,
-        total: filtered.length,
-        totalPages: Math.max(1, Math.ceil(filtered.length / limit)),
-      },
-    };
-  }
-
-  return {
-    data: result.data.map((item) =>
-      reportToIncidentLog(__getReportStoreSnapshot().find((r) => r.id === item.id)!),
-    ),
-    pagination: result.pagination,
-  };
-}
-
-export async function countOpenIncidents(filters: IncidentLogFilters = {}): Promise<number> {
-  const logs = await getIncidentLogs(filters);
-  return logs.filter((log) => log.status !== "Resolved").length;
-}
-
-export async function createIncident(input: CreateIncidentInput): Promise<IncidentLog> {
+export async function createIncident(
+  input: CreateIncidentInput,
+  actor: ReportActor,
+): Promise<IncidentLog> {
   const parsed = createIncidentSchema.parse(input);
-  const agent =
-    findAgentByName(parsed.agentName) ?? findAgentById(DEFAULT_AGENT_ID)!;
-  const actor = toReportActor(agent);
+
+  const customerId =
+    parsed.customerId ?? resolveCustomerIdForProperty(parsed.propertyId);
+  if (!customerId) {
+    throw new Error("A customer is required to create an incident.");
+  }
 
   const report = await createReport(
     {
@@ -142,7 +95,7 @@ export async function createIncident(input: CreateIncidentInput): Promise<Incide
       issueType: parsed.incidentType,
       priority: parsed.priority,
       status: mapLegacyIncidentStatus(parsed.status as IncidentStatus),
-      customerId: parsed.customerId ?? resolveCustomerIdForProperty(parsed.propertyId) ?? CUSTOMERS[0]!.id,
+      customerId,
       propertyId: parsed.propertyId,
       callerName: parsed.callerName,
       callerContact: parsed.callerContact,

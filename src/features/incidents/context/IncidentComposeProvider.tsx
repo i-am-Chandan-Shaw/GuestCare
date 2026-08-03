@@ -28,8 +28,6 @@ import {
   watchIncidentPopupClosed,
 } from "@/features/incidents/lib/incident-window-sync";
 import { useCreateIncidentMutation } from "@/features/incidents/hooks/useIncidents";
-import { useAuth } from "@/features/auth/hooks/useAuth";
-import { getAgentHandle } from "@/shared/lib/agent-display";
 import { useWorkspaceContext } from "@/features/workspace/context/WorkspaceProvider";
 import {
   clearPersistedCompose,
@@ -47,7 +45,6 @@ const IncidentComposeContext = createContext<IncidentComposeContextValue | null>
 
 export function IncidentComposeProvider({ children, syncRef }: IncidentComposeProviderProps) {
   const workspace = useWorkspaceContext();
-  const { agent } = useAuth();
   const { selection, checklist } = workspace.state;
   const { customer, property, issue } = selection;
   const { outcome } = checklist;
@@ -263,10 +260,10 @@ export function IncidentComposeProvider({ children, syncRef }: IncidentComposePr
       propertyId: property?.id,
       propertyLabel: property?.name,
       protocolIssueId: issue?.id,
-      agentName: agent.name,
-      submittedBy: getAgentHandle(agent),
+      agentName: "",
+      submittedBy: "",
     });
-  }, [createIncident, form, customer, property, issue, agent]);
+  }, [createIncident, form, customer, property, issue]);
 
   useEffect(() => {
     if (!issue) return;
@@ -333,19 +330,17 @@ export function IncidentComposeProvider({ children, syncRef }: IncidentComposePr
 
   useEffect(() => {
     applyRemotePatchRef.current = applyRemotePatch;
-  }, [applyRemotePatch]);
-  useEffect(() => {
     applyRemoteSnapshotRef.current = applyRemoteSnapshot;
-  }, [applyRemoteSnapshot]);
-  useEffect(() => {
     buildSnapshotRef.current = buildSnapshot;
-  }, [buildSnapshot]);
-  useEffect(() => {
     closeDetachedWindowRef.current = closeDetachedWindow;
-  }, [closeDetachedWindow]);
-  useEffect(() => {
     clearComposeStateRef.current = clearComposeState;
-  }, [clearComposeState]);
+  }, [
+    applyRemotePatch,
+    applyRemoteSnapshot,
+    buildSnapshot,
+    closeDetachedWindow,
+    clearComposeState,
+  ]);
 
   useEffect(() => {
     const sync = syncRef.current;
@@ -468,14 +463,18 @@ export function IncidentComposeProvider({ children, syncRef }: IncidentComposePr
   );
 }
 
-/** Incident panel UI: form state, PiP window, and submit. */
-export function useIncidentCompose() {
+function useIncidentComposeContext() {
   const ctx = use(IncidentComposeContext);
   if (!ctx) {
     throw new Error("useIncidentCompose must be used within IncidentComposeProvider.");
   }
+  return ctx;
+}
 
-  const { state, actions, meta } = ctx;
+export function useIncidentCompose() {
+  return useIncidentComposeContext();
+}
 
-  return { state, actions, meta };
+export function useIncidentComposeActions() {
+  return useIncidentComposeContext().actions;
 }

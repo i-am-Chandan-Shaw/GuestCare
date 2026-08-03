@@ -6,6 +6,7 @@ import { copyText } from "@/lib/copy-to-clipboard";
 import { Chip, Tabs } from "@/shared/components/ui-kit";
 import { priorityMeta } from "@/shared/constants/agent";
 import { useGlobalContact } from "@/features/copilot/hooks/useProtocolData";
+import { useIncidentComposeActions } from "@/features/incidents/context/IncidentComposeProvider";
 import { useIncidentLogs } from "@/features/incidents/hooks/useIncidents";
 import type { Issue, Property } from "@/shared/types";
 import {
@@ -74,6 +75,7 @@ export function IssuePanel({
   const [wifiCopied, setWifiCopied] = useState(false);
   const [accessCopied, setAccessCopied] = useState(false);
 
+  const { openIncidentPanel } = useIncidentComposeActions();
   const { data: globalContact } = useGlobalContact(issue?.escalationContactId);
   const { data: incidentLogs = [] } = useIncidentLogs(
     { propertyId: property?.id, limit: 20 },
@@ -244,6 +246,7 @@ export function IssuePanel({
               setStepExpanded={setStepExpanded}
               outcome={outcome}
               setOutcome={setOutcome}
+              onOutcomeSelected={() => openIncidentPanel("expanded")}
             />
           )}
           {activeTab === "escalations" && (

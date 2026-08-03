@@ -8,27 +8,27 @@ import {
   useRef,
   type ReactNode,
 } from "react";
+import { getIssueById } from "@/features/copilot/api/protocols.api";
+import { getCustomerById, getPropertyById } from "@/features/customers/api/customers.api";
 import { IncidentComposeProvider } from "@/features/incidents/context/IncidentComposeProvider";
 import { createIncidentWindowSync } from "@/features/incidents/lib/incident-window-sync";
-import { type WorkspacePhase } from "@/features/workspace/lib/workspace-state";
+import type {
+  WorkspaceActions,
+  WorkspaceChecklistState,
+  WorkspaceSelectionState,
+} from "@/features/workspace/context/workspace.types";
 import {
   resolveWorkspaceFromUrl,
   type WorkspaceSyncPatch,
 } from "@/features/workspace/lib/resolve-workspace-from-url";
+import { type WorkspacePhase } from "@/features/workspace/lib/workspace-state";
 import type { WorkspaceSearch } from "@/features/workspace/lib/workspace-url";
 import {
   clearPersistedWorkspace,
   readPersistedWorkspace,
   writePersistedWorkspace,
 } from "@/features/workspace/lib/workspace-persistence";
-import type {
-  WorkspaceActions,
-  WorkspaceChecklistState,
-  WorkspaceSelectionState,
-} from "@/features/workspace/context/workspace.types";
 import type { Customer, Issue, Property } from "@/shared/types";
-import { getCustomerById, getPropertyById } from "@/features/customers/api/customers.api";
-import { getIssueById } from "@/features/copilot/api/protocols.api";
 
 export type { WorkspacePhase };
 
@@ -71,18 +71,17 @@ function checklistReducer(
   return { ...state, ...action.payload };
 }
 
+type WorkspaceRemoteSnapshot = {
+  phase: WorkspacePhase;
+  customerId: string | null;
+  propertyId: string | null;
+  issueId: string | null;
+} & WorkspaceChecklistState;
+
 type WorkspaceInternalActions = WorkspaceActions & {
   resetChecklist: () => void;
   applyRemotePatch: (patch: WorkspaceSyncPatch & { phase?: WorkspacePhase }) => Promise<void>;
-  applyRemoteSnapshot: (snapshot: {
-    phase: WorkspacePhase;
-    customerId: string | null;
-    propertyId: string | null;
-    issueId: string | null;
-    checked: Record<string, boolean>;
-    verificationChecked: Record<string, boolean>;
-    outcome: "resolve" | "escalate" | null;
-  }) => Promise<void>;
+  applyRemoteSnapshot: (snapshot: WorkspaceRemoteSnapshot) => Promise<void>;
 };
 
 type WorkspaceInternalContextValue = {
@@ -176,51 +175,40 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
     [selection.customer?.id],
   );
 
-  const applyRemoteSnapshot = useCallback(
-    async (snapshot: {
-      phase: WorkspacePhase;
-      customerId: string | null;
-      propertyId: string | null;
-      issueId: string | null;
-      checked: Record<string, boolean>;
-      verificationChecked: Record<string, boolean>;
-      outcome: "resolve" | "escalate" | null;
-    }) => {
-      isRemoteUpdate.current = true;
-      try {
-        const nextCustomer = snapshot.customerId
-          ? await getCustomerById(snapshot.customerId)
-          : null;
+  const applyRemoteSnapshot = useCallback(async (snapshot: WorkspaceRemoteSnapshot) => {
+    isRemoteUpdate.current = true;
+    try {
+      const nextCustomer = snapshot.customerId
+        ? await getCustomerById(snapshot.customerId)
+        : null;
 
-        const nextProperty =
-          snapshot.propertyId && nextCustomer ? await getPropertyById(snapshot.propertyId) : null;
+      const nextProperty =
+        snapshot.propertyId && nextCustomer ? await getPropertyById(snapshot.propertyId) : null;
 
-        const nextIssue = snapshot.issueId ? await getIssueById(snapshot.issueId) : null;
+      const nextIssue = snapshot.issueId ? await getIssueById(snapshot.issueId) : null;
 
-        dispatchSelection({
-          type: "SET",
-          payload: {
-            phase: snapshot.phase,
-            customer: nextCustomer,
-            property: nextProperty,
-            issue: nextIssue,
-          },
-        });
+      dispatchSelection({
+        type: "SET",
+        payload: {
+          phase: snapshot.phase,
+          customer: nextCustomer,
+          property: nextProperty,
+          issue: nextIssue,
+        },
+      });
 
-        dispatchChecklist({
-          type: "SET",
-          payload: {
-            checked: snapshot.checked,
-            verificationChecked: snapshot.verificationChecked,
-            outcome: snapshot.outcome,
-          },
-        });
-      } finally {
-        isRemoteUpdate.current = false;
-      }
-    },
-    [],
-  );
+      dispatchChecklist({
+        type: "SET",
+        payload: {
+          checked: snapshot.checked,
+          verificationChecked: snapshot.verificationChecked,
+          outcome: snapshot.outcome,
+        },
+      });
+    } finally {
+      isRemoteUpdate.current = false;
+    }
+  }, []);
 
   const selectCustomer = useCallback(
     (next: Customer) => {
@@ -377,6 +365,16 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
       }
 
       const resolution = await resolveWorkspaceFromUrl(search);
+      const persisted = readPersistedWorkspace();
+      const sameEntities =
+        !!persisted &&
+        persisted.customerId === (resolution.customer?.id ?? null) &&
+        (persisted.propertyId ?? null) === (resolution.property?.id ?? null) &&
+        (persisted.issueId ?? null) === (resolution.issue?.id ?? null);
+
+      const nextChecked = sameEntities ? persisted.checked : {};
+      const nextVerification = sameEntities ? persisted.verificationChecked : {};
+      const nextOutcome = sameEntities ? persisted.outcome : null;
 
       dispatchSelection({
         type: "SET",
@@ -387,8 +385,24 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
           issue: resolution.issue,
         },
       });
-      dispatchChecklist({ type: "RESET" });
-      broadcastPatch(resolution.syncPatch);
+      if (sameEntities) {
+        dispatchChecklist({
+          type: "PATCH",
+          payload: {
+            checked: nextChecked,
+            verificationChecked: nextVerification,
+            outcome: nextOutcome,
+          },
+        });
+      } else {
+        dispatchChecklist({ type: "RESET" });
+      }
+      broadcastPatch({
+        ...resolution.syncPatch,
+        checked: nextChecked,
+        verificationChecked: nextVerification,
+        outcome: nextOutcome,
+      });
 
       if (resolution.customer) {
         writePersistedWorkspace({
@@ -396,9 +410,9 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
           customerId: resolution.customer.id,
           propertyId: resolution.property?.id ?? null,
           issueId: resolution.issue?.id ?? null,
-          checked: {},
-          verificationChecked: {},
-          outcome: null,
+          checked: nextChecked,
+          verificationChecked: nextVerification,
+          outcome: nextOutcome,
         });
       }
     },
@@ -407,13 +421,8 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
 
   const toggleStep = useCallback(
     (id: string) => {
-      dispatchChecklist({
-        type: "PATCH",
-        payload: {
-          checked: { ...checklist.checked, [id]: !checklist.checked[id] },
-        },
-      });
       const next = { ...checklist.checked, [id]: !checklist.checked[id] };
+      dispatchChecklist({ type: "PATCH", payload: { checked: next } });
       broadcastPatch({ checked: next });
     },
     [broadcastPatch, checklist.checked],
@@ -506,7 +515,6 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
   );
 }
 
-/** Call flow: customer/property/issue selection and protocol checklist. */
 export function useWorkspaceContext() {
   const ctx = use(WorkspaceContext);
   if (!ctx) {
@@ -514,5 +522,3 @@ export function useWorkspaceContext() {
   }
   return ctx;
 }
-
-export { isIncidentFormDirty } from "@/features/incidents/lib/incident-form-baseline";

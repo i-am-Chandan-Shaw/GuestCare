@@ -174,11 +174,6 @@ export interface PropertySummary extends Property {
   lastIssue?: Omit<LastIssueSummary, "propertyLabel">;
 }
 
-export interface SuggestedIssue {
-  issue: Issue;
-  reason: "recent" | "history" | "frequent";
-}
-
 export interface CreateIncidentInput {
   callerName: string;
   callerContact: string;
@@ -194,8 +189,10 @@ export interface CreateIncidentInput {
   propertyId?: string;
   propertyLabel?: string;
   protocolIssueId?: string;
-  agentName: string;
-  submittedBy: string;
+  /** @deprecated Ignored — identity comes from session actor. */
+  agentName?: string;
+  /** @deprecated Ignored — identity comes from session actor. */
+  submittedBy?: string;
 }
 
 export interface IncidentLogFilters {
@@ -203,51 +200,6 @@ export interface IncidentLogFilters {
   propertyId?: string;
   protocolIssueId?: string;
   limit?: number;
-}
-
-export type IncidentReportStatusFilter = "all" | "open" | "resolved";
-
-export interface IncidentLogsQuery {
-  page: number;
-  limit: number;
-  search?: string;
-  status?: IncidentReportStatusFilter;
-  customerId?: string;
-}
-
-export interface PaginatedIncidentLogs {
-  data: IncidentLog[];
-  pagination: {
-    page: number;
-    limit: number;
-    total: number;
-    totalPages: number;
-  };
-}
-
-export interface AgentProfile {
-  id: string;
-  name: string;
-  handle: string;
-  initials: string;
-  role: string;
-  shift: string;
-}
-
-export interface AgentsQuery {
-  page: number;
-  limit: number;
-  search?: string;
-}
-
-export interface PaginatedAgents {
-  data: AgentProfile[];
-  pagination: {
-    page: number;
-    limit: number;
-    total: number;
-    totalPages: number;
-  };
 }
 
 export function protocolToIncidentType(category: string): IncidentType {

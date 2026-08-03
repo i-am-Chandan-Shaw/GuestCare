@@ -1,4 +1,5 @@
-import { AGENT_DEV_PASSWORDS, AGENT_SEED } from "@/data/agents.seed";
+import { AGENT_DEV_PASSWORD_HASHES, AGENT_SEED } from "@/data/agents.seed";
+import { hashPassword } from "@/features/auth/lib/password";
 import { nowIso } from "@/shared/lib/datetime";
 import type {
   Agent,
@@ -20,7 +21,7 @@ function cloneAgent(agent: Agent): Agent {
 }
 
 let agentStore: Agent[] = AGENT_SEED.map(cloneAgent);
-let passwordStore: Record<string, string> = { ...AGENT_DEV_PASSWORDS };
+let passwordHashStore: Record<string, string> = { ...AGENT_DEV_PASSWORD_HASHES };
 let agentIdCounter = AGENT_SEED.length + 1;
 
 export function listAgents(): Agent[] {
@@ -43,12 +44,12 @@ export function findAgentByName(name: string): Agent | undefined {
   return agent ? cloneAgent(agent) : undefined;
 }
 
-export function getAgentPassword(agentId: string): string | undefined {
-  return passwordStore[agentId];
+export function getAgentPasswordHash(agentId: string): string | undefined {
+  return passwordHashStore[agentId];
 }
 
-export function setAgentPassword(agentId: string, password: string): void {
-  passwordStore[agentId] = password;
+export async function setAgentPassword(agentId: string, password: string): Promise<void> {
+  passwordHashStore[agentId] = await hashPassword(password);
 }
 
 function nextAgentId(): string {
@@ -57,7 +58,7 @@ function nextAgentId(): string {
   return id;
 }
 
-export function insertAgent(input: CreateAgentInput): Agent {
+export async function insertAgent(input: CreateAgentInput): Promise<Agent> {
   const now = nowIso();
   const agent: Agent = {
     id: nextAgentId(),
@@ -70,11 +71,11 @@ export function insertAgent(input: CreateAgentInput): Agent {
     updatedAt: now,
   };
   agentStore.push(agent);
-  passwordStore[agent.id] = input.password;
+  passwordHashStore[agent.id] = await hashPassword(input.password);
   return cloneAgent(agent);
 }
 
-export function patchAgent(id: string, input: UpdateAgentInput): Agent | null {
+export async function patchAgent(id: string, input: UpdateAgentInput): Promise<Agent | null> {
   const index = agentStore.findIndex((a) => a.id === id);
   if (index < 0) return null;
 
@@ -91,7 +92,7 @@ export function patchAgent(id: string, input: UpdateAgentInput): Agent | null {
   agentStore[index] = updated;
 
   if (input.password && input.password.trim()) {
-    passwordStore[id] = input.password;
+    passwordHashStore[id] = await hashPassword(input.password);
   }
 
   return cloneAgent(updated);

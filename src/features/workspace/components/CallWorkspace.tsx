@@ -4,7 +4,7 @@ import { LockedHeader } from "@/features/workspace/components/LockedHeader";
 import { CustomerBrowsePhase } from "@/features/workspace/components/CustomerBrowsePhase";
 import { CustomerLockedPhase } from "@/features/workspace/components/CustomerLockedPhase";
 import { ProtocolPhase } from "@/features/workspace/components/ProtocolPhase";
-import { useWorkspace } from "@/features/workspace/hooks/useWorkspace";
+import { useWorkspaceSelection } from "@/features/workspace/hooks/useWorkspace";
 import type { WorkspaceSearch } from "@/features/workspace/lib/workspace-url";
 import type { Customer, Issue, Property } from "@/shared/types";
 
@@ -13,7 +13,6 @@ const workspaceRoute = getRouteApi("/_authenticated/_shell/");
 export function CallWorkspace() {
   const navigate = useNavigate();
   const urlSearch = workspaceRoute.useSearch();
-  const workspace = useWorkspace();
   const {
     phase,
     customer,
@@ -26,7 +25,7 @@ export function CallWorkspace() {
     changeProperty,
     changeIssue,
     hydrateFromSearch,
-  } = workspace;
+  } = useWorkspaceSelection();
 
   const hydrateFromSearchRef = useRef(hydrateFromSearch);
   hydrateFromSearchRef.current = hydrateFromSearch;
@@ -113,11 +112,7 @@ export function CallWorkspace() {
       )}
 
       {showProtocolLayout && (
-        <ProtocolPhase
-          workspace={workspace}
-          onPickIssue={handlePickIssue}
-          onBack={handleClearProperty}
-        />
+        <ProtocolPhase onPickIssue={handlePickIssue} onBack={handleClearProperty} />
       )}
     </div>
   );

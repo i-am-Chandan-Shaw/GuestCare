@@ -71,11 +71,14 @@ export function AgentsPage() {
       const limit = Math.max(1, (params.endRow ?? startRow + 50) - startRow);
       const page = Math.floor(startRow / limit) + 1;
 
-      const result = await getAgentsPaginated({
-        page,
-        limit,
-        search: debouncedSearch,
-      });
+      const result = await getAgentsPaginated(
+        {
+          page,
+          limit,
+          search: debouncedSearch,
+        },
+        actor,
+      );
 
       const lastRow = computeInfiniteScrollLastRow({
         startRow,
@@ -86,7 +89,7 @@ export function AgentsPage() {
 
       return { data: result.data, lastRow };
     },
-    [debouncedSearch],
+    [actor, debouncedSearch],
   );
 
   useEffect(() => {

@@ -261,7 +261,11 @@ export function IssuePickerSection({
                       tone={
                         priorityMeta[i.priority].chipTone === "muted"
                           ? "outline"
-                          : priorityMeta[i.priority].chipTone
+                          : (priorityMeta[i.priority].chipTone as
+                              | "danger"
+                              | "warning"
+                              | "info"
+                              | "outline")
                       }
                       className="shrink-0"
                     >
