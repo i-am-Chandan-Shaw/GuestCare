@@ -178,7 +178,7 @@ function filterReports(query: ReportsQuery, actor?: ReportActor): Report[] {
 }
 
 function nextReportId(): string {
-  const id = `RPT-2026-${String(reportIdCounter).padStart(5, "0")}`;
+  const id = `GCR-2026-${String(reportIdCounter).padStart(5, "0")}`;
   reportIdCounter += 1;
   return id;
 }

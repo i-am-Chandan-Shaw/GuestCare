@@ -303,7 +303,15 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
       type: "PATCH",
       payload: { property: null, issue: null, phase: "customer" },
     });
-    broadcastPatch({ propertyId: null, issueId: null, phase: "customer" });
+    dispatchChecklist({ type: "RESET" });
+    broadcastPatch({
+      propertyId: null,
+      issueId: null,
+      phase: "customer",
+      checked: {},
+      verificationChecked: {},
+      outcome: null,
+    });
   }, [broadcastPatch]);
 
   const changeIssue = useCallback(() => {
@@ -311,7 +319,14 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
       type: "PATCH",
       payload: { issue: null, phase: "property" },
     });
-    broadcastPatch({ issueId: null, phase: "property" });
+    dispatchChecklist({ type: "RESET" });
+    broadcastPatch({
+      issueId: null,
+      phase: "property",
+      checked: {},
+      verificationChecked: {},
+      outcome: null,
+    });
   }, [broadcastPatch]);
 
   const hydrateFromSearch = useCallback(

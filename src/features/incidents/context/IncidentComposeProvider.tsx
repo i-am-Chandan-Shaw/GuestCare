@@ -29,13 +29,14 @@ import {
 } from "@/features/incidents/lib/incident-window-sync";
 import { useCreateIncidentMutation } from "@/features/incidents/hooks/useIncidents";
 import { useAuth } from "@/features/auth/hooks/useAuth";
+import { getAgentHandle } from "@/shared/lib/agent-display";
 import { useWorkspaceContext } from "@/features/workspace/context/WorkspaceProvider";
 import {
   clearPersistedCompose,
   readPersistedCompose,
   writePersistedCompose,
 } from "@/features/workspace/lib/workspace-persistence";
-import { syncFormFromIssue, syncNotesFromSteps } from "@/features/workspace/lib/workspace-state";
+import { syncFormFromIssue } from "@/features/workspace/lib/workspace-state";
 
 type IncidentComposeProviderProps = {
   children: ReactNode;
@@ -49,7 +50,7 @@ export function IncidentComposeProvider({ children, syncRef }: IncidentComposePr
   const { agent } = useAuth();
   const { selection, checklist } = workspace.state;
   const { customer, property, issue } = selection;
-  const { checked, outcome } = checklist;
+  const { outcome } = checklist;
 
   const isPopupWindow = isIncidentPopupWindow();
   const popupRef = useRef<Window | null>(null);
@@ -65,6 +66,21 @@ export function IncidentComposeProvider({ children, syncRef }: IncidentComposePr
   const [form, setFormState] = useState<FormState>(
     () => readPersistedCompose()?.form ?? emptyForm(),
   );
+
+  // One-time wipe of legacy auto-filled call notes (from protocol steps / action chips).
+  useEffect(() => {
+    const flagKey = "gc_cleared_autofill_notes_v1";
+    try {
+      if (typeof sessionStorage !== "undefined" && sessionStorage.getItem(flagKey)) return;
+      sessionStorage?.setItem(flagKey, "1");
+    } catch {
+      /* private mode */
+    }
+    setFormState((current) => {
+      if (!current.callNotes && current.actions.length === 0) return current;
+      return { ...current, callNotes: "", actions: [] };
+    });
+  }, []);
 
   const buildSnapshot = useCallback(
     (overrides?: Partial<IncidentWindowState>): IncidentWindowState => ({
@@ -256,11 +272,6 @@ export function IncidentComposeProvider({ children, syncRef }: IncidentComposePr
     if (!issue) return;
     setFormState((current) => syncFormFromIssue(current, issue));
   }, [issue]);
-
-  useEffect(() => {
-    if (!issue) return;
-    setFormState((current) => syncNotesFromSteps(current, issue, checked));
-  }, [checked, issue]);
 
   useEffect(() => {
     if (!outcome) return;

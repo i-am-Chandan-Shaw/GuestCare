@@ -1,4 +1,5 @@
-import { FilePlus2, X } from "lucide-react";
+import { FilePlus2 } from "lucide-react";
+import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/Button";
 import { priorityMeta } from "@/shared/constants/agent";
@@ -13,16 +14,53 @@ import type {
   Property,
 } from "@/shared/types";
 import { IncidentPreview } from "./IncidentPreview";
-import { ACTION_CHIPS, type FormState } from "./incident-form.types";
+import { ProtocolProgressCard } from "./ProtocolProgressCard";
+import type { FormState } from "./incident-form.types";
 import { CopyIconButton, Field, Input, Select, Textarea } from "./incident-form-controls";
 
-function ResetFormButton({ onClear, disabled }: { onClear: () => void; disabled?: boolean }) {
+function ClearFormConfirmBanner({
+  onCancel,
+  onConfirm,
+}: {
+  onCancel: () => void;
+  onConfirm: () => void;
+}) {
+  return (
+    <div className="flex shrink-0 items-center justify-between gap-2 border-b border-border bg-warning/10 px-3 py-2 text-[12px]">
+      <span className="text-foreground">Clear form? This will discard your draft.</span>
+      <div className="flex gap-2">
+        <button
+          type="button"
+          onClick={onCancel}
+          className="rounded border border-border px-2 py-0.5 font-medium hover:bg-surface"
+        >
+          Keep editing
+        </button>
+        <button
+          type="button"
+          onClick={onConfirm}
+          className="rounded bg-destructive px-2 py-0.5 font-medium text-destructive-foreground"
+        >
+          Clear form
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function ResetFormButton({
+  onRequestClear,
+  disabled,
+}: {
+  onRequestClear: () => void;
+  disabled?: boolean;
+}) {
   return (
     <Button
       type="button"
       variant="secondary"
       size="lg"
-      onClick={onClear}
+      onClick={onRequestClear}
       disabled={disabled}
       className="shrink-0 bg-white hover:bg-app-bg"
     >
@@ -55,20 +93,16 @@ export function IncidentForm({
   isSubmitting?: boolean;
 }) {
   const { data: issues = [] } = useIssues();
+  const [confirmClear, setConfirmClear] = useState(false);
   const update = <K extends keyof FormState>(k: K, v: FormState[K]) => setForm({ ...form, [k]: v });
   const pMeta = priorityMeta[form.priority];
   const propertyLabel = property ? `${property.name} — ${property.address}` : "—";
   const issueOptions = issues.map((i) => i.name);
 
-  const toggleAction = (label: string) => {
-    const has = form.actions.includes(label);
-    const next = has ? form.actions.filter((a) => a !== label) : [...form.actions, label];
-    const noteLine = `• ${label}`;
-    let notes = form.callNotes;
-    if (!has && !notes.includes(label)) {
-      notes = notes ? `${notes}\n${noteLine}` : noteLine;
-    }
-    setForm({ ...form, actions: next, callNotes: notes });
+  const requestClear = () => setConfirmClear(true);
+  const confirmClearForm = () => {
+    setConfirmClear(false);
+    onClear();
   };
 
   const scrollPadding = embedded ? (compact ? "space-y-3 p-3" : "space-y-4 p-4") : "space-y-4 p-6";
@@ -175,29 +209,7 @@ export function IncidentForm({
         </Field>
       </div>
 
-      <Field label="Actions Taken">
-        <div className="flex flex-wrap items-center gap-2 rounded-lg border border-border bg-surface px-3 py-2.5 min-h-[46px] shadow-sm">
-          {ACTION_CHIPS.map((label) => {
-            const active = form.actions.includes(label);
-            return (
-              <button
-                key={label}
-                type="button"
-                onClick={() => toggleAction(label)}
-                className={cn(
-                  "cursor-pointer flex items-center gap-1.5 rounded-md px-2.5 py-1 text-[13px] font-medium transition-colors",
-                  active
-                    ? "bg-primary/10 text-primary"
-                    : "bg-surface-2 text-text-secondary hover:text-text-primary",
-                )}
-              >
-                {label}
-                {active && <X className="h-3.5 w-3.5" />}
-              </button>
-            );
-          })}
-        </div>
-      </Field>
+      <ProtocolProgressCard issue={issue} />
 
       <Field label="Call Notes">
         <div className="relative">
@@ -238,13 +250,19 @@ export function IncidentForm({
         {isSubmitting && (
           <div className="absolute inset-0 z-10 cursor-wait" aria-hidden />
         )}
+        {confirmClear ? (
+          <ClearFormConfirmBanner
+            onCancel={() => setConfirmClear(false)}
+            onConfirm={confirmClearForm}
+          />
+        ) : null}
         <div className={cn("min-h-0 flex-1 overflow-y-auto scrollbar-thin", scrollPadding)}>
           {formFields}
           <IncidentPreview form={form} customer={customer} property={property} issue={issue} />
         </div>
 
         <footer className="flex shrink-0 items-center gap-3 border-t border-border bg-surface px-4 py-3">
-          <ResetFormButton onClear={onClear} disabled={isSubmitting} />
+          <ResetFormButton onRequestClear={requestClear} disabled={isSubmitting} />
           {submitButton}
         </footer>
       </div>
@@ -256,12 +274,18 @@ export function IncidentForm({
       {isSubmitting && (
         <div className="absolute inset-0 z-10 cursor-wait" aria-hidden />
       )}
+      {confirmClear ? (
+        <ClearFormConfirmBanner
+          onCancel={() => setConfirmClear(false)}
+          onConfirm={confirmClearForm}
+        />
+      ) : null}
       <div className={cn("flex-1 overflow-y-auto scrollbar-thin", scrollPadding)}>
         <div className="mb-4 flex items-center justify-between">
           <h2 className="text-[18px] font-bold text-foreground">Incident Details</h2>
           <button
             type="button"
-            onClick={onClear}
+            onClick={requestClear}
             disabled={isSubmitting}
             className="rounded-lg border border-border px-3 py-1.5 text-[12.5px] font-semibold text-foreground transition-colors hover:bg-surface-2 disabled:pointer-events-none disabled:opacity-50"
           >

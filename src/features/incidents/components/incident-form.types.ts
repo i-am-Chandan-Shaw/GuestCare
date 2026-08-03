@@ -27,12 +27,3 @@ export function emptyForm(): FormState {
     callNotes: "",
   };
 }
-
-export const ACTION_CHIPS = [
-  "Checked breaker",
-  "Reset boiler",
-  "Generated KeyNest code",
-  "Called host",
-  "Shared WiFi details",
-  "Advised wait until morning",
-];

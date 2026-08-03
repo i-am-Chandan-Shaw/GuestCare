@@ -5,7 +5,7 @@ import { cn } from "@/lib/utils";
 import { copyText } from "@/lib/copy-to-clipboard";
 import { Chip, Tabs } from "@/shared/components/ui-kit";
 import { priorityMeta } from "@/shared/constants/agent";
-import { useGlobalContact, useRecentIssues } from "@/features/copilot/hooks/useProtocolData";
+import { useGlobalContact } from "@/features/copilot/hooks/useProtocolData";
 import { useIncidentLogs } from "@/features/incidents/hooks/useIncidents";
 import type { Issue, Property } from "@/shared/types";
 import {
@@ -74,7 +74,6 @@ export function IssuePanel({
   const [wifiCopied, setWifiCopied] = useState(false);
   const [accessCopied, setAccessCopied] = useState(false);
 
-  const { data: recentIssues = [] } = useRecentIssues();
   const { data: globalContact } = useGlobalContact(issue?.escalationContactId);
   const { data: incidentLogs = [] } = useIncidentLogs(
     { propertyId: property?.id, limit: 20 },
@@ -118,19 +117,22 @@ export function IssuePanel({
 
   if (!issue) {
     return (
-      <div className="flex h-full min-h-0 flex-col gap-4 overflow-hidden bg-app-bg p-4">
-        <IssuePickerSection
-          layout="stacked"
-          property={property}
-          recentIssues={recentIssues}
-          onPick={onPick}
-          onBack={onBack}
-        />
-        <IssueHistoryPanel
-          variant="section"
-          propertyId={property.id}
-          emptyLabel="No issues recorded for this property."
-        />
+      <div className="grid h-full min-h-0 grid-cols-[minmax(0,1fr)_minmax(280px,340px)] overflow-hidden bg-app-bg">
+        <div className="min-h-0 border-r border-border-color p-4 pr-2">
+          <IssuePickerSection
+            layout="fill"
+            property={property}
+            onPick={onPick}
+            onBack={onBack}
+          />
+        </div>
+        <div className="min-h-0 p-4 pl-2">
+          <IssueHistoryPanel
+            variant="section"
+            propertyId={property.id}
+            emptyLabel="No issues recorded for this property."
+          />
+        </div>
       </div>
     );
   }

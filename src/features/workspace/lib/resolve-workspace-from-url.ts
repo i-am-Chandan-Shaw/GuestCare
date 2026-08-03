@@ -1,5 +1,6 @@
 import { getCustomerById, getPropertyById } from "@/features/customers/api/customers.api";
 import { getIssueById } from "@/features/copilot/api/protocols.api";
+import type { FormState } from "@/features/incidents/components/incident-form.types";
 import type { WorkspacePhase } from "@/features/workspace/lib/workspace-state";
 import type { WorkspaceSearch } from "@/features/workspace/lib/workspace-url";
 import type { Customer, Issue, Property } from "@/shared/types";

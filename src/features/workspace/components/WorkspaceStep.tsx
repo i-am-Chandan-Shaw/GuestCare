@@ -1,5 +1,5 @@
 import { cn } from "@/lib/utils";
-import { Check, ChevronRight } from "lucide-react";
+import { Check, ChevronRight, X } from "lucide-react";
 import type { ReactNode } from "react";
 
 export type WorkspaceStepState = "incomplete" | "current" | "completed";
@@ -13,16 +13,19 @@ export function WorkspaceStep({
   value,
   icon,
   state,
+  onClear,
 }: {
   stepNumber: 1 | 2 | 3;
   label: "Customer" | "Property" | "Issue";
   value?: string | null;
   icon: ReactNode;
   state: WorkspaceStepState;
+  onClear?: () => void;
 }) {
   const isCompleted = state === "completed";
   const isCurrent = state === "current";
   const displayLabel = isCompleted && value ? value : label;
+  const canClear = Boolean(value && onClear);
 
   const fill =
     isCurrent ? "bg-blue-50" : isCompleted ? "bg-emerald-50" : "bg-gray-100";
@@ -34,7 +37,8 @@ export function WorkspaceStep({
     >
       <div
         className={cn(
-          "inline-flex h-12 min-w-0 max-w-full items-center gap-2.5 rounded-l-lg py-3 pl-4 pr-3",
+          "inline-flex h-12 min-w-0 max-w-full items-center gap-2.5 rounded-l-lg py-3 pl-4",
+          canClear ? "pr-1.5" : "pr-3",
           fill,
         )}
       >
@@ -77,6 +81,20 @@ export function WorkspaceStep({
         >
           {displayLabel}
         </span>
+
+        {canClear ? (
+          <button
+            type="button"
+            onClick={(event) => {
+              event.stopPropagation();
+              onClear?.();
+            }}
+            aria-label={`Clear ${label.toLowerCase()} selection`}
+            className="inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-md text-gray-500 transition-colors hover:bg-white/70 hover:text-gray-800"
+          >
+            <X className="h-3.5 w-3.5" strokeWidth={2} />
+          </button>
+        ) : null}
       </div>
 
       <span
