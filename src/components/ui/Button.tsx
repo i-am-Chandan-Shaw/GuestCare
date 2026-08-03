@@ -19,11 +19,7 @@ const baseVariantClass: Record<ButtonVariant, string> = {
     "border-solid border-transparent bg-transparent text-text-secondary hover:bg-app-bg hover:text-text-primary hover:border-border-color normal-case font-sans",
 };
 
-/**
- * Large sizes share the same height so footer pairs (Cancel + Submit) align.
- * Primary lg: brand green, 15px radius, 17px/600
- * Secondary lg: white, #2e2a25, 16px radius, 1px #e7e7e5
- */
+
 const sizeVariantClass: Record<ButtonVariant, Record<ButtonSize, string>> = {
   primary: {
     default: "h-9 border-2 rounded-xl px-4 text-sm font-semibold",
