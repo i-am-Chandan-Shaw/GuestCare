@@ -158,7 +158,7 @@ export function IncidentForm({
       />
 
       <Select
-        label="Incident type"
+        label="Issue type"
         value={form.incidentType}
         onChange={(v) => update("incidentType", v as IncidentType)}
         options={INCIDENT_TYPES}
@@ -219,10 +219,10 @@ export function IncidentForm({
       loading={isSubmitting}
       className={cn("active:scale-[0.99]", embedded ? "min-w-0 flex-1" : "w-full")}
     >
-      {embedded ? "Log Incident" : (
+      {embedded ? "Log Report" : (
         <>
           <FilePlus2 className="h-4 w-4" />
-          Log Incident
+          Log Report
         </>
       )}
     </Button>
@@ -266,7 +266,7 @@ export function IncidentForm({
       ) : null}
       <div className={cn("flex-1 overflow-y-auto scrollbar-thin", scrollPadding)}>
         <div className="mb-4 flex items-center justify-between">
-          <h2 className="text-[18px] font-bold text-foreground">Incident Details</h2>
+          <h2 className="text-[18px] font-bold text-foreground">Report Details</h2>
           <button
             type="button"
             onClick={requestClear}

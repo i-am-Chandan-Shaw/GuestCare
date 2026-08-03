@@ -363,7 +363,7 @@ export function ReportDetailPage({
                       className="!h-8 !gap-1.5 !px-3"
                     >
                       <Pencil className="h-3.5 w-3.5" strokeWidth={2} />
-                      Edit issue
+                      Edit report
                     </Button>
                   ) : null}
                 </div>

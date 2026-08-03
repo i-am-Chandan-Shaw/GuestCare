@@ -67,7 +67,7 @@ export const Route = createRootRouteWithContext<RouterContext>()({
       {
         name: "description",
         content:
-          "Real-time support workspace for GuestCare agents — property intel, guided protocols, and one-click incident reports.",
+          "Real-time support workspace for GuestCare agents — property intel, guided protocols, and one-click reports.",
       },
       { property: "og:title", content: "GuestCare Live Copilot" },
       {

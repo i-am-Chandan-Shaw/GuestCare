@@ -7,12 +7,8 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { SectionCard } from "@/shared/components/ui-kit";
+import { verificationId } from "@/features/workspace/lib/verification-id";
 import type { Issue } from "@/shared/types";
-
-function verificationId(issueId: string, index: number, text: string): string {
-  const slug = text.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 40);
-  return `${issueId}-v-${index}-${slug || "check"}`;
-}
 
 export function IssueProtocolTab({
   issue,

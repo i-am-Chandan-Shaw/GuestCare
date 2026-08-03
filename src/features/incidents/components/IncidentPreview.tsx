@@ -23,7 +23,7 @@ function buildSlackMessage({
 }): string {
   const issueLine = `${form.issueSummary || issue?.name || "—"} (${form.priority})`;
   return [
-    "#guest-issues",
+    "#guest-reports",
     `Customer: ${customer?.name || "—"}`,
     `Guest: ${form.callerName || "—"} (${form.callerContact || "—"})`,
     `Booking name: ${form.nameOnBooking || "—"}`,
@@ -139,7 +139,7 @@ export function IncidentPreview({
             <div className="min-w-0 flex-1 space-y-1">
               <div className="mb-2 flex items-center gap-1.5 font-semibold text-[13.5px] text-text-primary">
                 <Hash className="h-4 w-4 text-text-muted" />
-                guest-issues
+                guest-reports
               </div>
               <div className="space-y-0.5 text-[13px] leading-relaxed text-text-primary">
                 <div>

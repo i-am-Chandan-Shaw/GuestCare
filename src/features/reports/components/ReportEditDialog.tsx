@@ -76,10 +76,10 @@ export function ReportEditDialog({
       <DialogContent className="flex max-h-[min(92vh,820px)] max-w-2xl flex-col gap-0 overflow-hidden p-0 sm:rounded-xl">
         <DialogHeader className="shrink-0 space-y-1 border-b border-border-color px-6 py-5 text-left">
           <DialogTitle className="text-[18px] font-bold tracking-tight text-text-primary">
-            Edit issue
+            Edit report
           </DialogTitle>
           <DialogDescription className="text-[13px] text-text-secondary">
-            Update issue details, caller info, and call notes.
+            Update report details, caller info, and call notes.
           </DialogDescription>
         </DialogHeader>
 

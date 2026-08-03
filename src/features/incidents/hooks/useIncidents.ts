@@ -36,8 +36,12 @@ export function useCreateIncidentMutation(options?: { onSuccess?: () => void }) 
       toast.success("Report submitted");
       options?.onSuccess?.();
     },
-    onError: (error: Error) => {
-      toast.error(error.message || "Could not submit report");
+    onError: (error: unknown) => {
+      const message =
+        error instanceof Error && error.message && !error.message.startsWith("[")
+          ? error.message
+          : "Could not submit report. Check the required fields and try again.";
+      toast.error(message);
     },
   });
 }

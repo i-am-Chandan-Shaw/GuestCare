@@ -127,9 +127,9 @@ export function IssueDocumentsSection({ issue }: { issue: Issue }) {
 
 export function IssueHistorySection({ logs }: { logs: IncidentLog[] }) {
   return (
-    <SectionCard title="Related Incidents" className="shadow-sm border border-border rounded-sm">
+    <SectionCard title="Related Reports" className="shadow-sm border border-border rounded-sm">
       {logs.length === 0 ? (
-        <p className="text-[13px] text-muted-foreground py-2">No prior incidents for this property/issue.</p>
+        <p className="text-[13px] text-muted-foreground py-2">No prior reports for this property.</p>
       ) : (
         <ul className="space-y-4">
           {logs.map((log) => (

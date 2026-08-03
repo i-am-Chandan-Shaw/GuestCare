@@ -19,8 +19,11 @@ const createIncidentSchema = z.object({
   callerContact: z.string(),
   reservation: z.string(),
   nameOnBooking: z.string(),
-  incidentType: z.string(),
-  issueSummary: z.string().min(1),
+  incidentType: z.string().min(1, "Please select an issue type."),
+  issueSummary: z
+    .string()
+    .trim()
+    .min(1, "Please select or enter what the issue is."),
   actions: z.array(z.string()),
   priority: z.enum(["P1", "P2", "P3", "P4"]),
   status: z.string(),
@@ -34,6 +37,10 @@ const createIncidentSchema = z.object({
   /** @deprecated Ignored — actor comes from session. */
   submittedBy: z.string().optional(),
 });
+
+function firstValidationMessage(error: z.ZodError): string {
+  return error.issues[0]?.message ?? "Please complete the required fields.";
+}
 
 function resolveCustomerIdForProperty(propertyId?: string): string | undefined {
   if (!propertyId) return undefined;
@@ -81,30 +88,34 @@ export async function createIncident(
   input: CreateIncidentInput,
   actor: ReportActor,
 ): Promise<IncidentLog> {
-  const parsed = createIncidentSchema.parse(input);
+  const parsed = createIncidentSchema.safeParse(input);
+  if (!parsed.success) {
+    throw new Error(firstValidationMessage(parsed.error));
+  }
 
+  const data = parsed.data;
   const customerId =
-    parsed.customerId ?? resolveCustomerIdForProperty(parsed.propertyId);
+    data.customerId ?? resolveCustomerIdForProperty(data.propertyId);
   if (!customerId) {
-    throw new Error("A customer is required to create an incident.");
+    throw new Error("A customer is required to create a report.");
   }
 
   const report = await createReport(
     {
-      issueName: parsed.issueSummary,
-      issueType: parsed.incidentType,
-      priority: parsed.priority,
-      status: mapLegacyIncidentStatus(parsed.status as IncidentStatus),
+      issueName: data.issueSummary,
+      issueType: data.incidentType,
+      priority: data.priority,
+      status: mapLegacyIncidentStatus(data.status as IncidentStatus),
       customerId,
-      propertyId: parsed.propertyId,
-      callerName: parsed.callerName,
-      callerContact: parsed.callerContact,
-      reservationNumber: parsed.reservation,
-      nameOnBooking: parsed.nameOnBooking,
-      callNotes: parsed.callNotes,
-      actionsTaken: parsed.actions,
-      protocolIssueId: parsed.protocolIssueId,
-      source: parsed.protocolIssueId ? "copilot" : "manual",
+      propertyId: data.propertyId,
+      callerName: data.callerName,
+      callerContact: data.callerContact,
+      reservationNumber: data.reservation,
+      nameOnBooking: data.nameOnBooking,
+      callNotes: data.callNotes,
+      actionsTaken: data.actions,
+      protocolIssueId: data.protocolIssueId,
+      source: data.protocolIssueId ? "copilot" : "manual",
     },
     actor,
   );

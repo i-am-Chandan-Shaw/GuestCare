@@ -72,7 +72,7 @@ export function PropertyListRow({
         <MetricCell>
           <PortfolioMetricColumn
             icon={<AlertCircle strokeWidth={1.75} />}
-            label="Open Issues"
+            label="Open Reports"
             value={property.openReportsCount}
           />
         </MetricCell>
@@ -86,7 +86,7 @@ export function PropertyListRow({
         <MetricCell>
           <PortfolioMetricColumn
             icon={<ClipboardList strokeWidth={1.75} />}
-            label="Total Issues"
+            label="Total Reports"
             value={totalIssues}
           />
         </MetricCell>

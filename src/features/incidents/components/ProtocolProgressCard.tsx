@@ -1,6 +1,7 @@
 import { AlertCircle, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useWorkspaceContext } from "@/features/workspace/context/WorkspaceProvider";
+import { verificationId } from "@/features/workspace/lib/verification-id";
 import type { Issue } from "@/shared/types";
 
 type StepStatus = "completed" | "in_progress" | "not_required";
@@ -121,7 +122,9 @@ export function ProtocolProgressCard({ issue }: { issue: Issue | null }) {
   const verificationComplete =
     !verificationRequired ||
     (issue.verification.length > 0 &&
-      issue.verification.every((_, i) => verificationChecked[`v${i}`]));
+      issue.verification.every((text, i) =>
+        verificationChecked[verificationId(issue.id, i, text)],
+      ));
 
   const troubleshootingComplete =
     issue.steps.length > 0 && issue.steps.every((step) => checked[step.id]);

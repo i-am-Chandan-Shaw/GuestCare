@@ -65,19 +65,38 @@ export function IncidentComposeWindow({
           : "h-[min(640px,85vh)] w-[min(480px,calc(100vw-3rem))] rounded-t-lg",
       )}
       role="dialog"
-      aria-label="Incident compose"
+      aria-label="Report compose"
     >
       <header
         className={cn(
           "flex shrink-0 items-center gap-2 bg-surface-2/80 px-3 py-1.5",
           !isMinimized && "border-b border-border",
+          isMinimized && "cursor-pointer transition-colors hover:bg-surface-2",
         )}
+        onClick={isMinimized ? onExpand : undefined}
+        onKeyDown={
+          isMinimized
+            ? (e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  onExpand();
+                }
+              }
+            : undefined
+        }
+        role={isMinimized ? "button" : undefined}
+        tabIndex={isMinimized ? 0 : undefined}
+        aria-label={isMinimized ? `Expand report compose: ${title}` : undefined}
       >
         <p className="min-w-0 flex-1 truncate text-[13px] font-semibold text-foreground">
           {title}
         </p>
 
-        <div className="flex shrink-0 items-center gap-0.5">
+        <div
+          className="flex shrink-0 items-center gap-0.5"
+          onClick={(e) => e.stopPropagation()}
+          onKeyDown={(e) => e.stopPropagation()}
+        >
           <HeaderIconButton
             label={isMinimized ? "Expand" : "Minimize"}
             onClick={isMinimized ? onExpand : onMinimize}

@@ -1,5 +1,5 @@
 import { IssueHistoryPanel } from "@/features/workspace/components/IssueHistoryPanel";
-import { Building2, Check, Key, Phone, Wifi } from "lucide-react";
+import { Building2, Key, Phone, Wifi } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { cn } from "@/lib/utils";
 import { copyText } from "@/lib/copy-to-clipboard";
@@ -132,7 +132,7 @@ export function IssuePanel({
           <IssueHistoryPanel
             variant="section"
             propertyId={property.id}
-            emptyLabel="No issues recorded for this property."
+            emptyLabel="No reports recorded for this property."
           />
         </div>
       </div>
@@ -184,13 +184,6 @@ export function IssuePanel({
               >
                 <span className={cn("h-1.5 w-1.5 rounded-full", pMeta.dot)} />
                 {pMeta.label}
-              </Chip>
-              <Chip
-                tone="success"
-                className="rounded-md border border-success/40 bg-success/15 px-2.5 py-1 text-[12px] font-semibold text-success"
-              >
-                <Check className="h-3.5 w-3.5" strokeWidth={2.75} />
-                SLA {issue.slaMinutes} min
               </Chip>
             </div>
             <div className="flex shrink-0 items-center gap-1.5">

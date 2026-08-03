@@ -9,6 +9,7 @@ import {
   type MutableRefObject,
   type ReactNode,
 } from "react";
+import { toast } from "sonner";
 import { emptyForm, type FormState } from "@/features/incidents/components/incident-form.types";
 import type { IncidentComposeContextValue } from "@/features/incidents/context/incident-compose.types";
 import {
@@ -245,18 +246,28 @@ export function IncidentComposeProvider({ children, syncRef }: IncidentComposePr
   }, [broadcastPatch]);
 
   const submitIncident = useCallback(() => {
+    const issueSummary = form.issueSummary.trim() || issue?.name?.trim() || "";
+    if (!issueSummary) {
+      toast.error("Please select or enter what the issue is.");
+      return;
+    }
+    if (!customer?.id) {
+      toast.error("Select a customer before logging a report.");
+      return;
+    }
+
     createIncident.mutate({
       callerName: form.callerName,
       callerContact: form.callerContact,
       reservation: form.reservation,
       nameOnBooking: form.nameOnBooking,
       incidentType: form.incidentType,
-      issueSummary: form.issueSummary,
+      issueSummary,
       actions: form.actions,
       priority: form.priority,
       status: form.status,
       callNotes: form.callNotes,
-      customerId: customer?.id,
+      customerId: customer.id,
       propertyId: property?.id,
       propertyLabel: property?.name,
       protocolIssueId: issue?.id,

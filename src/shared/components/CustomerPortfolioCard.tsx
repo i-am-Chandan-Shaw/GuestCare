@@ -80,7 +80,7 @@ export function CustomerPortfolioCard({
         <MetricCell>
           <PortfolioMetricColumn
             icon={<AlertCircle strokeWidth={1.75} />}
-            label="Open Issues"
+            label="Open Reports"
             value={customer.openReportsCount}
           />
         </MetricCell>
@@ -94,14 +94,14 @@ export function CustomerPortfolioCard({
         <MetricCell>
           <PortfolioMetricColumn
             icon={<ClipboardList strokeWidth={1.75} />}
-            label="Total Issues"
+            label="Total Reports"
             value={customer.totalIssuesCount}
           />
         </MetricCell>
         <MetricCell>
           <PortfolioMetricColumn
             icon={<Clock strokeWidth={1.75} />}
-            label="Last Issue"
+            label="Last Report"
             labelAccessory={
               lastIssueAgo ? (
                 <span className="inline-flex h-3.5 shrink-0 items-center rounded border border-warning/20 bg-warning/10 px-1 text-[9px] font-semibold leading-none text-warning">

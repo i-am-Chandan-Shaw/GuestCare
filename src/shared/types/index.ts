@@ -120,7 +120,6 @@ export interface Issue {
   escalation: string;
   priorityCategory: string;
   priority: Priority;
-  slaMinutes: number;
   documents: { title: string; type: string; url?: string }[];
   aiRecommendation: string;
 }

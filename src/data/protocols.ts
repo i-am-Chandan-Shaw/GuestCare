@@ -33,18 +33,16 @@ const CLEANING_DETAILS =
   "447481338302 or +447481338302 from 6pm-8pm Opago Cleaning Services";
 const PROPERTY_DETAILS = "Go to Emergency Contacts Tab";
 
-const priorityFromCategory = (
-  category: PriorityCategory,
-): { priority: Priority; slaMinutes: number } => {
+const priorityFromCategory = (category: PriorityCategory): Priority => {
   switch (category) {
     case "Urgent - Safety / No Habitability":
-      return { priority: "P1", slaMinutes: 15 };
+      return "P1";
     case "Service Impacting (Medium-High)":
-      return { priority: "P2", slaMinutes: 30 };
+      return "P2";
     case "Inconvenient but Not Critical":
-      return { priority: "P3", slaMinutes: 60 };
+      return "P3";
     case "Admin / Informational":
-      return { priority: "P4", slaMinutes: 240 };
+      return "P4";
   }
 };
 
@@ -120,7 +118,7 @@ const makeIssue = ({
   guide = false,
   ...config
 }: Config): Issue => {
-  const { priority, slaMinutes } = priorityFromCategory(priorityCategory);
+  const priority = priorityFromCategory(priorityCategory);
   const steps = stepsFromTroubleshooting(config.raw, config.id);
   return {
     id: config.id,
@@ -135,7 +133,6 @@ const makeIssue = ({
     escalation: `${contact}: ${escalationDetails}`,
     priorityCategory,
     priority,
-    slaMinutes,
     documents: guide ? [{ title: "Property Guide", type: "Link" }] : [],
     aiRecommendation:
       steps[0]?.label ?? "Collect booking details before proceeding.",

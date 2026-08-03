@@ -118,7 +118,7 @@ export function IssueHistoryPanel({
   propertyId,
   headerAction,
   className,
-  emptyLabel = "No issues recorded.",
+  emptyLabel = "No reports recorded.",
   variant = "panel",
 }: {
   customerId?: string;
@@ -145,7 +145,7 @@ export function IssueHistoryPanel({
     <div className="flex shrink-0 items-center justify-between gap-2">
       <div className="flex items-center gap-2">
         <History className="h-4 w-4 text-text-secondary" strokeWidth={1.75} />
-        <h2 className="text-[14px] font-bold text-text-primary">Issue History</h2>
+        <h2 className="text-[14px] font-bold text-text-primary">Report History</h2>
       </div>
       {headerAction}
     </div>
@@ -157,7 +157,7 @@ export function IssueHistoryPanel({
       search={reportsSearch}
       className="inline-flex items-center gap-1 text-[12px] font-semibold text-brand-primary transition-colors hover:text-brand-secondary"
     >
-      View all issues
+      View all reports
       <ChevronRight className="h-3.5 w-3.5" strokeWidth={2} />
     </Link>
   );

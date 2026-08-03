@@ -113,7 +113,7 @@ export function seedReportsFromIncidents(): { reports: Report[]; threads: Report
         type: "comment",
         authorAgentId: agent.id,
         authorAgentName: agent.name,
-        body: "Logged the guest call and started the standard checklist for this issue.",
+        body: "Logged the guest call and started the standard checklist for this report.",
         createdAt: rootCreated,
       });
       threads.push({
