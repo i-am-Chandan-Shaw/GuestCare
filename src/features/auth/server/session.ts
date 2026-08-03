@@ -1,6 +1,7 @@
 import { getRequestHeader, setResponseHeader } from "@tanstack/react-start/server";
 import { findAgentById } from "@/features/agents/lib/agent-store";
 import { normalizeSessionAgent } from "@/features/auth/lib/normalize-agent";
+import { getPasswordPepper } from "@/features/auth/lib/password";
 import type { Agent } from "@/shared/types/agent";
 import type { AuthSession } from "@/features/auth/types";
 
@@ -22,14 +23,9 @@ interface LegacySessionPayload {
   exp: number;
 }
 
+/** Mock-auth HMAC key. Falls back to the demo pepper when AUTH_SECRET is unset (e.g. Vercel). */
 function getSecret() {
-  const secret = process.env.AUTH_SECRET;
-  if (!secret) {
-    throw new Error(
-      "AUTH_SECRET is required. Copy .env.example to .env and set a value (≥32 chars).",
-    );
-  }
-  return secret;
+  return getPasswordPepper();
 }
 
 function secureSuffix() {
