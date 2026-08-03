@@ -7,25 +7,24 @@ type ButtonSize = "default" | "lg";
 
 const variantClass: Record<ButtonVariant, string> = {
   primary:
-    "btn-primary-gradient shadow-md hover:shadow-lg focus-visible:ring-2 focus-visible:ring-brand-primary/50 text-white",
+    "bg-brand-primary text-white hover:bg-brand-primary-soft active:bg-brand-primary-strong focus-visible:outline-none focus-visible:border-brand-primary",
   secondary:
-    "bg-border-color/50 text-text-secondary hover:bg-border-color hover:text-text-primary border border-border-color",
+    "bg-card-bg text-text-primary border border-border-color hover:bg-app-bg hover:border-input-border focus-visible:border-brand-primary",
   cancel:
-    "text-text-muted bg-transparent hover:text-text-primary uppercase tracking-widest text-[11px]",
-  danger: "bg-danger text-white shadow-sm hover:opacity-90",
+    "text-text-muted bg-transparent hover:text-text-primary uppercase tracking-widest text-[11px] font-sans",
+  danger: "bg-danger text-white hover:opacity-90 focus-visible:border-danger",
   ghost:
     "bg-transparent text-text-secondary hover:bg-app-bg hover:text-text-primary border border-transparent hover:border-border-color",
 };
 
 const sizeClass: Record<ButtonSize, string> = {
-  default: "h-9 px-6 text-xs font-bold rounded-lg",
-  lg: "h-12 px-6 text-sm font-bold rounded-lg",
+  default: "h-10 px-5 text-[13px] font-bold rounded-full font-[family-name:var(--font-display)]",
+  lg: "h-12 px-6 text-sm font-bold rounded-full font-[family-name:var(--font-display)]",
 };
 
 export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: ButtonVariant;
   size?: ButtonSize;
-  /** Shows inline spinner and disables the button without shifting layout. */
   loading?: boolean;
 }
 
@@ -49,7 +48,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       disabled={disabled || loading}
       aria-busy={loading || undefined}
       className={cn(
-        "relative inline-flex items-center justify-center gap-2 transition-all active:scale-[0.98] disabled:pointer-events-none disabled:opacity-50",
+        "relative inline-flex items-center justify-center gap-2 transition-colors duration-150 active:scale-[0.98] disabled:pointer-events-none disabled:opacity-50",
         variantClass[variant],
         sizeClass[size],
         className,

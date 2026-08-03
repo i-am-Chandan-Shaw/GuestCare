@@ -1,0 +1,60 @@
+# Floating Label Field
+
+## Purpose
+Shared shell for labeled inputs with optional endAction.
+
+## When to use
+
+
+## When not to use
+
+
+## Variants
+Input · Textarea · Select
+
+## Sizes
+sm / md / lg
+
+## Anatomy / spacing
+Padding from spacing scale; gaps 8–12 for icons.
+
+## Typography
+Lato body / Poppins for buttons
+
+## Radius
+See radius doc
+
+## States
+| State | Spec |
+| ----- | ---- |
+| Default | — |
+| Hover | — |
+| Pressed | — |
+| Focused | Border/focus token `--kn-color-border-focus`; ring `--kn-color-focus-ring` if needed |
+| Disabled | opacity `--kn-opacity-disabled` or disabled fills; `cursor-not-allowed` |
+| Loading | Inline spinner; preserve width; `aria-busy` |
+| Error | Danger border + helper text |
+| Success | Success border/message when confirmation needed |
+
+## Accessibility
+- Keyboard: Tab focus, Enter/Space activate
+- ARIA: Role and labels as appropriate
+- Touch target ≥ 44px where primary
+
+## Responsive
+Stack or full-width below 640px
+
+## Design notes
+Calm, border-first, KeyNest Action green for primary.
+
+## Engineering notes
+`src/shared/components/FloatingLabelField.tsx`
+
+## Figma notes
+Bind to `Color/*`, `Spacing/*`, `Radius/*` variables. Component set: `Floating Label Field`.
+
+## Best practices
+readOnly does not disable endAction (copy still works).
+
+## Common mistakes
+Hardcoded blue; Brand green on CTAs.

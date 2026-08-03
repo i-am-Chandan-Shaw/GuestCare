@@ -13,7 +13,6 @@ export {
   InfoEndActionButton,
 } from "@/shared/components/FloatingLabelField";
 
-/** @deprecated Prefer passing `label` directly to Input/Select/Textarea. */
 export function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div className="block">
@@ -42,7 +41,6 @@ export function Input({
   label: string;
   value: string;
   onChange?: (v: string) => void;
-  /** Ignored — floating label replaces placeholder. */
   placeholder?: string;
   mono?: boolean;
   readOnly?: boolean;

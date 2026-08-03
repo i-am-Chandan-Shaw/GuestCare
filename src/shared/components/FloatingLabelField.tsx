@@ -18,7 +18,6 @@ type ShellProps = {
   className?: string;
   id?: string;
   endAction?: FloatingEndAction;
-  /** Select/textarea always show a floated label. */
   alwaysFloat?: boolean;
   children: (props: {
     id: string;
@@ -75,7 +74,7 @@ function FloatingShell({
   return (
     <div
       className={cn(
-        "relative rounded-lg border border-input-border bg-input-surface shadow-sm transition-all",
+        "relative rounded-[var(--kn-radius-lg)] border border-input-border bg-input-surface transition-colors duration-150",
         "focus-within:border-input-border-focus",
         (disabled || readOnly) && "bg-app-bg/60",
         disabled && "opacity-60",
@@ -285,7 +284,6 @@ export function FloatingLabelSelect({
   );
 }
 
-/** Password visibility toggle end action. */
 export function usePasswordEndAction(visible: boolean, onToggle: () => void): FloatingEndAction {
   return {
     icon: visible ? (
@@ -298,7 +296,6 @@ export function usePasswordEndAction(visible: boolean, onToggle: () => void): Fl
   };
 }
 
-/** Copy field value end action. */
 export function useCopyEndAction(value: string, label: string): FloatingEndAction {
   const [copied, setCopied] = useState(false);
   const canCopy = Boolean(value && value !== "—");
@@ -321,7 +318,6 @@ export function useCopyEndAction(value: string, label: string): FloatingEndActio
   };
 }
 
-/** Info tip end action with a simple popover. */
 export function InfoEndActionButton({
   content,
   disabled,
