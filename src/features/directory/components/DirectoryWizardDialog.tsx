@@ -5,7 +5,6 @@ import {
   Dialog,
   DialogContent,
   DialogDescription,
-  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/Dialog";
@@ -134,20 +133,25 @@ export function DirectoryWizardDialog({
           <div className="min-h-0 min-w-0 flex-1 overflow-y-auto px-6 py-5">{children}</div>
         </div>
 
-        <DialogFooter className="shrink-0 flex-row items-center gap-3 border-t border-border-color bg-app-bg/40 px-6 py-4 sm:justify-between">
-          <Button
-            type="button"
-            variant="secondary"
-            size="lg"
-            onClick={goBack}
-            disabled={activeIndex === 0 || loading}
-            aria-label="Back"
-            className="min-w-12 px-3"
-          >
-            <ChevronLeft className="h-5 w-5" strokeWidth={2} />
-          </Button>
+        <div className="grid shrink-0 grid-cols-[1fr_auto_1fr] items-center gap-3 border-t border-border-color bg-app-bg/40 px-6 py-4">
+          <div className="justify-self-start">
+            <Button
+              type="button"
+              variant="secondary"
+              size="lg"
+              onClick={goBack}
+              disabled={activeIndex === 0 || loading}
+              aria-label="Back"
+              className="min-w-12 px-3"
+            >
+              <ChevronLeft className="h-5 w-5" strokeWidth={2} />
+            </Button>
+          </div>
 
-          <div className="flex items-center gap-1.5" aria-label={`Step ${activeIndex + 1} of ${steps.length}`}>
+          <div
+            className="flex items-center justify-center gap-1.5"
+            aria-label={`Step ${activeIndex + 1} of ${steps.length}`}
+          >
             {steps.map((step, index) => (
               <span
                 key={step.id}
@@ -159,27 +163,29 @@ export function DirectoryWizardDialog({
             ))}
           </div>
 
-          {isLast ? (
-            <Button
-              type="button"
-              size="lg"
-              onClick={onSubmit}
-              loading={loading}
-              disabled={!canProceed}
-            >
-              {submitLabel}
-            </Button>
-          ) : (
-            <Button
-              type="button"
-              size="lg"
-              onClick={goNext}
-              disabled={!canProceed || loading}
-            >
-              Next
-            </Button>
-          )}
-        </DialogFooter>
+          <div className="justify-self-end">
+            {isLast ? (
+              <Button
+                type="button"
+                size="lg"
+                onClick={onSubmit}
+                loading={loading}
+                disabled={!canProceed}
+              >
+                {submitLabel}
+              </Button>
+            ) : (
+              <Button
+                type="button"
+                size="lg"
+                onClick={goNext}
+                disabled={!canProceed || loading}
+              >
+                Next
+              </Button>
+            )}
+          </div>
+        </div>
       </DialogContent>
     </Dialog>
   );

@@ -1,10 +1,3 @@
 export { CustomersPage } from "./components/CustomersPage";
 export { PropertiesPage } from "./components/PropertiesPage";
 export { ProtocolsPage } from "./components/ProtocolsPage";
-export { DirectoryListLayout } from "./components/DirectoryListLayout";
-export { DirectoryBreadcrumb } from "./components/DirectoryBreadcrumb";
-export { DirectoryWizardDialog } from "./components/DirectoryWizardDialog";
-export { DirectoryRowActionsMenu } from "./components/DirectoryRowActionsMenu";
-export { ConfirmDeleteDialog } from "./components/ConfirmDeleteDialog";
-export { DynamicOrderedList } from "./components/DynamicOrderedList";
-export { EscalationField } from "./components/EscalationField";

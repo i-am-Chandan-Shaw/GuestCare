@@ -6,6 +6,7 @@ import type {
   GridReadyEvent,
   IGetRowsParams,
   IDatasource,
+  CellClickedEvent,
   RowClickedEvent,
 } from "ag-grid-community";
 import { AG_GRID_MODULES } from "@/lib/ag-grid-setup";
@@ -27,6 +28,7 @@ export type ServerPaginatedTableProps<TData> = {
   fetchData: ServerTableFetchData<TData>;
   getRowId?: (params: { data: TData }) => string;
   onRowClicked?: (event: RowClickedEvent<TData>) => void;
+  onCellClicked?: (event: CellClickedEvent<TData>) => void;
   height?: string;
   emptyMessage?: string;
   className?: string;
@@ -64,6 +66,7 @@ export function ServerPaginatedTable<TData>({
   fetchData,
   getRowId,
   onRowClicked,
+  onCellClicked,
   height = "100%",
   emptyMessage = "No rows to show",
   className,
@@ -162,6 +165,7 @@ export function ServerPaginatedTable<TData>({
             overlayNoRowsTemplate={overlayNoRowsTemplate}
             onGridReady={onGridReady}
             onRowClicked={onRowClicked}
+            onCellClicked={onCellClicked}
           />
         </AgGridProvider>
       </div>
