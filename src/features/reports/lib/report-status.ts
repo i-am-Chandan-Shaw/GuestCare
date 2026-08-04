@@ -36,12 +36,10 @@ export const REPORT_STATUS_LABELS: Record<ReportStatus, string> = {
   RESOLVED: "Resolved",
 };
 
-export const REPORT_STATUS_TONES: Record<
-  ReportStatus,
-  "warning" | "danger" | "info" | "success"
-> = {
-  OPEN: "warning",
-  ESCALATED: "danger",
-  HANDEDOVER: "info",
-  RESOLVED: "success",
-};
+export const REPORT_STATUS_TONES: Record<ReportStatus, "warning" | "danger" | "info" | "success"> =
+  {
+    OPEN: "warning",
+    ESCALATED: "danger",
+    HANDEDOVER: "info",
+    RESOLVED: "success",
+  };

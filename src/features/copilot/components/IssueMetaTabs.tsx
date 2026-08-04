@@ -12,7 +12,7 @@ import {
 import { Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { useIssues } from "@/features/copilot/hooks/useProtocolData";
-import { Chip, SectionCard } from "@/shared/components/ui-kit";
+import { Chip, SectionCard } from "@/components/ui/UiKit";
 import { SearchToolbar, filterBySearch } from "@/shared/components/SearchToolbar";
 import { priorityMeta } from "@/shared/constants/agent";
 import type { GlobalContact, IncidentLog, Issue, Property } from "@/shared/types";
@@ -39,7 +39,9 @@ export function IssueEscalationsSection({
         <p className="text-[14px] font-bold text-foreground">
           {globalContact?.name ?? issue.escalationContactId}
         </p>
-        <p className="text-[13px] leading-relaxed text-foreground mt-1">{issue.escalationDetails}</p>
+        <p className="text-[13px] leading-relaxed text-foreground mt-1">
+          {issue.escalationDetails}
+        </p>
         {globalContact?.details && (
           <p className="text-[12.5px] text-muted-foreground mt-2">{globalContact.details}</p>
         )}
@@ -55,7 +57,10 @@ export function IssueEscalationsSection({
       </SectionCard>
 
       {issue.escalationContactId === "property" && (
-        <SectionCard title={`Hosts — ${property.name}`} className="shadow-sm border border-border rounded-sm">
+        <SectionCard
+          title={`Hosts — ${property.name}`}
+          className="shadow-sm border border-border rounded-sm"
+        >
           {property.hosts.length === 0 ? (
             <p className="text-[13px] text-muted-foreground">No hosts on file for this property.</p>
           ) : (
@@ -129,7 +134,9 @@ export function IssueHistorySection({ logs }: { logs: IncidentLog[] }) {
   return (
     <SectionCard title="Related Reports" className="shadow-sm border border-border rounded-sm">
       {logs.length === 0 ? (
-        <p className="text-[13px] text-muted-foreground py-2">No prior reports for this property.</p>
+        <p className="text-[13px] text-muted-foreground py-2">
+          No prior reports for this property.
+        </p>
       ) : (
         <ul className="space-y-4">
           {logs.map((log) => (
@@ -139,7 +146,9 @@ export function IssueHistorySection({ logs }: { logs: IncidentLog[] }) {
               </div>
               <div className="min-w-0 flex-1">
                 <h4 className="text-[13.5px] font-semibold text-foreground">{log.issueSummary}</h4>
-                <p className="text-[12.5px] text-muted-foreground mt-0.5 line-clamp-2">{log.callNotes}</p>
+                <p className="text-[12.5px] text-muted-foreground mt-0.5 line-clamp-2">
+                  {log.callNotes}
+                </p>
                 <p className="text-[11.5px] text-muted-foreground/70 mt-1">
                   {log.timestamp} · {log.status} · {log.submittedBy}
                 </p>
@@ -262,10 +271,7 @@ export function IssuePickerSection({
                         priorityMeta[i.priority].chipTone === "muted"
                           ? "outline"
                           : (priorityMeta[i.priority].chipTone as
-                              | "danger"
-                              | "warning"
-                              | "info"
-                              | "outline")
+                              "danger" | "warning" | "info" | "outline")
                       }
                       className="shrink-0"
                     >
@@ -286,9 +292,5 @@ export function IssuePickerSection({
     return <div className="flex h-full min-h-0 w-full flex-col overflow-hidden">{card}</div>;
   }
 
-  return (
-    <div className="mx-auto flex h-full max-w-2xl flex-col p-6">
-      {card}
-    </div>
-  );
+  return <div className="mx-auto flex h-full max-w-2xl flex-col p-6">{card}</div>;
 }

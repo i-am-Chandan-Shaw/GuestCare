@@ -4,7 +4,7 @@ import type { Property } from "@/shared/types";
 import { PropertyAccessTab } from "./PropertyAccessTab";
 import { PropertyOpsTab } from "./PropertyOpsTab";
 import { PropertyHero } from "./property-hero";
-import { PropertyTabs, type PropertyTab } from "./property-shared";
+import { PropertyTabs, type PropertyTab } from "./PropertyDetailSections";
 
 export type { PropertyTab };
 

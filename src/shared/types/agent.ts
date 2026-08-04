@@ -3,9 +3,7 @@ export type IsoDateTime = string;
 
 export type AgentRole = "admin" | "manager" | "user";
 
-export type AgentCustomerScope =
-  | { type: "all" }
-  | { type: "specific"; customerIds: string[] };
+export type AgentCustomerScope = { type: "all" } | { type: "specific"; customerIds: string[] };
 
 export interface Agent {
   id: string;

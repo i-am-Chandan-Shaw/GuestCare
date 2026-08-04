@@ -1,13 +1,7 @@
 import { cn } from "@/lib/utils";
 import { type ReactNode } from "react";
 
-type StatusTone =
-  | "success"
-  | "warning"
-  | "info"
-  | "danger"
-  | "brand"
-  | "muted";
+type StatusTone = "success" | "warning" | "info" | "danger" | "brand" | "muted";
 
 const toneClass: Record<StatusTone, string> = {
   success: "bg-success/10 text-success border-success/20",

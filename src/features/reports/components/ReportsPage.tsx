@@ -1,3 +1,4 @@
+import { useDebouncedValue } from "@/shared/hooks/use-debounced-value";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { IGetRowsParams } from "ag-grid-community";
@@ -18,17 +19,6 @@ import {
 } from "@/components/table/ServerPaginatedTable";
 import { SearchToolbar } from "@/shared/components/SearchToolbar";
 import type { ReportListItem } from "@/shared/types/report";
-
-function useDebouncedValue<T>(value: T, delayMs: number): T {
-  const [debounced, setDebounced] = useState(value);
-
-  useEffect(() => {
-    const timer = window.setTimeout(() => setDebounced(value), delayMs);
-    return () => window.clearTimeout(timer);
-  }, [value, delayMs]);
-
-  return debounced;
-}
 
 export function ReportsPage({
   customerId,
@@ -120,9 +110,7 @@ export function ReportsPage({
       <div className="shrink-0 border-b border-border-color bg-white/80 px-5 py-4 backdrop-blur-xl">
         <h1 className="text-lg font-black uppercase tracking-tight text-text-primary">Reports</h1>
         <p className="mt-1 text-[11px] font-semibold uppercase tracking-wide text-text-secondary">
-          {customerId
-            ? "Reports for the selected customer"
-            : "All logged reports across customers"}
+          {customerId ? "Reports for the selected customer" : "All logged reports across customers"}
         </p>
 
         {customerId && (

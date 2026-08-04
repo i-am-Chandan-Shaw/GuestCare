@@ -8,8 +8,8 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog";
-import { Input, Select, Textarea, useCopyEndAction } from "@/shared/components/form-controls";
+} from "@/components/ui/Dialog";
+import { Input, Select, Textarea, useCopyEndAction } from "@/shared/components/FloatingLabelField";
 import { useIssues } from "@/features/copilot/hooks/useProtocolData";
 import {
   mapLegacyIncidentStatus,
@@ -177,9 +177,7 @@ export function ReportEditDialog({
             <Select
               label="Issue status"
               value={mapReportStatusToLegacyIncidentStatus(form.status)}
-              onChange={(v) =>
-                update("status", mapLegacyIncidentStatus(v as IncidentStatus))
-              }
+              onChange={(v) => update("status", mapLegacyIncidentStatus(v as IncidentStatus))}
               options={INCIDENT_STATUSES}
             />
 

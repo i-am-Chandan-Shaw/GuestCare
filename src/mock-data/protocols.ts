@@ -1,9 +1,4 @@
-import type {
-  EscalationContactId,
-  Issue,
-  Priority,
-  ProtocolStep,
-} from "@/shared/types";
+import type { EscalationContactId, Issue, Priority, ProtocolStep } from "@/shared/types";
 
 type PriorityCategory =
   | "Urgent - Safety / No Habitability"
@@ -27,10 +22,8 @@ const NEXT_DAY = "Stay in London - Next Day Follow up";
 const CLEANING = "Cleaning Emergency Contact";
 const PROPERTY = "Escalation Contact Depends on Property";
 
-const NEXT_DAY_DETAILS =
-  "Tag Dainius and Casey on Slack for their review the following day";
-const CLEANING_DETAILS =
-  "447481338302 or +447481338302 from 6pm-8pm Opago Cleaning Services";
+const NEXT_DAY_DETAILS = "Tag Dainius and Casey on Slack for their review the following day";
+const CLEANING_DETAILS = "447481338302 or +447481338302 from 6pm-8pm Opago Cleaning Services";
 const PROPERTY_DETAILS = "Go to Emergency Contacts Tab";
 
 const priorityFromCategory = (category: PriorityCategory): Priority => {
@@ -55,9 +48,7 @@ export type TroubleshootingSection = {
 };
 
 /** Split SIL troubleshooting on ---- / --- rules, then double newlines if needed. */
-export const splitTroubleshootingSections = (
-  raw: string,
-): TroubleshootingSection[] => {
+export const splitTroubleshootingSections = (raw: string): TroubleshootingSection[] => {
   let parts = raw
     .trim()
     .split(/\n\s*(?:-{2,}|–+|—+)\s*\n/)
@@ -83,25 +74,17 @@ export const splitTroubleshootingSections = (
   });
 };
 
-export const stepsFromTroubleshooting = (
-  raw: string,
-  prefix: string,
-): ProtocolStep[] =>
+export const stepsFromTroubleshooting = (raw: string, prefix: string): ProtocolStep[] =>
   splitTroubleshootingSections(raw).map((section, index) => ({
     id: `${prefix}-s${index + 1}`,
     label: section.title,
     ...(section.body.length > 8 ? { hint: section.body } : {}),
   }));
 
-const verificationFor = (
-  value: Issue["reservationVerification"],
-): string[] => {
+const verificationFor = (value: Issue["reservationVerification"]): string[] => {
   if (value === "Not Required") return [];
   if (value === "Required on Escalated") {
-    return [
-      "Confirm reservation if escalating",
-      "Confirm guest cannot wait until morning",
-    ];
+    return ["Confirm reservation if escalating", "Confirm guest cannot wait until morning"];
   }
   return [
     "Confirm reservation is active",
@@ -134,8 +117,7 @@ const makeIssue = ({
     priorityCategory,
     priority,
     documents: guide ? [{ title: "Property Guide", type: "Link" }] : [],
-    aiRecommendation:
-      steps[0]?.label ?? "Collect booking details before proceeding.",
+    aiRecommendation: steps[0]?.label ?? "Collect booking details before proceeding.",
   };
 };
 
@@ -551,7 +533,7 @@ Report the issue.`,
 
 If there is no sheets for guests to sleep in, call the emergency cleaning number.
 
- Call Opago  +44 (0)203 865 0599, state the company name STAY IN LONDON and state the property name. Explain what is missing and arrange for them to order the items to the property	
+ Call Opago  +44 (0)203 865 0599, state the company name STAY IN LONDON and state the property name. Explain what is missing and arrange for them to order the items to the property	
 Report Issue.`,
   }),
   makeIssue({
@@ -564,7 +546,7 @@ Report Issue.`,
     raw: `Ask the guest to check under the sofa and inside bedroom closets.
 Confirm whether the sofa bed is needed for sleeping that night.
 Confirm whether the sofa bed bedding was prearranged or requested in advance.
-If the sofa bed bedding was prearranged and the guest cannot wait until the next day, escalate immediately and call Opago  +44 (0)203 865 0599, state the company name STAY IN LONDON and state the property name. Explain what is missing and arrange for them to order the items to the property
+If the sofa bed bedding was prearranged and the guest cannot wait until the next day, escalate immediately and call Opago  +44 (0)203 865 0599, state the company name STAY IN LONDON and state the property name. Explain what is missing and arrange for them to order the items to the property
 If the sofa bed bedding was prearranged but the guest is able to wait until the next day, do not escalate and explain the issue has been reported for next-day follow-up.
 If the sofa bed bedding was not prearranged, explain that the request has been escalated for review and that someone from the team will be in touch the next day.
 Report issue.`,

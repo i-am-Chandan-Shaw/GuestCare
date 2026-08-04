@@ -28,8 +28,7 @@ const Toaster = ({ ...props }: ToasterProps) => {
             "!border-danger/30 !bg-[var(--kn-color-danger-surface)] !text-text-primary [&_[data-icon]]:!text-danger",
           warning:
             "!border-warning/30 !bg-[var(--kn-color-warning-surface)] !text-text-primary [&_[data-icon]]:!text-warning",
-          info:
-            "!border-info/30 !bg-[var(--kn-color-info-surface)] !text-text-primary [&_[data-icon]]:!text-info",
+          info: "!border-info/30 !bg-[var(--kn-color-info-surface)] !text-text-primary [&_[data-icon]]:!text-info",
         },
       }}
       {...props}

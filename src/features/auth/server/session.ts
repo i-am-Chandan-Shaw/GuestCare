@@ -115,9 +115,7 @@ export async function createSessionToken(session: AuthSession): Promise<string> 
   return `${encoded}.${signature}`;
 }
 
-function resolveAgentFromPayload(
-  payload: SlimSessionPayload | LegacySessionPayload,
-): Agent | null {
+function resolveAgentFromPayload(payload: SlimSessionPayload | LegacySessionPayload): Agent | null {
   if ("agentId" in payload && typeof payload.agentId === "string") {
     return findAgentById(payload.agentId) ?? null;
   }
@@ -136,9 +134,8 @@ export async function parseSessionToken(token: string): Promise<AuthSession | nu
   if (!(await hmacVerify(encoded, signature))) return null;
 
   try {
-    const payload = JSON.parse(
-      new TextDecoder().decode(fromBase64Url(encoded)),
-    ) as SlimSessionPayload | LegacySessionPayload;
+    const payload = JSON.parse(new TextDecoder().decode(fromBase64Url(encoded))) as
+      SlimSessionPayload | LegacySessionPayload;
 
     if (!payload.userId || !payload.email) return null;
     if (payload.exp <= Date.now()) return null;

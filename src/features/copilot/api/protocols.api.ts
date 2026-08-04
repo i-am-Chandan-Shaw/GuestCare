@@ -1,5 +1,5 @@
-import { ISSUES } from "@/data/protocols";
-import { getGlobalContact } from "@/data/contacts";
+import { ISSUES } from "@/mock-data/protocols";
+import { getGlobalContact } from "@/mock-data/contacts";
 import type { EscalationContactId, Issue } from "@/shared/types";
 
 export async function getIssues(): Promise<Issue[]> {

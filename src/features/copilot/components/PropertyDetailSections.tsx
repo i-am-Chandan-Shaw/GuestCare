@@ -1,10 +1,4 @@
-import {
-  Copy,
-  Phone,
-  ChevronDown,
-  ChevronRight,
-  type LucideIcon,
-} from "lucide-react";
+import { Copy, Phone, ChevronDown, ChevronRight, type LucideIcon } from "lucide-react";
 import { useState, type ReactNode } from "react";
 import { cn } from "@/lib/utils";
 import { copyText } from "@/lib/copy-to-clipboard";
@@ -139,10 +133,7 @@ export function PhoneRow({
   return (
     <div className="px-4 py-3">
       <div className="flex items-center justify-between gap-3">
-        <FieldLabel
-          icon={icon}
-          className="text-[11.5px] font-semibold text-text-secondary"
-        >
+        <FieldLabel icon={icon} className="text-[11.5px] font-semibold text-text-secondary">
           {label}
         </FieldLabel>
         <a
@@ -221,10 +212,7 @@ export function StackedCopyField({
   return (
     <div className="px-4 py-3">
       <div className="flex items-center justify-between gap-3">
-        <FieldLabel
-          icon={icon}
-          className="text-[11.5px] font-semibold text-text-secondary"
-        >
+        <FieldLabel icon={icon} className="text-[11.5px] font-semibold text-text-secondary">
           {label}
         </FieldLabel>
         <button
@@ -262,10 +250,7 @@ export function StackedField({
 }) {
   return (
     <div className="px-4 py-3">
-      <FieldLabel
-        icon={icon}
-        className="text-[11.5px] font-semibold text-text-secondary"
-      >
+      <FieldLabel icon={icon} className="text-[11.5px] font-semibold text-text-secondary">
         {label}
       </FieldLabel>
       <p className="mt-1 break-words text-[13px] font-medium text-text-primary">{value}</p>

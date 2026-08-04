@@ -1,3 +1,4 @@
+import { copyText } from "@/lib/copy-to-clipboard";
 import { useState, type ReactNode } from "react";
 import {
   Building2,
@@ -33,10 +34,7 @@ import { agentCanAssignReport, agentCanEditReport } from "@/features/reports/lib
 import { priorityMeta } from "@/shared/constants/agent";
 import { Avatar } from "@/shared/components/Avatar";
 import { cn } from "@/lib/utils";
-import {
-  formatActivityTimestamp,
-  formatActivityTimestampRelative,
-} from "@/shared/lib/datetime";
+import { formatActivityTimestamp, formatActivityTimestampRelative } from "@/shared/lib/datetime";
 import type { Report } from "@/shared/types/report";
 
 function formatReportId(id: string) {
@@ -74,13 +72,7 @@ function ToneIcon({
   );
 }
 
-function DetailSection({
-  title,
-  children,
-}: {
-  title: string;
-  children: ReactNode;
-}) {
+function DetailSection({ title, children }: { title: string; children: ReactNode }) {
   return (
     <section className="rounded-xl border border-border-color bg-card-bg p-5 sm:p-6 shadow-sm">
       <h3 className="mb-5 text-[14px] font-bold text-text-primary">{title}</h3>
@@ -107,9 +99,7 @@ function DetailItem({
       <p className="text-[11px] font-medium text-text-muted">{label}</p>
       <div className="mt-2 flex min-w-0 items-center gap-2.5">
         <ToneIcon icon={icon} tone={iconTone} size="sm" />
-        <span className="truncate text-[13px] font-semibold text-text-primary">
-          {value || "—"}
-        </span>
+        <span className="truncate text-[13px] font-semibold text-text-primary">{value || "—"}</span>
       </div>
     </div>
   );
@@ -209,13 +199,7 @@ function ReportDetailView({ report }: { report: Report }) {
   );
 }
 
-export function ReportDetailPage({
-  reportId,
-  onBack,
-}: {
-  reportId: string;
-  onBack: () => void;
-}) {
+export function ReportDetailPage({ reportId, onBack }: { reportId: string; onBack: () => void }) {
   const actor = useReportActor();
   const { data, isLoading } = useReportDetailQuery(reportId);
   const { data: agents = [] } = useAssignmentAgentsQuery();
@@ -284,12 +268,10 @@ export function ReportDetailPage({
   };
 
   const copyId = async () => {
-    try {
-      await navigator.clipboard.writeText(displayId);
+    const success = await copyText(displayId, "Report ID copied to clipboard");
+    if (success) {
       setCopied(true);
       window.setTimeout(() => setCopied(false), 1200);
-    } catch {
-      /* clipboard unavailable */
     }
   };
 
@@ -318,11 +300,7 @@ export function ReportDetailPage({
             <div className="min-h-0 flex-1 space-y-6 overflow-y-auto p-5 sm:p-6">
               <div className="flex items-start justify-between gap-4">
                 <div className="flex min-w-0 items-start gap-3">
-                  <Avatar
-                    name={report.callerName}
-                    seed={report.id}
-                    size="lg"
-                  />
+                  <Avatar name={report.callerName} seed={report.id} size="lg" />
                   <div className="min-w-0">
                     <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
                       <span className="text-[14px] font-semibold text-text-primary">

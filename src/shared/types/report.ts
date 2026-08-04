@@ -70,11 +70,7 @@ export interface Report {
 }
 
 export type ReportThreadEntryType =
-  | "comment"
-  | "assignment"
-  | "status_change"
-  | "field_edit"
-  | "system";
+  "comment" | "assignment" | "status_change" | "field_edit" | "system";
 
 export interface ReportThreadEntry {
   id: string;

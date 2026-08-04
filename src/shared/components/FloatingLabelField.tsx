@@ -108,9 +108,7 @@ function FloatingShell({
           locked && "cursor-not-allowed text-text-secondary",
         ),
       })}
-      {endAction ? (
-        <EndActionButton action={endAction} fieldDisabled={disabled} />
-      ) : null}
+      {endAction ? <EndActionButton action={endAction} fieldDisabled={disabled} /> : null}
     </div>
   );
 }
@@ -371,3 +369,18 @@ export function createInfoEndAction(onClick: () => void, disabled?: boolean): Fl
     disabled,
   };
 }
+
+export function Field({ label, children }: { label: string; children: ReactNode }) {
+  return (
+    <div className="block">
+      <span className="mb-2 block text-[13px] font-semibold text-text-primary">{label}</span>
+      {children}
+    </div>
+  );
+}
+
+export {
+  FloatingLabelInput as Input,
+  FloatingLabelTextarea as Textarea,
+  FloatingLabelSelect as Select,
+};

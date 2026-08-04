@@ -1,3 +1,4 @@
+import { useDebouncedValue } from "@/shared/hooks/use-debounced-value";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { IGetRowsParams } from "ag-grid-community";
 import type { AgGridReact } from "ag-grid-react";
@@ -5,10 +6,7 @@ import { Plus } from "lucide-react";
 import { getAgentsPaginated } from "@/features/agents/api/agents.api";
 import { AgentFormDialog } from "@/features/agents/components/AgentFormDialog";
 import { createAgentsTableColumnDefs } from "@/features/agents/components/agents-table-columns";
-import {
-  canEditAgent,
-  canManageAgents,
-} from "@/features/agents/lib/agent-permissions";
+import { canEditAgent, canManageAgents } from "@/features/agents/lib/agent-permissions";
 import { useAuth } from "@/features/auth/hooks/useAuth";
 import { toReportActor } from "@/features/reports/lib/report-scope";
 import {
@@ -18,17 +16,6 @@ import {
 import { Button } from "@/components/ui/Button";
 import { SearchToolbar } from "@/shared/components/SearchToolbar";
 import type { AgentListItem } from "@/shared/types/agent";
-
-function useDebouncedValue<T>(value: T, delayMs: number): T {
-  const [debounced, setDebounced] = useState(value);
-
-  useEffect(() => {
-    const timer = window.setTimeout(() => setDebounced(value), delayMs);
-    return () => window.clearTimeout(timer);
-  }, [value, delayMs]);
-
-  return debounced;
-}
 
 export function AgentsPage() {
   const { agent } = useAuth();

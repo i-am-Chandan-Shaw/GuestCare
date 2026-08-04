@@ -1,5 +1,5 @@
-import { CUSTOMERS } from "@/data/mocks/customers.mock";
-import { PROPERTIES } from "@/data/properties";
+import { CUSTOMERS } from "@/mock-data/mocks/customers.mock";
+import { PROPERTIES } from "@/mock-data/properties";
 import { getIncidentLogs } from "@/features/incidents/api/incidents.api";
 import { agentCanAccessCustomer } from "@/shared/lib/access";
 import type {

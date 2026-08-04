@@ -88,9 +88,7 @@ export function IncidentComposeWindow({
         tabIndex={isMinimized ? 0 : undefined}
         aria-label={isMinimized ? `Expand report compose: ${title}` : undefined}
       >
-        <p className="min-w-0 flex-1 truncate text-[13px] font-semibold text-foreground">
-          {title}
-        </p>
+        <p className="min-w-0 flex-1 truncate text-[13px] font-semibold text-foreground">{title}</p>
 
         <div
           className="flex shrink-0 items-center gap-0.5"

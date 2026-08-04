@@ -1,9 +1,6 @@
 import { z } from "zod";
-import { CUSTOMERS } from "@/data/mocks/customers.mock";
-import {
-  __getReportStoreSnapshot,
-  createReport,
-} from "@/features/reports/api/reports.api";
+import { CUSTOMERS } from "@/mock-data/mocks/customers.mock";
+import { __getReportStoreSnapshot, createReport } from "@/features/reports/api/reports.api";
 import { reportToIncidentLog } from "@/features/reports/lib/report-legacy";
 import { mapLegacyIncidentStatus } from "@/features/reports/lib/report-status";
 import type {
@@ -20,10 +17,7 @@ const createIncidentSchema = z.object({
   reservation: z.string(),
   nameOnBooking: z.string(),
   incidentType: z.string().min(1, "Please select an issue type."),
-  issueSummary: z
-    .string()
-    .trim()
-    .min(1, "Please select or enter what the issue is."),
+  issueSummary: z.string().trim().min(1, "Please select or enter what the issue is."),
   actions: z.array(z.string()),
   priority: z.enum(["P1", "P2", "P3", "P4"]),
   status: z.string(),
@@ -55,9 +49,7 @@ function getIncidentLogsFromStore(filters: IncidentLogFilters = {}): IncidentLog
       CUSTOMERS.find((c) => c.id === filters.customerId)?.propertyIds ?? [],
     );
     reports = reports.filter(
-      (r) =>
-        r.customerId === filters.customerId ||
-        (r.propertyId && propertyIds.has(r.propertyId)),
+      (r) => r.customerId === filters.customerId || (r.propertyId && propertyIds.has(r.propertyId)),
     );
   }
 
@@ -94,8 +86,7 @@ export async function createIncident(
   }
 
   const data = parsed.data;
-  const customerId =
-    data.customerId ?? resolveCustomerIdForProperty(data.propertyId);
+  const customerId = data.customerId ?? resolveCustomerIdForProperty(data.propertyId);
   if (!customerId) {
     throw new Error("A customer is required to create a report.");
   }

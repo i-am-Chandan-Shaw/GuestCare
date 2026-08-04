@@ -6,8 +6,10 @@ export const queryKeys = {
   },
   properties: {
     all: ["properties"] as const,
-    byCustomer: (customerId: string) => [...queryKeys.properties.all, "customer", customerId] as const,
-    summaries: (customerId: string) => [...queryKeys.properties.all, "summaries", customerId] as const,
+    byCustomer: (customerId: string) =>
+      [...queryKeys.properties.all, "customer", customerId] as const,
+    summaries: (customerId: string) =>
+      [...queryKeys.properties.all, "summaries", customerId] as const,
   },
   issues: {
     all: ["issues"] as const,
@@ -17,7 +19,8 @@ export const queryKeys = {
   },
   incidents: {
     all: ["incidents"] as const,
-    list: (filters: Record<string, unknown>) => [...queryKeys.incidents.all, "list", filters] as const,
+    list: (filters: Record<string, unknown>) =>
+      [...queryKeys.incidents.all, "list", filters] as const,
   },
   agents: {
     all: ["agents"] as const,

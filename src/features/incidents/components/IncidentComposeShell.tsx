@@ -37,27 +37,26 @@ export function IncidentComposeShell() {
         </button>
       )}
 
-      {!meta.isDetached &&
-        (state.panelMode === "expanded" || state.panelMode === "minimized") && (
-          <IncidentComposeWindow
-            mode={state.panelMode}
-            customer={customer}
-            property={property}
-            issue={issue}
-            form={state.form}
-            setForm={actions.setForm}
-            onClear={actions.clearForm}
-            onSubmit={actions.submitIncident}
-            isIncidentFormDirty={meta.isIncidentFormDirty}
-            isSubmitting={meta.isSubmitting}
-            onMinimize={actions.minimizeIncidentPanel}
-            onDetach={actions.detachIncidentPanel}
-            onExpand={actions.expandIncidentPanel}
-            onRequestClose={actions.closeIncidentPanel}
-          />
-        )}
+      {!meta.isDetached && (state.panelMode === "expanded" || state.panelMode === "minimized") && (
+        <IncidentComposeWindow
+          mode={state.panelMode}
+          customer={customer}
+          property={property}
+          issue={issue}
+          form={state.form}
+          setForm={actions.setForm}
+          onClear={actions.clearForm}
+          onSubmit={actions.submitIncident}
+          isIncidentFormDirty={meta.isIncidentFormDirty}
+          isSubmitting={meta.isSubmitting}
+          onMinimize={actions.minimizeIncidentPanel}
+          onDetach={actions.detachIncidentPanel}
+          onExpand={actions.expandIncidentPanel}
+          onRequestClose={actions.closeIncidentPanel}
+        />
+      )}
 
-      {meta.isDetached && state.pipWindow && <IncidentComposePopupPage alwaysOnTop />}
+      {meta.isDetached && state.pipWindow && <IncidentComposePopupPage />}
     </>,
     state.pipWindow?.document.body ?? document.body,
   );

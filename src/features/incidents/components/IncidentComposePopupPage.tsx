@@ -7,7 +7,7 @@ import { useIncidentCompose } from "@/features/incidents/context/IncidentCompose
 import { formatIncidentTitle } from "@/features/incidents/lib/format-incident-title";
 import { useWorkspaceContext } from "@/features/workspace/context/WorkspaceProvider";
 
-export function IncidentComposePopupPage({ alwaysOnTop = false }: { alwaysOnTop?: boolean }) {
+export function IncidentComposePopupPage() {
   const { state: workspaceState } = useWorkspaceContext();
   const { customer, property, issue } = workspaceState.selection;
   const { state, actions, meta } = useIncidentCompose();
@@ -34,11 +34,7 @@ export function IncidentComposePopupPage({ alwaysOnTop = false }: { alwaysOnTop?
         </p>
 
         <div className="flex shrink-0 items-center gap-0.5">
-          <HeaderIconButton
-            label="Return to app"
-            onClick={actions.attachIncidentPanel}
-            active
-          >
+          <HeaderIconButton label="Return to app" onClick={actions.attachIncidentPanel} active>
             <PictureInPicture2 className="h-4 w-4" strokeWidth={1.75} />
           </HeaderIconButton>
 

@@ -1,5 +1,5 @@
-import { CUSTOMERS } from "@/data/mocks/customers.mock";
-import { PROPERTIES } from "@/data/properties";
+import { CUSTOMERS } from "@/mock-data/mocks/customers.mock";
+import { PROPERTIES } from "@/mock-data/properties";
 import { listAgents, findAgentById } from "@/features/agents/lib/agent-store";
 import {
   ensureAssignees,
@@ -33,8 +33,8 @@ import type {
 } from "@/shared/types/report";
 
 const store = createEmptyReportStore();
-let reportStore: Report[] = store.reports;
-let threadStore: ReportThreadEntry[] = store.threads;
+const reportStore: Report[] = store.reports;
+const threadStore: ReportThreadEntry[] = store.threads;
 let reportIdCounter = reportStore.length + 1;
 
 function resolveCustomerName(customerId: string): string {
@@ -107,9 +107,7 @@ function filterReports(query: ReportsQuery, actor?: ReportActor): Report[] {
   } else if (query.customerIds && query.customerIds.length > 0) {
     const allowed = new Set(query.customerIds);
     const propertyIds = new Set(
-      query.customerIds.flatMap(
-        (id) => CUSTOMERS.find((c) => c.id === id)?.propertyIds ?? [],
-      ),
+      query.customerIds.flatMap((id) => CUSTOMERS.find((c) => c.id === id)?.propertyIds ?? []),
     );
     results = results.filter(
       (r) => allowed.has(r.customerId) || (r.propertyId != null && propertyIds.has(r.propertyId)),
@@ -128,9 +126,7 @@ function filterReports(query: ReportsQuery, actor?: ReportActor): Report[] {
 
   if (query.assignedAgentIds && query.assignedAgentIds.length > 0) {
     const allowed = new Set(query.assignedAgentIds);
-    results = results.filter((r) =>
-      ensureAssignees(r).some((a) => allowed.has(a.agentId)),
-    );
+    results = results.filter((r) => ensureAssignees(r).some((a) => allowed.has(a.agentId)));
   }
 
   if (query.propertyIds && query.propertyIds.length > 0) {
@@ -218,10 +214,7 @@ export async function getReportById(id: string, actor?: ReportActor): Promise<Re
   return { report: { ...report, assignees: [...report.assignees] }, thread };
 }
 
-export async function createReport(
-  input: CreateReportInput,
-  actor: ReportActor,
-): Promise<Report> {
+export async function createReport(input: CreateReportInput, actor: ReportActor): Promise<Report> {
   if (!agentCanAccessCustomer(actor, input.customerId)) {
     throw new Error("Not allowed to create a report for this customer");
   }
@@ -324,8 +317,7 @@ export async function updateReport(
     report.propertyName = resolvePropertyName(input.propertyId);
   }
 
-  const statusChanged =
-    input.status !== undefined && input.status !== previousStatus;
+  const statusChanged = input.status !== undefined && input.status !== previousStatus;
 
   if (statusChanged) {
     report.status = input.status!;

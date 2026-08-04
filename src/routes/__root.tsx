@@ -10,7 +10,7 @@ import { useEffect, type ReactNode } from "react";
 
 import appCss from "../styles.css?url";
 import { Button } from "@/components/ui/Button";
-import { Toaster } from "@/components/ui/sonner";
+import { Toaster } from "@/components/ui/Sonner";
 import { getSession } from "@/features/auth/api/auth.api";
 import type { AuthSession } from "@/features/auth/types";
 

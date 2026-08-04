@@ -1,11 +1,7 @@
 export type Priority = "P1" | "P2" | "P3" | "P4";
 
 export type EscalationKind =
-  | "host"
-  | "emergency-then-host"
-  | "next-day-followup"
-  | "cleaning"
-  | { custom: string };
+  "host" | "emergency-then-host" | "next-day-followup" | "cleaning" | { custom: string };
 
 export type SystemKey =
   | "heating"
@@ -25,18 +21,12 @@ export type SystemInfo = {
   escalation?: EscalationKind;
 };
 
-export type ReservationVerification =
-  | "Required"
-  | "Not Required"
-  | "Required on Escalated";
+export type ReservationVerification = "Required" | "Not Required" | "Required on Escalated";
 
 export type EscalationContactId = "next-day" | "cleaning" | "property";
 
 export type IncidentStatus =
-  | "Resolved"
-  | "Unresolved - Escalation Handover"
-  | "PM Follow-up Needed"
-  | "In Progress";
+  "Resolved" | "Unresolved - Escalation Handover" | "PM Follow-up Needed" | "In Progress";
 
 export type IncidentType =
   | "Technical Issues"

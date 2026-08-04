@@ -6,7 +6,15 @@ export const CUSTOMERS: Customer[] = [
     name: "Stay in London — South",
     email: "south@stayinlondon.co.uk",
     phone: "+1 555-0201",
-    propertyIds: ["almorah", "battersea", "bermondsey", "borough", "neckinger", "union-street", "vauxhall"],
+    propertyIds: [
+      "almorah",
+      "battersea",
+      "bermondsey",
+      "borough",
+      "neckinger",
+      "union-street",
+      "vauxhall",
+    ],
   },
   {
     id: "c2",

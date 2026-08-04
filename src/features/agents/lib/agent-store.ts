@@ -1,4 +1,4 @@
-import { AGENT_DEV_PASSWORD_HASHES, AGENT_SEED } from "@/data/agents.seed";
+import { AGENT_DEV_PASSWORD_HASHES, AGENT_SEED } from "@/mock-data/agents.seed";
 import { hashPassword } from "@/features/auth/lib/password";
 import { nowIso } from "@/shared/lib/datetime";
 import type {
@@ -20,8 +20,8 @@ function cloneAgent(agent: Agent): Agent {
   };
 }
 
-let agentStore: Agent[] = AGENT_SEED.map(cloneAgent);
-let passwordHashStore: Record<string, string> = { ...AGENT_DEV_PASSWORD_HASHES };
+const agentStore: Agent[] = AGENT_SEED.map(cloneAgent);
+const passwordHashStore: Record<string, string> = { ...AGENT_DEV_PASSWORD_HASHES };
 let agentIdCounter = AGENT_SEED.length + 1;
 
 export function listAgents(): Agent[] {

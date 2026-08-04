@@ -8,10 +8,7 @@ import type { ReportAssignee } from "@/shared/types/report";
 const STACK_VISIBLE_LIMIT = 3;
 
 type MembersPanel =
-  | null
-  | { type: "manage" }
-  | { type: "member"; agentId: string }
-  | { type: "overflow" };
+  null | { type: "manage" } | { type: "member"; agentId: string } | { type: "overflow" };
 
 export function ReportMembers({
   assignees,
@@ -36,9 +33,7 @@ export function ReportMembers({
   const rootRef = useRef<HTMLDivElement>(null);
 
   const overlaps = assignees.length > STACK_VISIBLE_LIMIT;
-  const visible = overlaps
-    ? assignees.slice(0, STACK_VISIBLE_LIMIT)
-    : assignees;
+  const visible = overlaps ? assignees.slice(0, STACK_VISIBLE_LIMIT) : assignees;
   const hidden = overlaps ? assignees.slice(STACK_VISIBLE_LIMIT) : [];
 
   useEffect(() => {
@@ -63,45 +58,28 @@ export function ReportMembers({
     if (panel?.type !== "manage") setQuery("");
   }, [panel]);
 
-  const memberIds = useMemo(
-    () => new Set(assignees.map((a) => a.agentId)),
-    [assignees],
-  );
+  const memberIds = useMemo(() => new Set(assignees.map((a) => a.agentId)), [assignees]);
 
-  const agentsById = useMemo(
-    () => new Map(agents.map((a) => [a.id, a])),
-    [agents],
-  );
+  const agentsById = useMemo(() => new Map(agents.map((a) => [a.id, a])), [agents]);
 
   const q = query.trim().toLowerCase();
 
   const members = useMemo(() => {
     if (!q) return assignees;
     return assignees.filter(
-      (a) =>
-        a.agentName.toLowerCase().includes(q) ||
-        a.agentId.toLowerCase().includes(q),
+      (a) => a.agentName.toLowerCase().includes(q) || a.agentId.toLowerCase().includes(q),
     );
   }, [assignees, q]);
 
   const available = useMemo(() => {
     return agents
       .filter((a) => !memberIds.has(a.id))
-      .filter(
-        (a) =>
-          !q ||
-          a.name.toLowerCase().includes(q) ||
-          a.email.toLowerCase().includes(q),
-      );
+      .filter((a) => !q || a.name.toLowerCase().includes(q) || a.email.toLowerCase().includes(q));
   }, [agents, memberIds, q]);
 
   const selectedMember =
-    panel?.type === "member"
-      ? assignees.find((a) => a.agentId === panel.agentId)
-      : undefined;
-  const selectedAgent = selectedMember
-    ? agentsById.get(selectedMember.agentId)
-    : undefined;
+    panel?.type === "member" ? assignees.find((a) => a.agentId === panel.agentId) : undefined;
+  const selectedAgent = selectedMember ? agentsById.get(selectedMember.agentId) : undefined;
 
   const toggleManage = () => {
     setPanel((current) => (current?.type === "manage" ? null : { type: "manage" }));
@@ -116,9 +94,7 @@ export function ReportMembers({
   };
 
   const toggleOverflow = () => {
-    setPanel((current) =>
-      current?.type === "overflow" ? null : { type: "overflow" },
-    );
+    setPanel((current) => (current?.type === "overflow" ? null : { type: "overflow" }));
   };
 
   const handleRemoveMember = (agentId: string) => {
@@ -127,29 +103,19 @@ export function ReportMembers({
   };
 
   return (
-    <div
-      ref={rootRef}
-      className={cn("relative", variant === "default" && "space-y-2")}
-    >
+    <div ref={rootRef} className={cn("relative", variant === "default" && "space-y-2")}>
       {variant === "default" ? (
         <p className="text-[12px] font-semibold text-text-primary">Members</p>
       ) : null}
       <div className="flex flex-wrap items-center gap-1.5">
-        <div
-          className={cn(
-            "flex items-center",
-            overlaps ? "-space-x-2" : "gap-1.5",
-          )}
-        >
+        <div className={cn("flex items-center", overlaps ? "-space-x-2" : "gap-1.5")}>
           {visible.map((member) => (
             <button
               key={member.agentId}
               type="button"
               onClick={() => toggleMember(member.agentId)}
               aria-label={member.agentName}
-              aria-expanded={
-                panel?.type === "member" && panel.agentId === member.agentId
-              }
+              aria-expanded={panel?.type === "member" && panel.agentId === member.agentId}
               className={cn(
                 "rounded-full transition-opacity hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary/40",
                 overlaps && "ring-2 ring-card-bg",
@@ -218,9 +184,7 @@ export function ReportMembers({
                 {selectedMember.agentName}
               </p>
               {selectedAgent?.email ? (
-                <p className="truncate text-[12px] text-text-muted">
-                  {selectedAgent.email}
-                </p>
+                <p className="truncate text-[12px] text-text-muted">{selectedAgent.email}</p>
               ) : null}
             </div>
             <button
@@ -251,9 +215,7 @@ export function ReportMembers({
       {panel?.type === "overflow" ? (
         <div className="absolute left-0 top-full z-30 mt-2 w-72 overflow-hidden rounded-md border border-border-color bg-card-bg shadow-lg">
           <div className="flex items-center justify-between border-b border-border-color px-3 py-2">
-            <p className="text-[13px] font-semibold text-text-primary">
-              More members
-            </p>
+            <p className="text-[13px] font-semibold text-text-primary">More members</p>
             <button
               type="button"
               onClick={() => setPanel(null)}
@@ -282,9 +244,7 @@ export function ReportMembers({
                       {member.agentName}
                     </p>
                     {agent?.email ? (
-                      <p className="truncate text-[11px] text-text-muted">
-                        {agent.email}
-                      </p>
+                      <p className="truncate text-[11px] text-text-muted">{agent.email}</p>
                     ) : null}
                   </div>
                 </li>
@@ -374,12 +334,7 @@ export function ReportMembers({
                     disabled={pending}
                     className="flex w-full items-center gap-2 rounded-md px-1.5 py-1.5 text-left hover:bg-app-bg disabled:opacity-50"
                   >
-                    <Avatar
-                      name={agent.name}
-                      seed={agent.id}
-                      src={agent.imageUrl}
-                      size="sm"
-                    />
+                    <Avatar name={agent.name} seed={agent.id} src={agent.imageUrl} size="sm" />
                     <span className="min-w-0 flex-1 truncate text-[13px] font-medium text-text-primary">
                       {agent.name}
                     </span>
@@ -390,7 +345,6 @@ export function ReportMembers({
           </div>
         </div>
       ) : null}
-
     </div>
   );
 }

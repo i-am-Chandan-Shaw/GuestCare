@@ -91,7 +91,9 @@ export function AppSidebar() {
           </div>
           <div className="min-w-0 flex-1">
             <div className="truncate text-[13px] font-medium text-white">{agent.name}</div>
-            <div className="truncate text-[11px] text-sidebar-text">{formatAgentRole(agent.role)}</div>
+            <div className="truncate text-[11px] text-sidebar-text">
+              {formatAgentRole(agent.role)}
+            </div>
           </div>
           <button
             type="button"

@@ -1,11 +1,6 @@
-import { CUSTOMERS } from "@/data/mocks/customers.mock";
+import { CUSTOMERS } from "@/mock-data/mocks/customers.mock";
 import { agentCanAccessCustomer } from "@/shared/lib/access";
-import type {
-  Agent,
-  AgentCustomerScope,
-  AgentRole,
-  ReportActor,
-} from "@/shared/types/agent";
+import type { Agent, AgentCustomerScope, AgentRole, ReportActor } from "@/shared/types/agent";
 
 export function canManageAgents(actor: ReportActor): boolean {
   return actor.role === "admin" || actor.role === "manager";
@@ -17,10 +12,7 @@ export function creatableRoles(actor: ReportActor): AgentRole[] {
 }
 
 export function canGrantAllCustomers(actor: ReportActor): boolean {
-  return (
-    actor.role === "admin" ||
-    (actor.role === "manager" && actor.customerScope.type === "all")
-  );
+  return actor.role === "admin" || (actor.role === "manager" && actor.customerScope.type === "all");
 }
 
 /** Customers the actor is allowed to assign to another agent. */

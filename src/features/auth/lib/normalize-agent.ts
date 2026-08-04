@@ -32,8 +32,9 @@ export function normalizeSessionAgent(raw: unknown): Agent | null {
   const candidate = raw as Partial<Agent> & LegacyAgentProfile & { agentId?: string };
   const id = candidate.agentId ?? candidate.id;
   const seedById = id ? findAgentById(id) : undefined;
-  const emailFromHandle =
-    candidate.handle?.startsWith("@") ? `${candidate.handle.slice(1)}@guestcare.com` : undefined;
+  const emailFromHandle = candidate.handle?.startsWith("@")
+    ? `${candidate.handle.slice(1)}@guestcare.com`
+    : undefined;
   const email = candidate.email ?? emailFromHandle;
   const seedByEmail = email ? findAgentByEmail(email) : undefined;
   const seed = seedById ?? seedByEmail;

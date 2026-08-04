@@ -86,10 +86,7 @@ export async function getAgentsPaginated(
   };
 }
 
-export async function createAgent(
-  input: CreateAgentInput,
-  actor: ReportActor,
-): Promise<Agent> {
+export async function createAgent(input: CreateAgentInput, actor: ReportActor): Promise<Agent> {
   if (!canManageAgents(actor)) {
     throw new Error("You do not have permission to create agents.");
   }

@@ -98,8 +98,7 @@ export function useRemoveReportAssigneeMutation(reportId: string) {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (input: RemoveReportAssigneeInput) =>
-      removeReportAssignee(reportId, input, actor),
+    mutationFn: (input: RemoveReportAssigneeInput) => removeReportAssignee(reportId, input, actor),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: queryKeys.reports.detail(reportId) });
       void queryClient.invalidateQueries({ queryKey: queryKeys.reports.all });
@@ -125,13 +124,8 @@ export function useUpdateReportCommentMutation(reportId: string) {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({
-      commentId,
-      input,
-    }: {
-      commentId: string;
-      input: UpdateReportCommentInput;
-    }) => updateReportComment(reportId, commentId, input, actor),
+    mutationFn: ({ commentId, input }: { commentId: string; input: UpdateReportCommentInput }) =>
+      updateReportComment(reportId, commentId, input, actor),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: queryKeys.reports.detail(reportId) });
       void queryClient.invalidateQueries({ queryKey: queryKeys.reports.all });

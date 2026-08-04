@@ -3,7 +3,7 @@ import { Building2, Key, Phone, Wifi } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { cn } from "@/lib/utils";
 import { copyText } from "@/lib/copy-to-clipboard";
-import { Chip, Tabs } from "@/shared/components/ui-kit";
+import { Chip, Tabs } from "@/components/ui/UiKit";
 import { priorityMeta } from "@/shared/constants/agent";
 import { useGlobalContact } from "@/features/copilot/hooks/useProtocolData";
 import { useIncidentComposeActions } from "@/features/incidents/context/IncidentComposeProvider";
@@ -121,12 +121,7 @@ export function IssuePanel({
     return (
       <div className="grid h-full min-h-0 grid-cols-[minmax(0,1fr)_minmax(280px,340px)] overflow-hidden bg-app-bg">
         <div className="min-h-0 border-r border-border-color p-4 pr-2">
-          <IssuePickerSection
-            layout="fill"
-            property={property}
-            onPick={onPick}
-            onBack={onBack}
-          />
+          <IssuePickerSection layout="fill" property={property} onPick={onPick} onBack={onBack} />
         </div>
         <div className="min-h-0 p-4 pl-2">
           <IssueHistoryPanel

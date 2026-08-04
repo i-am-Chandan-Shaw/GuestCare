@@ -97,10 +97,7 @@ function HistoryBody({
 
   return (
     <ul className="relative">
-      <span
-        className="absolute bottom-3 left-[13px] top-3 z-0 w-px bg-border-color"
-        aria-hidden
-      />
+      <span className="absolute bottom-3 left-[13px] top-3 z-0 w-px bg-border-color" aria-hidden />
       {data.map((log) => (
         <HistoryItem
           key={log.id}

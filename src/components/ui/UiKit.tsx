@@ -46,10 +46,7 @@ export function SectionCard({
 }) {
   return (
     <section
-      className={cn(
-        "rounded-xl border border-border-color bg-card-bg shadow-sm",
-        className,
-      )}
+      className={cn("rounded-xl border border-border-color bg-card-bg shadow-sm", className)}
     >
       {title && (
         <header className="flex items-center justify-between border-b border-border/50 px-4 py-3">
@@ -63,7 +60,11 @@ export function SectionCard({
 }
 
 export function ShellFrame({ children }: { children: ReactNode }) {
-  return <div className="flex h-screen w-full flex-row overflow-hidden bg-app-bg text-text-primary">{children}</div>;
+  return (
+    <div className="flex h-screen w-full flex-row overflow-hidden bg-app-bg text-text-primary">
+      {children}
+    </div>
+  );
 }
 
 export function Tabs<T extends string>({

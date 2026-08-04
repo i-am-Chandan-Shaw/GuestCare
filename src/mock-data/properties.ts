@@ -1,10 +1,9 @@
 import type { Property, SystemInfo, SystemKey } from "@/shared/types";
 import { isPresent, parseEscalation } from "@/shared/types";
 import { getPropertyHosts } from "./contacts";
-import { getPropertyImageUrl } from "@/data/property-images";
+import { getPropertyImageUrl } from "@/mock-data/property-images";
 
-const MEDIA_FOLDER_URL =
-  "https://drive.google.com/drive/folders/16lz6Pfy4n8CRWC6RTy_fwJkObwvazLLr";
+const MEDIA_FOLDER_URL = "https://drive.google.com/drive/folders/16lz6Pfy4n8CRWC6RTy_fwJkObwvazLLr";
 
 type SystemSource = Partial<Record<SystemKey, { info?: string; escalation?: string }>>;
 
@@ -65,7 +64,8 @@ export const PROPERTIES: Property[] = [
     unit: "Cottage 3",
     address: "Cottage 3, 2 Almorah Road, N1 3EU",
     floor: "Ground",
-    guideUrl: "https://docs.google.com/document/d/1WEzpZyoBWQ7KSK2-YMfAwjYPS8UEIo3trUErRE5K6v0/edit?tab=t.0",
+    guideUrl:
+      "https://docs.google.com/document/d/1WEzpZyoBWQ7KSK2-YMfAwjYPS8UEIo3trUErRE5K6v0/edit?tab=t.0",
     listingUrl: "https://www.airbnb.co.uk/rooms/1497137911142581794",
     specificInfo:
       "Keys: Main guest key in KeyNest. Spare keys on kitchen table. Additional keys in cabinet by entrance. Emergency key in lockbox.\n\nLayout: Ground floor — master bedroom with ensuite, shared bathroom, study, small balcony. Lower level — kitchen, lounge, garden, bunk bedroom.\n\nGuest key from KeyNest; unlock top and bottom locks with larger keys and middle lock with smaller key.",
@@ -132,7 +132,8 @@ export const PROPERTIES: Property[] = [
     unit: "94",
     address: "94 Oswald Building, 372 Queenstown Road, London, SW11 8PG",
     floor: "9th",
-    guideUrl: "https://docs.google.com/document/d/1go0sxvB-TJq1ZPUjDDoZXD1sykR_PAGUHFK6sZgY7kQ/edit?tab=t.0",
+    guideUrl:
+      "https://docs.google.com/document/d/1go0sxvB-TJq1ZPUjDDoZXD1sykR_PAGUHFK6sZgY7kQ/edit?tab=t.0",
     listingUrl: "https://www.airbnb.co.uk/rooms/1371472371454426617",
     specificInfo:
       "Keys: Guest key at KeyNest; 2nd key at concierge; 3rd key in lockbox/emergency set. Layout: 2× double bedrooms with ensuite, open-plan living/kitchen/dining, 2 balconies, utilities cupboard by entrance.",
@@ -152,7 +153,8 @@ export const PROPERTIES: Property[] = [
       raw: "Router is located in the hallway mirrored cupboard — see media folder for details.",
     },
     houseRules: [...DEFAULT_HOUSE_RULES],
-    laundry: "Combi washer/dryer in kitchen. Complimentary white tablets. Drying dial + drying rack available.",
+    laundry:
+      "Combi washer/dryer in kitchen. Complimentary white tablets. Drying dial + drying rack available.",
     laundryEscalation: "host",
     waste: "Rubbish bins on level P1 (Car Park 1). Take key fob to re-enter.",
     mediaFolderUrl: MEDIA_FOLDER_URL,
@@ -195,13 +197,25 @@ export const PROPERTIES: Property[] = [
     address: "38 Bedford, WC2E 9EU",
     floor: "2nd",
     specificInfo: "Flat C. Intercom code: DEMO-CODE.",
-    checkIn: { time: "16:00", instructions: "Use intercom code DEMO-CODE. Collect keys from the Exchange Court lockbox — code DEMO-CODE." },
+    checkIn: {
+      time: "16:00",
+      instructions:
+        "Use intercom code DEMO-CODE. Collect keys from the Exchange Court lockbox — code DEMO-CODE.",
+    },
     checkOut: { time: "10:00", instructions: standardCheckOut },
     spareKeys: "Exchange Court lockbox — code DEMO-CODE.",
-    wifi: { network: "gigacube-FF6F84", password: "DEMO-WIFI-PASS", raw: "gigacube-FF6F84 / DEMO-WIFI-PASS" },
+    wifi: {
+      network: "gigacube-FF6F84",
+      password: "DEMO-WIFI-PASS",
+      raw: "gigacube-FF6F84 / DEMO-WIFI-PASS",
+    },
     houseRules: [],
     mediaFolderUrl: MEDIA_FOLDER_URL,
-    accessSummary: { lockboxCode: "DEMO-002", doorCode: "DEMO-016", accessNotes: "Intercom code DEMO-CODE." },
+    accessSummary: {
+      lockboxCode: "DEMO-002",
+      doorCode: "DEMO-016",
+      accessNotes: "Intercom code DEMO-CODE.",
+    },
   }),
   propertyWithDefaults({
     id: "bedford-d",
@@ -216,7 +230,11 @@ export const PROPERTIES: Property[] = [
     checkIn: { time: "16:00", instructions: "Collect keys from the lockbox — code DEMO-CODE." },
     checkOut: { time: "10:00", instructions: standardCheckOut },
     spareKeys: "Lockbox — code DEMO-CODE.",
-    wifi: { network: "PLUSNET-5XGX", password: "DEMO-WIFI-PASS", raw: "PLUSNET-5XGX / DEMO-WIFI-PASS" },
+    wifi: {
+      network: "PLUSNET-5XGX",
+      password: "DEMO-WIFI-PASS",
+      raw: "PLUSNET-5XGX / DEMO-WIFI-PASS",
+    },
     houseRules: [],
     mediaFolderUrl: MEDIA_FOLDER_URL,
     accessSummary: { lockboxCode: "DEMO-003" },
@@ -230,10 +248,18 @@ export const PROPERTIES: Property[] = [
     unit: "Apartment 3",
     address: "214 Bermondsey Street, SE1 3TQ",
     specificInfo: "Apartment 3.",
-    checkIn: { time: "16:00", instructions: "Collect keys from the Abbey Street lockbox — code DEMO-CODE. Emergency code: DEMO-CODE." },
+    checkIn: {
+      time: "16:00",
+      instructions:
+        "Collect keys from the Abbey Street lockbox — code DEMO-CODE. Emergency code: DEMO-CODE.",
+    },
     checkOut: { time: "10:00", instructions: standardCheckOut },
     spareKeys: "Abbey Street lockbox — code DEMO-CODE. Emergency code: DEMO-CODE.",
-    wifi: { network: "Hyperoptic Fibre 3988", password: "DEMO-WIFI-PASS", raw: "Hyperoptic Fibre 3988 / DEMO-WIFI-PASS" },
+    wifi: {
+      network: "Hyperoptic Fibre 3988",
+      password: "DEMO-WIFI-PASS",
+      raw: "Hyperoptic Fibre 3988 / DEMO-WIFI-PASS",
+    },
     houseRules: [],
     mediaFolderUrl: MEDIA_FOLDER_URL,
     accessSummary: { lockboxCode: "DEMO-004", accessNotes: "Emergency access code: DEMO-CODE." },
@@ -247,12 +273,22 @@ export const PROPERTIES: Property[] = [
     unit: "Redman House",
     address: "72 Redman House, Lant Street, SE1 1QW",
     specificInfo: "Guest code DEMO-CODE. Check-in code DEMO-CODE. Emergency code DEMO-CODE.",
-    checkIn: { time: "16:00", instructions: "Use check-in code DEMO-CODE. Guest access code is 4069." },
+    checkIn: {
+      time: "16:00",
+      instructions: "Use check-in code DEMO-CODE. Guest access code is 4069.",
+    },
     checkOut: { time: "10:00", instructions: standardCheckOut },
-    wifi: { network: "26A3 Hyperoptic", password: "DEMO-WIFI-PASS", raw: "26A3 Hyperoptic / DEMO-WIFI-PASS" },
+    wifi: {
+      network: "26A3 Hyperoptic",
+      password: "DEMO-WIFI-PASS",
+      raw: "26A3 Hyperoptic / DEMO-WIFI-PASS",
+    },
     houseRules: [],
     mediaFolderUrl: MEDIA_FOLDER_URL,
-    accessSummary: { doorCode: "DEMO-017", accessNotes: "Guest code DEMO-CODE; emergency code DEMO-CODE." },
+    accessSummary: {
+      doorCode: "DEMO-017",
+      accessNotes: "Guest code DEMO-CODE; emergency code DEMO-CODE.",
+    },
   }),
   propertyWithDefaults({
     id: "chalk-farm",
@@ -262,13 +298,20 @@ export const PROPERTIES: Property[] = [
     unit: "Flat 20, Duncan House",
     address: "Duncan House, Chalk Farm, London",
     specificInfo: "Flat 20, Duncan House.",
-    checkIn: { time: "16:00", instructions: "Use access code DEMO-CODE. Lockbox code DEMO-CODE; emergency code DEMO-CODE." },
+    checkIn: {
+      time: "16:00",
+      instructions: "Use access code DEMO-CODE. Lockbox code DEMO-CODE; emergency code DEMO-CODE.",
+    },
     checkOut: { time: "10:00", instructions: standardCheckOut },
     spareKeys: "Lockbox — code DEMO-CODE.",
     wifi: { network: "BT-6RFRGQ", password: "DEMO-WIFI-PASS", raw: "BT-6RFRGQ / DEMO-WIFI-PASS" },
     houseRules: [],
     mediaFolderUrl: MEDIA_FOLDER_URL,
-    accessSummary: { lockboxCode: "DEMO-005", doorCode: "DEMO-018", accessNotes: "Emergency code: DEMO-CODE." },
+    accessSummary: {
+      lockboxCode: "DEMO-005",
+      doorCode: "DEMO-018",
+      accessNotes: "Emergency code: DEMO-CODE.",
+    },
   }),
   propertyWithDefaults({
     id: "clerkenwell",
@@ -301,7 +344,11 @@ export const PROPERTIES: Property[] = [
     checkIn: { time: "16:00", instructions: "Collect keys from the lockbox — code DEMO-CODE." },
     checkOut: { time: "10:00", instructions: standardCheckOut },
     spareKeys: "Lockbox — code DEMO-CODE.",
-    wifi: { network: "7777 Hyperoptic", password: "DEMO-WIFI-PASS", raw: "7777 Hyperoptic / DEMO-WIFI-PASS" },
+    wifi: {
+      network: "7777 Hyperoptic",
+      password: "DEMO-WIFI-PASS",
+      raw: "7777 Hyperoptic / DEMO-WIFI-PASS",
+    },
     houseRules: [],
     mediaFolderUrl: MEDIA_FOLDER_URL,
     accessSummary: { lockboxCode: "DEMO-007" },
@@ -329,13 +376,22 @@ export const PROPERTIES: Property[] = [
     unit: "Flat A",
     address: "327 Fulham Palace Road, London",
     specificInfo: "Flat A. Do not lock the bottom lock.",
-    checkIn: { time: "16:00", instructions: "Collect keys from the lockbox — code DEMO-CODE. Do not lock the bottom lock." },
-    checkOut: { time: "10:00", instructions: "Check out by 10:00. Return all keys and do not lock the bottom lock." },
+    checkIn: {
+      time: "16:00",
+      instructions: "Collect keys from the lockbox — code DEMO-CODE. Do not lock the bottom lock.",
+    },
+    checkOut: {
+      time: "10:00",
+      instructions: "Check out by 10:00. Return all keys and do not lock the bottom lock.",
+    },
     spareKeys: "Lockbox — code DEMO-CODE. Emergency code: DEMO-CODE.",
     wifi: { network: "SKY7PGUP", password: "DEMO-WIFI-PASS", raw: "SKY7PGUP / DEMO-WIFI-PASS" },
     houseRules: ["Do not lock the bottom lock."],
     mediaFolderUrl: MEDIA_FOLDER_URL,
-    accessSummary: { lockboxCode: "DEMO-008", accessNotes: "Do not lock the bottom lock. Emergency code: DEMO-CODE." },
+    accessSummary: {
+      lockboxCode: "DEMO-008",
+      accessNotes: "Do not lock the bottom lock. Emergency code: DEMO-CODE.",
+    },
   }),
   propertyWithDefaults({
     id: "hampstead",
@@ -363,7 +419,10 @@ export const PROPERTIES: Property[] = [
     unit: "Flat 2",
     address: "18 Molineux Street, London",
     specificInfo: "Flat 2. Alarm code: DEMO-CODE.",
-    checkIn: { time: "16:00", instructions: "Collect keys from the lockbox — code DEMO-CODE. Alarm code: DEMO-CODE." },
+    checkIn: {
+      time: "16:00",
+      instructions: "Collect keys from the lockbox — code DEMO-CODE. Alarm code: DEMO-CODE.",
+    },
     checkOut: { time: "10:00", instructions: standardCheckOut },
     spareKeys: "Lockbox — code DEMO-CODE.",
     wifi: { network: "SKYPPSWV", password: "DEMO-WIFI-PASS", raw: "SKYPPSWV / DEMO-WIFI-PASS" },
@@ -380,7 +439,10 @@ export const PROPERTIES: Property[] = [
     unit: "Flat K, Erskine House",
     address: "Erskine House, Mayfair, London",
     specificInfo: "Flat K, Erskine House. Alarm code: DEMO-CODE.",
-    checkIn: { time: "16:00", instructions: "Follow the property guide for access instructions. Alarm code: DEMO-CODE." },
+    checkIn: {
+      time: "16:00",
+      instructions: "Follow the property guide for access instructions. Alarm code: DEMO-CODE.",
+    },
     checkOut: { time: "10:00", instructions: standardCheckOut },
     wifi: { network: "erskine", password: "DEMO-WIFI-PASS", raw: "erskine / DEMO-WIFI-PASS" },
     houseRules: [],
@@ -395,14 +457,26 @@ export const PROPERTIES: Property[] = [
     buildingNumber: "85",
     unit: "Neckinger Estate",
     address: "85 Neckinger Estate, London",
-    specificInfo: "Use the check-in lockbox code DEMO-CODE. The keys sheet also references 8569; use 4704 for check-in.",
-    checkIn: { time: "16:00", instructions: "Collect keys from the lockbox — code DEMO-CODE. Do not use the conflicting 8569 key-sheet code." },
+    specificInfo:
+      "Use the check-in lockbox code DEMO-CODE. The keys sheet also references 8569; use 4704 for check-in.",
+    checkIn: {
+      time: "16:00",
+      instructions:
+        "Collect keys from the lockbox — code DEMO-CODE. Do not use the conflicting 8569 key-sheet code.",
+    },
     checkOut: { time: "10:00", instructions: standardCheckOut },
     spareKeys: "Lockbox — use check-in code DEMO-CODE. Emergency code: DEMO-CODE.",
-    wifi: { network: "Missioncontrol", password: "DEMO-WIFI-PASS", raw: "Missioncontrol / DEMO-WIFI-PASS" },
+    wifi: {
+      network: "Missioncontrol",
+      password: "DEMO-WIFI-PASS",
+      raw: "Missioncontrol / DEMO-WIFI-PASS",
+    },
     houseRules: [],
     mediaFolderUrl: MEDIA_FOLDER_URL,
-    accessSummary: { lockboxCode: "DEMO-011", accessNotes: "Keys sheet also says 8569; use 4704. Emergency code: DEMO-CODE." },
+    accessSummary: {
+      lockboxCode: "DEMO-011",
+      accessNotes: "Keys sheet also says 8569; use 4704. Emergency code: DEMO-CODE.",
+    },
   }),
   propertyWithDefaults({
     id: "notting-hill",
@@ -414,10 +488,18 @@ export const PROPERTIES: Property[] = [
     address: "113 Westbourne Park, London",
     floor: "Lower ground",
     specificInfo: "Lower flat.",
-    checkIn: { time: "16:00", instructions: "Follow the property guide for access instructions. Emergency lockbox code: DEMO-CODE." },
+    checkIn: {
+      time: "16:00",
+      instructions:
+        "Follow the property guide for access instructions. Emergency lockbox code: DEMO-CODE.",
+    },
     checkOut: { time: "10:00", instructions: standardCheckOut },
     spareKeys: "Emergency lockbox — code DEMO-CODE.",
-    wifi: { network: "Westbourn Park", password: "DEMO-WIFI-PASS", raw: "Westbourn Park / DEMO-WIFI-PASS" },
+    wifi: {
+      network: "Westbourn Park",
+      password: "DEMO-WIFI-PASS",
+      raw: "Westbourn Park / DEMO-WIFI-PASS",
+    },
     houseRules: [],
     mediaFolderUrl: MEDIA_FOLDER_URL,
     accessSummary: { accessNotes: "Emergency lockbox code: DEMO-CODE." },
@@ -430,7 +512,10 @@ export const PROPERTIES: Property[] = [
     buildingNumber: "11",
     address: "11 Norfolk Square Mews, W2 1RZ",
     specificInfo: "Gate code: DEMO-CODE.",
-    checkIn: { time: "16:00", instructions: "Use gate code DEMO-CODE and follow the property guide for entry." },
+    checkIn: {
+      time: "16:00",
+      instructions: "Use gate code DEMO-CODE and follow the property guide for entry.",
+    },
     checkOut: { time: "10:00", instructions: standardCheckOut },
     parking: "Space for one car in the Mews",
     wifi: {
@@ -451,7 +536,10 @@ export const PROPERTIES: Property[] = [
     buildingNumber: "12",
     address: "12 Norfolk Square Mews, W2 1RZ",
     specificInfo: "Gate code: DEMO-CODE.",
-    checkIn: { time: "16:00", instructions: "Use gate code DEMO-CODE and follow the property guide for entry." },
+    checkIn: {
+      time: "16:00",
+      instructions: "Use gate code DEMO-CODE and follow the property guide for entry.",
+    },
     checkOut: { time: "10:00", instructions: standardCheckOut },
     wifi: {
       network: "BTB-58ZJRS",
@@ -488,9 +576,16 @@ export const PROPERTIES: Property[] = [
     unit: "Flat 28, Finch Lodge",
     address: "Finch Lodge, Royal Oak, London",
     specificInfo: "Use Flat 28; the sheet's unit field incorrectly shows Flat 25.",
-    checkIn: { time: "16:00", instructions: "Follow the property guide for access instructions. Emergency code: DEMO-CODE." },
+    checkIn: {
+      time: "16:00",
+      instructions: "Follow the property guide for access instructions. Emergency code: DEMO-CODE.",
+    },
     checkOut: { time: "10:00", instructions: standardCheckOut },
-    wifi: { network: "Origin_8C01", password: "DEMO-WIFI-PASS", raw: "Origin_8C01 / DEMO-WIFI-PASS" },
+    wifi: {
+      network: "Origin_8C01",
+      password: "DEMO-WIFI-PASS",
+      raw: "Origin_8C01 / DEMO-WIFI-PASS",
+    },
     houseRules: [],
     mediaFolderUrl: MEDIA_FOLDER_URL,
     accessSummary: { accessNotes: "Emergency code: DEMO-CODE." },
@@ -508,7 +603,11 @@ export const PROPERTIES: Property[] = [
     checkIn: { time: "16:00", instructions: "Collect keys from the lockbox — code DEMO-CODE." },
     checkOut: { time: "10:00", instructions: standardCheckOut },
     spareKeys: "Lockbox — code DEMO-CODE. Emergency code: DEMO-CODE.",
-    wifi: { network: "VodafoneDE7708", password: "DEMO-WIFI-PASS", raw: "VodafoneDE7708 / DEMO-WIFI-PASS" },
+    wifi: {
+      network: "VodafoneDE7708",
+      password: "DEMO-WIFI-PASS",
+      raw: "VodafoneDE7708 / DEMO-WIFI-PASS",
+    },
     houseRules: [],
     mediaFolderUrl: MEDIA_FOLDER_URL,
     accessSummary: { lockboxCode: "DEMO-013", accessNotes: "Emergency code: DEMO-CODE." },
@@ -540,7 +639,10 @@ export const PROPERTIES: Property[] = [
     address: "235 Union Street, SE1 0LR",
     floor: "5th",
     specificInfo: "Apartment 8.",
-    checkIn: { time: "16:00", instructions: "Follow the property guide for access instructions. Emergency code: DEMO-CODE." },
+    checkIn: {
+      time: "16:00",
+      instructions: "Follow the property guide for access instructions. Emergency code: DEMO-CODE.",
+    },
     checkOut: { time: "10:00", instructions: standardCheckOut },
     wifi: { network: "SKY03CA7", password: "DEMO-WIFI-PASS", raw: "SKY03CA7 / DEMO-WIFI-PASS" },
     houseRules: [],
@@ -559,11 +661,20 @@ export const PROPERTIES: Property[] = [
     checkIn: { time: "16:00", instructions: "Collect keys from the lockbox — code DEMO-CODE." },
     checkOut: { time: "10:00", instructions: standardCheckOut },
     spareKeys: "Lockbox — code DEMO-CODE. Emergency code: DEMO-CODE.",
-    wifi: { network: "CommunityFibre10Gb_A9855", password: "DEMO-WIFI-PASS", raw: "CommunityFibre10Gb_A9855 / DEMO-WIFI-PASS" },
+    wifi: {
+      network: "CommunityFibre10Gb_A9855",
+      password: "DEMO-WIFI-PASS",
+      raw: "CommunityFibre10Gb_A9855 / DEMO-WIFI-PASS",
+    },
     houseRules: [],
     mediaFolderUrl: MEDIA_FOLDER_URL,
     accessSummary: { lockboxCode: "DEMO-015", accessNotes: "Emergency code: DEMO-CODE." },
-    systems: { drains: { info: "See the SIL property guide for the drains procedure.", escalation: "Call Host" } },
+    systems: {
+      drains: {
+        info: "See the SIL property guide for the drains procedure.",
+        escalation: "Call Host",
+      },
+    },
   }),
 ];
 

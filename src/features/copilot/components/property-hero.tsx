@@ -1,7 +1,7 @@
 import { ExternalLink, MapPin, Search, X } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
-import { Dialog, DialogClose, DialogContent, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogClose, DialogContent, DialogTitle } from "@/components/ui/Dialog";
 import type { Property } from "@/shared/types";
 
 const PROPERTY_HERO_IMAGE =
@@ -25,7 +25,9 @@ export function PropertyHero({ property }: { property: Property }) {
           <Search className="h-3.5 w-3.5" />
         </button>
         <div className="absolute bottom-3 left-4 right-4">
-          <h2 className="text-[18px] font-bold tracking-tight text-white drop-shadow-sm">{property.name}</h2>
+          <h2 className="text-[18px] font-bold tracking-tight text-white drop-shadow-sm">
+            {property.name}
+          </h2>
           <div className="mt-1 flex items-start gap-1.5 text-[12px] text-white/90">
             <MapPin className="h-3.5 w-3.5 shrink-0 mt-0.5" />
             <span className="leading-snug line-clamp-2">{property.address}</span>

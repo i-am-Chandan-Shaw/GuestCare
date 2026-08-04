@@ -19,15 +19,10 @@ import {
   Zap,
   type LucideIcon,
 } from "lucide-react";
-import { SectionCard } from "@/shared/components/ui-kit";
+import { SectionCard } from "@/components/ui/UiKit";
 import { SYSTEM_LABELS } from "@/shared/constants/system-labels";
 import type { Property, SystemKey } from "@/shared/types";
-import {
-  ExpandableNote,
-  FieldLabel,
-  PhoneRow,
-  propertyCardClass,
-} from "./property-shared";
+import { ExpandableNote, FieldLabel, PhoneRow, propertyCardClass } from "./PropertyDetailSections";
 
 const SYSTEM_ICONS: Record<SystemKey, LucideIcon> = {
   heating: Flame,
@@ -165,7 +160,9 @@ export function PropertyOpsTab({ property }: { property: Property }) {
       <SectionCard title="Emergency Contacts" className={propertyCardClass} padded={false}>
         <div className="divide-y divide-border/60">
           {property.hosts.length === 0 ? (
-            <p className="px-4 py-3 text-[12.5px] text-muted-foreground">No host contacts on file.</p>
+            <p className="px-4 py-3 text-[12.5px] text-muted-foreground">
+              No host contacts on file.
+            </p>
           ) : (
             property.hosts.map((h) => (
               <PhoneRow

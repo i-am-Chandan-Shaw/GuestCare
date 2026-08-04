@@ -16,7 +16,7 @@ import type {
 import { IncidentPreview } from "./IncidentPreview";
 import { ProtocolProgressCard } from "./ProtocolProgressCard";
 import type { FormState } from "./incident-form.types";
-import { Input, Select, Textarea, useCopyEndAction } from "@/shared/components/form-controls";
+import { Input, Select, Textarea, useCopyEndAction } from "@/shared/components/FloatingLabelField";
 
 function ClearFormConfirmBanner({
   onCancel,
@@ -112,11 +112,7 @@ export function IncidentForm({
   const formFields = (
     <div className="space-y-4">
       <div>
-        <Input
-          label="Customer"
-          value={customer?.name ?? ""}
-          readOnly
-        />
+        <Input label="Customer" value={customer?.name ?? ""} readOnly />
         {customer && (
           <p className="mt-1.5 text-[11.5px] text-text-muted">
             {customer.email} · {customer.phone}
@@ -225,7 +221,9 @@ export function IncidentForm({
       loading={isSubmitting}
       className={cn("active:scale-[0.99]", embedded ? "min-w-0 flex-1" : "w-full")}
     >
-      {embedded ? "Log Report" : (
+      {embedded ? (
+        "Log Report"
+      ) : (
         <>
           <FilePlus2 className="h-4 w-4" />
           Log Report
@@ -237,9 +235,7 @@ export function IncidentForm({
   if (embedded) {
     return (
       <div className="relative flex h-full flex-col bg-surface">
-        {isSubmitting && (
-          <div className="absolute inset-0 z-10 cursor-wait" aria-hidden />
-        )}
+        {isSubmitting && <div className="absolute inset-0 z-10 cursor-wait" aria-hidden />}
         {confirmClear ? (
           <ClearFormConfirmBanner
             onCancel={() => setConfirmClear(false)}
@@ -261,9 +257,7 @@ export function IncidentForm({
 
   return (
     <div className="relative flex h-full flex-col bg-surface">
-      {isSubmitting && (
-        <div className="absolute inset-0 z-10 cursor-wait" aria-hidden />
-      )}
+      {isSubmitting && <div className="absolute inset-0 z-10 cursor-wait" aria-hidden />}
       {confirmClear ? (
         <ClearFormConfirmBanner
           onCancel={() => setConfirmClear(false)}
