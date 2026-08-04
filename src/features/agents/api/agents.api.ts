@@ -1,9 +1,4 @@
-import {
-  createAgentFn,
-  getAgentByIdFn,
-  listAgentsFn,
-  updateAgentFn,
-} from "@/features/agents/agents.functions";
+import { createAgentFn, listAgentsFn, updateAgentFn } from "@/features/agents/agents.functions";
 import { filterBySearch } from "@/shared/components/SearchToolbar";
 import { formatCustomerScope } from "@/shared/lib/agent-display";
 import type {
@@ -12,7 +7,6 @@ import type {
   AgentsQuery,
   CreateAgentInput,
   PaginatedAgents,
-  AgentAccess,
   UpdateAgentInput,
 } from "@/shared/types/agent";
 
@@ -31,24 +25,15 @@ function toListItem(agent: Agent): AgentListItem {
   };
 }
 
-/** `currentAgent` kept for call-site / query-key compatibility; auth is enforced in listAgentsFn. */
-export async function getAgents(_currentAgent: AgentAccess): Promise<Agent[]> {
+export async function getAgents(): Promise<Agent[]> {
   return listAgentsFn();
 }
 
-/** `currentAgent` kept for call-site compatibility; auth is enforced in getAgentByIdFn. */
-export async function getAgentById(id: string, _currentAgent: AgentAccess): Promise<Agent | null> {
-  return getAgentByIdFn({ data: { id } });
-}
-
-export async function getAgentsPaginated(
-  query: AgentsQuery,
-  _currentAgent: AgentAccess,
-): Promise<PaginatedAgents> {
+export async function getAgentsPaginated(query: AgentsQuery): Promise<PaginatedAgents> {
   const { page, limit, search = "" } = query;
-  const store = await listAgentsFn();
+  const agents = await listAgentsFn();
 
-  let results = filterBySearch(store, search, (agent) =>
+  let results = filterBySearch(agents, search, (agent) =>
     [agent.name, agent.email, agent.role, formatCustomerScope(agent.customerScope)].join(" "),
   );
 
@@ -74,12 +59,7 @@ export async function createAgent(input: CreateAgentInput): Promise<Agent> {
   return createAgentFn({ data: input });
 }
 
-/** `currentAgent` kept for call-site compatibility; auth/permissions enforced in updateAgentFn. */
-export async function updateAgent(
-  id: string,
-  input: UpdateAgentInput,
-  _currentAgent: AgentAccess,
-): Promise<Agent> {
+export async function updateAgent(id: string, input: UpdateAgentInput): Promise<Agent> {
   return updateAgentFn({
     data: {
       id,

@@ -1,18 +1,17 @@
 import type { Agent, AgentAccess } from "@/shared/types/agent";
-import { normalizeAgentAccess } from "@/features/auth/lib/normalize-agent";
 import { reportHasAssignee } from "@/features/reports/lib/report-assignees";
 import { agentCanAccessCustomer } from "@/shared/lib/access";
 import type { Report } from "@/shared/types/report";
 
 export { agentCanAccessCustomer };
 
-export function toAgentAccess(agent: Agent | AgentAccess | unknown): AgentAccess {
-  const normalized = normalizeAgentAccess(agent);
+/** Narrow a full agent to the fields used for permission checks. */
+export function toAgentAccess(agent: Agent | AgentAccess): AgentAccess {
   return {
-    id: normalized.id,
-    name: normalized.name,
-    role: normalized.role,
-    customerScope: normalized.customerScope,
+    id: agent.id,
+    name: agent.name,
+    role: agent.role,
+    customerScope: agent.customerScope,
   };
 }
 

@@ -286,14 +286,10 @@ export function AgentFormDialog({
         await createAgent({ ...shared, password: form.password });
         toast.success("Agent created");
       } else if (agentId) {
-        await updateAgent(
-          agentId,
-          {
-            ...shared,
-            password: form.changePassword ? form.password : undefined,
-          },
-          currentAgent,
-        );
+        await updateAgent(agentId, {
+          ...shared,
+          password: form.changePassword ? form.password : undefined,
+        });
         toast.success("Agent updated");
       }
       onSaved();

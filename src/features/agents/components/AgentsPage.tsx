@@ -8,7 +8,6 @@ import { AgentFormDialog } from "@/features/agents/components/AgentFormDialog";
 import { createAgentsTableColumnDefs } from "@/features/agents/components/agents-table-columns";
 import { canEditAgent, canManageAgents } from "@/features/agents/lib/agent-permissions";
 import { useAuth } from "@/features/auth/hooks/useAuth";
-import { toAgentAccess } from "@/features/reports/lib/report-scope";
 import {
   ServerPaginatedTable,
   computeInfiniteScrollLastRow,
@@ -19,7 +18,6 @@ import type { AgentListItem } from "@/shared/types/agent";
 
 export function AgentsPage() {
   const { agent } = useAuth();
-  const currentAgent = useMemo(() => toAgentAccess(agent), [agent]);
   const [search, setSearch] = useState("");
   const debouncedSearch = useDebouncedValue(search, 300);
   const gridRef = useRef<AgGridReact<AgentListItem>>(null);
@@ -29,7 +27,7 @@ export function AgentsPage() {
   const [dialogMode, setDialogMode] = useState<"create" | "edit">("create");
   const [editingAgent, setEditingAgent] = useState<AgentListItem | null>(null);
 
-  const canManage = canManageAgents(currentAgent);
+  const canManage = canManageAgents(agent);
 
   const openCreate = () => {
     setDialogMode("create");
@@ -46,10 +44,10 @@ export function AgentsPage() {
   const columnDefs = useMemo(
     () =>
       createAgentsTableColumnDefs({
-        canEdit: (row) => canEditAgent(currentAgent, row),
+        canEdit: (row) => canEditAgent(agent, row),
         onEdit: openEdit,
       }),
-    [currentAgent, openEdit],
+    [agent, openEdit],
   );
 
   const handleFetchData = useCallback(
@@ -58,14 +56,11 @@ export function AgentsPage() {
       const limit = Math.max(1, (params.endRow ?? startRow + 50) - startRow);
       const page = Math.floor(startRow / limit) + 1;
 
-      const result = await getAgentsPaginated(
-        {
-          page,
-          limit,
-          search: debouncedSearch,
-        },
-        currentAgent,
-      );
+      const result = await getAgentsPaginated({
+        page,
+        limit,
+        search: debouncedSearch,
+      });
 
       const lastRow = computeInfiniteScrollLastRow({
         startRow,
@@ -76,7 +71,7 @@ export function AgentsPage() {
 
       return { data: result.data, lastRow };
     },
-    [currentAgent, debouncedSearch],
+    [debouncedSearch],
   );
 
   useEffect(() => {
@@ -141,7 +136,7 @@ export function AgentsPage() {
           open={dialogOpen}
           mode={dialogMode}
           agent={editingAgent}
-          currentAgent={currentAgent}
+          currentAgent={agent}
           onOpenChange={setDialogOpen}
           onSaved={handleSaved}
         />

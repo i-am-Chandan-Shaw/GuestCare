@@ -67,11 +67,5 @@ export interface PaginatedAgents {
   };
 }
 
-/** Server/auth only — never expose to client */
-export interface AgentCredentials {
-  agentId: string;
-  passwordHash: string;
-}
-
 /** Signed-in agent fields used for permission checks (not the full profile). */
 export type AgentAccess = Pick<Agent, "id" | "name" | "role" | "customerScope">;

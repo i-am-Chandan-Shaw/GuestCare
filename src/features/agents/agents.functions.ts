@@ -1,5 +1,4 @@
 import { createServerFn } from "@tanstack/react-start";
-import { z } from "zod";
 import {
   canEditAgent,
   canManageAgents,
@@ -8,33 +7,11 @@ import {
 } from "@/features/agents/lib/agent-permissions";
 import { mapAgentRow, type AgentRow } from "@/features/agents/lib/map-agent-row";
 import { throwHttpError } from "@/features/agents/lib/server-fn-error";
-import { createAgentSchema } from "@/features/agents/create-agent.schema";
+import { createAgentSchema, updateAgentSchema } from "@/features/agents/create-agent.schema";
 import { isPasswordStrong } from "@/features/agents/validations/agent-form.schema";
 import { getAuthSession } from "@/features/auth/server/session";
 import { createSupabaseAdmin } from "@/shared/lib/supabase/admin";
 import type { Agent } from "@/shared/types/agent";
-
-const agentIdSchema = z.object({
-  id: z.string().uuid("Invalid agent id."),
-});
-
-const customerScopeSchema = z.union([
-  z.object({ type: z.literal("all") }),
-  z.object({
-    type: z.literal("specific"),
-    customerIds: z.array(z.string()).min(1),
-  }),
-]);
-
-const updateAgentSchema = z.object({
-  id: z.string().uuid("Invalid agent id."),
-  name: z.string().trim().min(1, "Name is required."),
-  email: z.string().trim().email("A valid email is required."),
-  role: z.enum(["admin", "manager", "user"]),
-  isActive: z.boolean(),
-  customerScope: customerScopeSchema,
-  password: z.string().optional(),
-});
 
 const WEAK_PASSWORD_ERROR =
   "Password must be 8+ characters with uppercase, number, and special character.";
@@ -71,31 +48,6 @@ export const listAgentsFn = createServerFn({ method: "GET" }).handler(
     return (data ?? []).map((row) => mapAgentRow(row as AgentRow));
   },
 );
-
-export const getAgentByIdFn = createServerFn({ method: "GET" })
-  .validator(agentIdSchema)
-  .handler(async ({ data }): Promise<Agent | null> => {
-    const session = await getAuthSession();
-    if (!session) throwHttpError("You must be signed in to view agents.", 401);
-
-    if (!canManageAgents(session.agent)) {
-      throwHttpError("You do not have permission to view agents.", 403);
-    }
-
-    const supabase = createSupabaseAdmin();
-    const { data: row, error } = await supabase
-      .from("agents")
-      .select("*")
-      .eq("id", data.id)
-      .maybeSingle();
-
-    if (error) {
-      throwHttpError(error.message || "Failed to load agent.", 500);
-    }
-    if (!row) return null;
-
-    return mapAgentRow(row as AgentRow);
-  });
 
 export const createAgentFn = createServerFn({ method: "POST" })
   .validator(createAgentSchema)
