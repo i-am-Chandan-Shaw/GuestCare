@@ -15,7 +15,12 @@ import { Route as AuthenticatedShellRouteImport } from './routes/_authenticated/
 import { Route as AuthenticatedIncidentComposeRouteImport } from './routes/_authenticated/incident-compose'
 import { Route as AuthenticatedShellIndexRouteImport } from './routes/_authenticated/_shell/index'
 import { Route as AuthenticatedShellAgentsRouteImport } from './routes/_authenticated/_shell/agents'
+import { Route as AuthenticatedShellDirectoryRouteImport } from './routes/_authenticated/_shell/directory'
 import { Route as AuthenticatedShellReportsRouteImport } from './routes/_authenticated/_shell/reports'
+import { Route as AuthenticatedShellDirectoryIndexRouteImport } from './routes/_authenticated/_shell/directory/index'
+import { Route as AuthenticatedShellDirectoryCustomerIdRouteImport } from './routes/_authenticated/_shell/directory/$customerId'
+import { Route as AuthenticatedShellDirectoryCustomerIdIndexRouteImport } from './routes/_authenticated/_shell/directory/$customerId/index'
+import { Route as AuthenticatedShellDirectoryCustomerIdPropertyIdRouteImport } from './routes/_authenticated/_shell/directory/$customerId/$propertyId'
 
 const AuthenticatedRoute = AuthenticatedRouteImport.update({
   id: '/_authenticated',
@@ -47,11 +52,41 @@ const AuthenticatedShellAgentsRoute =
     path: '/agents',
     getParentRoute: () => AuthenticatedShellRoute,
   } as any)
+const AuthenticatedShellDirectoryRoute =
+  AuthenticatedShellDirectoryRouteImport.update({
+    id: '/directory',
+    path: '/directory',
+    getParentRoute: () => AuthenticatedShellRoute,
+  } as any)
 const AuthenticatedShellReportsRoute =
   AuthenticatedShellReportsRouteImport.update({
     id: '/reports',
     path: '/reports',
     getParentRoute: () => AuthenticatedShellRoute,
+  } as any)
+const AuthenticatedShellDirectoryIndexRoute =
+  AuthenticatedShellDirectoryIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => AuthenticatedShellDirectoryRoute,
+  } as any)
+const AuthenticatedShellDirectoryCustomerIdRoute =
+  AuthenticatedShellDirectoryCustomerIdRouteImport.update({
+    id: '/$customerId',
+    path: '/$customerId',
+    getParentRoute: () => AuthenticatedShellDirectoryRoute,
+  } as any)
+const AuthenticatedShellDirectoryCustomerIdIndexRoute =
+  AuthenticatedShellDirectoryCustomerIdIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => AuthenticatedShellDirectoryCustomerIdRoute,
+  } as any)
+const AuthenticatedShellDirectoryCustomerIdPropertyIdRoute =
+  AuthenticatedShellDirectoryCustomerIdPropertyIdRouteImport.update({
+    id: '/$propertyId',
+    path: '/$propertyId',
+    getParentRoute: () => AuthenticatedShellDirectoryCustomerIdRoute,
   } as any)
 
 export interface FileRoutesByFullPath {
@@ -59,7 +94,12 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/incident-compose': typeof AuthenticatedIncidentComposeRoute
   '/agents': typeof AuthenticatedShellAgentsRoute
+  '/directory': typeof AuthenticatedShellDirectoryRouteWithChildren
   '/reports': typeof AuthenticatedShellReportsRoute
+  '/directory/$customerId': typeof AuthenticatedShellDirectoryCustomerIdRouteWithChildren
+  '/directory/': typeof AuthenticatedShellDirectoryIndexRoute
+  '/directory/$customerId/$propertyId': typeof AuthenticatedShellDirectoryCustomerIdPropertyIdRoute
+  '/directory/$customerId/': typeof AuthenticatedShellDirectoryCustomerIdIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof AuthenticatedShellIndexRoute
@@ -67,6 +107,9 @@ export interface FileRoutesByTo {
   '/incident-compose': typeof AuthenticatedIncidentComposeRoute
   '/agents': typeof AuthenticatedShellAgentsRoute
   '/reports': typeof AuthenticatedShellReportsRoute
+  '/directory': typeof AuthenticatedShellDirectoryIndexRoute
+  '/directory/$customerId/$propertyId': typeof AuthenticatedShellDirectoryCustomerIdPropertyIdRoute
+  '/directory/$customerId': typeof AuthenticatedShellDirectoryCustomerIdIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -75,14 +118,37 @@ export interface FileRoutesById {
   '/_authenticated/_shell': typeof AuthenticatedShellRouteWithChildren
   '/_authenticated/incident-compose': typeof AuthenticatedIncidentComposeRoute
   '/_authenticated/_shell/agents': typeof AuthenticatedShellAgentsRoute
+  '/_authenticated/_shell/directory': typeof AuthenticatedShellDirectoryRouteWithChildren
   '/_authenticated/_shell/reports': typeof AuthenticatedShellReportsRoute
   '/_authenticated/_shell/': typeof AuthenticatedShellIndexRoute
+  '/_authenticated/_shell/directory/$customerId': typeof AuthenticatedShellDirectoryCustomerIdRouteWithChildren
+  '/_authenticated/_shell/directory/': typeof AuthenticatedShellDirectoryIndexRoute
+  '/_authenticated/_shell/directory/$customerId/$propertyId': typeof AuthenticatedShellDirectoryCustomerIdPropertyIdRoute
+  '/_authenticated/_shell/directory/$customerId/': typeof AuthenticatedShellDirectoryCustomerIdIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/login' | '/incident-compose' | '/agents' | '/reports'
+  fullPaths:
+    | '/'
+    | '/login'
+    | '/incident-compose'
+    | '/agents'
+    | '/directory'
+    | '/reports'
+    | '/directory/$customerId'
+    | '/directory/'
+    | '/directory/$customerId/$propertyId'
+    | '/directory/$customerId/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/login' | '/incident-compose' | '/agents' | '/reports'
+  to:
+    | '/'
+    | '/login'
+    | '/incident-compose'
+    | '/agents'
+    | '/reports'
+    | '/directory'
+    | '/directory/$customerId/$propertyId'
+    | '/directory/$customerId'
   id:
     | '__root__'
     | '/_authenticated'
@@ -90,8 +156,13 @@ export interface FileRouteTypes {
     | '/_authenticated/_shell'
     | '/_authenticated/incident-compose'
     | '/_authenticated/_shell/agents'
+    | '/_authenticated/_shell/directory'
     | '/_authenticated/_shell/reports'
     | '/_authenticated/_shell/'
+    | '/_authenticated/_shell/directory/$customerId'
+    | '/_authenticated/_shell/directory/'
+    | '/_authenticated/_shell/directory/$customerId/$propertyId'
+    | '/_authenticated/_shell/directory/$customerId/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -143,6 +214,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedShellAgentsRouteImport
       parentRoute: typeof AuthenticatedShellRoute
     }
+    '/_authenticated/_shell/directory': {
+      id: '/_authenticated/_shell/directory'
+      path: '/directory'
+      fullPath: '/directory'
+      preLoaderRoute: typeof AuthenticatedShellDirectoryRouteImport
+      parentRoute: typeof AuthenticatedShellRoute
+    }
     '/_authenticated/_shell/reports': {
       id: '/_authenticated/_shell/reports'
       path: '/reports'
@@ -150,17 +228,84 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedShellReportsRouteImport
       parentRoute: typeof AuthenticatedShellRoute
     }
+    '/_authenticated/_shell/directory/': {
+      id: '/_authenticated/_shell/directory/'
+      path: '/'
+      fullPath: '/directory/'
+      preLoaderRoute: typeof AuthenticatedShellDirectoryIndexRouteImport
+      parentRoute: typeof AuthenticatedShellDirectoryRoute
+    }
+    '/_authenticated/_shell/directory/$customerId': {
+      id: '/_authenticated/_shell/directory/$customerId'
+      path: '/$customerId'
+      fullPath: '/directory/$customerId'
+      preLoaderRoute: typeof AuthenticatedShellDirectoryCustomerIdRouteImport
+      parentRoute: typeof AuthenticatedShellDirectoryRoute
+    }
+    '/_authenticated/_shell/directory/$customerId/': {
+      id: '/_authenticated/_shell/directory/$customerId/'
+      path: '/'
+      fullPath: '/directory/$customerId/'
+      preLoaderRoute: typeof AuthenticatedShellDirectoryCustomerIdIndexRouteImport
+      parentRoute: typeof AuthenticatedShellDirectoryCustomerIdRoute
+    }
+    '/_authenticated/_shell/directory/$customerId/$propertyId': {
+      id: '/_authenticated/_shell/directory/$customerId/$propertyId'
+      path: '/$propertyId'
+      fullPath: '/directory/$customerId/$propertyId'
+      preLoaderRoute: typeof AuthenticatedShellDirectoryCustomerIdPropertyIdRouteImport
+      parentRoute: typeof AuthenticatedShellDirectoryCustomerIdRoute
+    }
   }
 }
 
+interface AuthenticatedShellDirectoryCustomerIdRouteChildren {
+  AuthenticatedShellDirectoryCustomerIdPropertyIdRoute: typeof AuthenticatedShellDirectoryCustomerIdPropertyIdRoute
+  AuthenticatedShellDirectoryCustomerIdIndexRoute: typeof AuthenticatedShellDirectoryCustomerIdIndexRoute
+}
+
+const AuthenticatedShellDirectoryCustomerIdRouteChildren: AuthenticatedShellDirectoryCustomerIdRouteChildren =
+  {
+    AuthenticatedShellDirectoryCustomerIdPropertyIdRoute:
+      AuthenticatedShellDirectoryCustomerIdPropertyIdRoute,
+    AuthenticatedShellDirectoryCustomerIdIndexRoute:
+      AuthenticatedShellDirectoryCustomerIdIndexRoute,
+  }
+
+const AuthenticatedShellDirectoryCustomerIdRouteWithChildren =
+  AuthenticatedShellDirectoryCustomerIdRoute._addFileChildren(
+    AuthenticatedShellDirectoryCustomerIdRouteChildren,
+  )
+
+interface AuthenticatedShellDirectoryRouteChildren {
+  AuthenticatedShellDirectoryCustomerIdRoute: typeof AuthenticatedShellDirectoryCustomerIdRouteWithChildren
+  AuthenticatedShellDirectoryIndexRoute: typeof AuthenticatedShellDirectoryIndexRoute
+}
+
+const AuthenticatedShellDirectoryRouteChildren: AuthenticatedShellDirectoryRouteChildren =
+  {
+    AuthenticatedShellDirectoryCustomerIdRoute:
+      AuthenticatedShellDirectoryCustomerIdRouteWithChildren,
+    AuthenticatedShellDirectoryIndexRoute:
+      AuthenticatedShellDirectoryIndexRoute,
+  }
+
+const AuthenticatedShellDirectoryRouteWithChildren =
+  AuthenticatedShellDirectoryRoute._addFileChildren(
+    AuthenticatedShellDirectoryRouteChildren,
+  )
+
 interface AuthenticatedShellRouteChildren {
   AuthenticatedShellAgentsRoute: typeof AuthenticatedShellAgentsRoute
+  AuthenticatedShellDirectoryRoute: typeof AuthenticatedShellDirectoryRouteWithChildren
   AuthenticatedShellReportsRoute: typeof AuthenticatedShellReportsRoute
   AuthenticatedShellIndexRoute: typeof AuthenticatedShellIndexRoute
 }
 
 const AuthenticatedShellRouteChildren: AuthenticatedShellRouteChildren = {
   AuthenticatedShellAgentsRoute: AuthenticatedShellAgentsRoute,
+  AuthenticatedShellDirectoryRoute:
+    AuthenticatedShellDirectoryRouteWithChildren,
   AuthenticatedShellReportsRoute: AuthenticatedShellReportsRoute,
   AuthenticatedShellIndexRoute: AuthenticatedShellIndexRoute,
 }

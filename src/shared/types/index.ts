@@ -36,14 +36,37 @@ export type IncidentType =
   | "Guest-Related Issues"
   | "Other";
 
+export interface CustomerContact {
+  id: string;
+  label: string;
+  name: string;
+  phone: string;
+  position: number;
+}
+
+export interface OrderedStepItem {
+  id: string;
+  label: string;
+  hint?: string;
+  position: number;
+}
+
+export interface CustomerPms {
+  url?: string;
+  username?: string;
+  password?: string;
+}
+
 export interface Customer {
   id: string;
   name: string;
   email: string;
   phone: string;
   propertyIds: string[];
-  /** Profile image URL when available; UI falls back to initials. */
   imageUrl?: string;
+  contacts?: CustomerContact[];
+  pms?: CustomerPms;
+  guestVerificationSteps?: OrderedStepItem[];
 }
 
 export interface HostContact {
@@ -59,6 +82,8 @@ export interface Property {
   buildingNumber?: string;
   unit?: string;
   address: string;
+  postalCode?: string;
+  area?: string;
   floor?: string;
   guideUrl?: string;
   listingUrl?: string;

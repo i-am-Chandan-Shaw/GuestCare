@@ -7,17 +7,26 @@ import type { WorkspaceSearch } from "@/features/workspace/lib/workspace-url";
 import { cn } from "@/lib/utils";
 import { logout } from "@/features/auth/api/auth.api";
 import { useAuth } from "@/features/auth/hooks/useAuth";
-import { BarChart3, LayoutDashboard, UserCircle, LifeBuoy, LogOut } from "lucide-react";
+import {
+  BarChart3,
+  FolderTree,
+  LayoutDashboard,
+  UserCircle,
+  LifeBuoy,
+  LogOut,
+} from "lucide-react";
 
 const baseNav = [
   { id: "issues" as const, label: "Workspace", href: "/", icon: LayoutDashboard },
   { id: "reports" as const, label: "Reports", href: "/reports", icon: BarChart3 },
+  { id: "directory" as const, label: "Directory", href: "/directory", icon: FolderTree },
   { id: "agents" as const, label: "Agents", href: "/agents", icon: UserCircle },
 ];
 
 function useActiveNav() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   if (pathname.startsWith("/reports")) return "reports";
+  if (pathname.startsWith("/directory")) return "directory";
   if (pathname.startsWith("/agents")) return "agents";
   return "issues";
 }
@@ -35,7 +44,7 @@ export function AppSidebar() {
     () =>
       canManageAgents(agent)
         ? baseNav
-        : baseNav.filter((item) => item.id !== "agents"),
+        : baseNav.filter((item) => item.id !== "agents" && item.id !== "directory"),
     [agent],
   );
 
