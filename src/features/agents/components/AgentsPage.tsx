@@ -104,8 +104,8 @@ export function AgentsPage() {
             </p>
           </div>
           {canManage ? (
-            <Button type="button" onClick={openCreate} className="!h-9 shrink-0 !px-3">
-              <Plus className="mr-1.5 h-4 w-4" strokeWidth={2} />
+            <Button type="button" size="sm" onClick={openCreate} className="shrink-0">
+              <Plus className="h-4 w-4" strokeWidth={2} />
               Add agent
             </Button>
           ) : null}

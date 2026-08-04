@@ -3,10 +3,15 @@ import { UserPlus } from "lucide-react";
 import { toast } from "sonner";
 import { createAgent, updateAgent } from "@/features/agents/api/agents.api";
 import { canGrantAllCustomers, creatableRoles } from "@/features/agents/lib/agent-permissions";
+import {
+  clearFieldErrorsForPatch,
+  type AgentFormFieldErrors,
+} from "@/features/agents/lib/agent-form-errors";
 import { getClientErrorMessage } from "@/features/agents/lib/client-error";
 import {
   formValuesToCustomerScope,
   validateAgentPasswords,
+  type AgentFormValues,
 } from "@/features/agents/validations/agent-form.schema";
 import { Button } from "@/components/ui/Button";
 import {
@@ -34,6 +39,15 @@ const FORM_SECTIONS: { id: FormSection; label: string }[] = [
 
 /** Top inset when jumping to a section (matches scroll pane `pt-5`). */
 const SECTION_TOP_INSET = 20;
+
+function passwordFieldError(
+  message: string,
+): Pick<AgentFormFieldErrors, "password" | "confirmPassword"> {
+  if (message.toLowerCase().includes("match")) {
+    return { confirmPassword: message };
+  }
+  return { password: message };
+}
 
 function SectionNav({
   activeSection,
@@ -88,18 +102,18 @@ export function AgentFormDialog({
 
   const {
     form,
-    patch,
+    patch: patchForm,
     customerQuery,
     setCustomerQuery,
     viewSelectedOnly,
     setViewSelectedOnly,
     hydrating,
-    error,
-    setError,
+    error: formError,
+    setError: setFormError,
     assignableCustomers,
     selectedCustomers,
     filteredCustomers,
-    toggleCustomer,
+    toggleCustomer: toggleCustomerForm,
   } = useAgentFormState({
     open,
     mode,
@@ -110,10 +124,26 @@ export function AgentFormDialog({
     defaultScopeType,
   });
 
+  const [fieldErrors, setFieldErrors] = useState<AgentFormFieldErrors>({});
   const [activeSection, setActiveSection] = useState<FormSection>("info");
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
+  const patch = (partial: Partial<AgentFormValues>) => {
+    patchForm(partial);
+    setFieldErrors((prev) => clearFieldErrorsForPatch(prev, partial));
+  };
+
+  const toggleCustomer = (id: string) => {
+    toggleCustomerForm(id);
+    setFieldErrors((prev) => {
+      if (!prev.customers) return prev;
+      const next = { ...prev };
+      delete next.customers;
+      return next;
+    });
+  };
 
   const scrollRef = useRef<HTMLDivElement>(null);
   const infoRef = useRef<HTMLElement>(null);
@@ -145,6 +175,7 @@ export function AgentFormDialog({
     setActiveSection("info");
     setShowPassword(false);
     setShowConfirmPassword(false);
+    setFieldErrors({});
   }, [open]);
 
   const scrollToSection = (section: FormSection) => {
@@ -200,39 +231,43 @@ export function AgentFormDialog({
   }, [open, hydrating, updateAccessMinHeight]);
 
   const handleSubmit = async () => {
-    setError(null);
+    setFormError(null);
+    setFieldErrors({});
 
     if (roles.length === 0) {
-      setError("You do not have permission to manage agents.");
+      setFormError("You do not have permission to manage agents.");
       return;
     }
+
+    const nextFieldErrors: AgentFormFieldErrors = {};
 
     if (!roles.includes(form.role)) {
-      setError("You cannot assign that role.");
-      scrollToSection("info");
-      return;
+      nextFieldErrors.role = "You cannot assign that role.";
     }
-
     if (!form.name.trim()) {
-      setError("Full name is required.");
-      scrollToSection("info");
-      return;
+      nextFieldErrors.name = "Full name is required.";
     }
     if (!form.email.trim() || !form.email.includes("@")) {
-      setError("Enter a valid email address.");
-      scrollToSection("info");
-      return;
+      nextFieldErrors.email = "Enter a valid email address.";
     }
     const passwordError = validateAgentPasswords(form, mode);
     if (passwordError) {
-      setError(passwordError);
-      scrollToSection("info");
-      return;
+      Object.assign(nextFieldErrors, passwordFieldError(passwordError));
+    }
+    if (form.scopeType === "specific" && form.customerIds.length === 0) {
+      nextFieldErrors.customers = "Select at least one customer, or choose All customers.";
     }
 
-    if (form.scopeType === "specific" && form.customerIds.length === 0) {
-      setError("Select at least one customer, or choose All customers.");
-      scrollToSection("access");
+    if (Object.keys(nextFieldErrors).length > 0) {
+      setFieldErrors(nextFieldErrors);
+      const hasInfoError = Boolean(
+        nextFieldErrors.name ||
+          nextFieldErrors.email ||
+          nextFieldErrors.password ||
+          nextFieldErrors.confirmPassword ||
+          nextFieldErrors.role,
+      );
+      scrollToSection(hasInfoError ? "info" : "access");
       return;
     }
 
@@ -264,10 +299,22 @@ export function AgentFormDialog({
       onOpenChange(false);
     } catch (e) {
       const message = getClientErrorMessage(e);
-      setError(message);
       toast.error(message);
-      if (message.toLowerCase().includes("email")) {
+      const lower = message.toLowerCase();
+      if (lower.includes("email")) {
+        setFieldErrors({ email: message });
         scrollToSection("info");
+      } else if (lower.includes("password")) {
+        setFieldErrors(passwordFieldError(message));
+        scrollToSection("info");
+      } else if (lower.includes("customer")) {
+        setFieldErrors({ customers: message });
+        scrollToSection("access");
+      } else if (lower.includes("role")) {
+        setFieldErrors({ role: message });
+        scrollToSection("info");
+      } else {
+        setFormError(message);
       }
     } finally {
       setLoading(false);
@@ -311,6 +358,7 @@ export function AgentFormDialog({
                     showConfirmPassword={showConfirmPassword}
                     passwordEndAction={passwordEndAction}
                     confirmPasswordEndAction={confirmPasswordEndAction}
+                    fieldErrors={fieldErrors}
                   />
                 </section>
 
@@ -332,14 +380,15 @@ export function AgentFormDialog({
                     selectedCustomers={selectedCustomers}
                     filteredCustomers={filteredCustomers}
                     toggleCustomer={toggleCustomer}
+                    customersError={fieldErrors.customers}
                   />
                 </section>
               </>
             )}
 
-            {error ? (
+            {formError ? (
               <p className="rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-[12px] text-destructive">
-                {error}
+                {formError}
               </p>
             ) : null}
           </div>

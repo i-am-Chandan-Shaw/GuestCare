@@ -7,6 +7,7 @@ import {
   type AgentFormValues,
 } from "@/features/agents/validations/agent-form.schema";
 import type { AgentRole } from "@/shared/types/agent";
+import type { AgentFormFieldErrors } from "@/features/agents/lib/agent-form-errors";
 
 export function PasswordRequirementPills({ password }: { password: string }) {
   const requirements = getPasswordRequirementState(password);
@@ -41,6 +42,7 @@ export function AgentInfoSection({
   showConfirmPassword,
   passwordEndAction,
   confirmPasswordEndAction,
+  fieldErrors,
 }: {
   form: AgentFormValues;
   patch: (partial: Partial<AgentFormValues>) => void;
@@ -52,18 +54,25 @@ export function AgentInfoSection({
   showConfirmPassword: boolean;
   passwordEndAction: FloatingEndAction;
   confirmPasswordEndAction: FloatingEndAction;
+  fieldErrors?: AgentFormFieldErrors;
 }) {
   return (
     <div className="space-y-4">
       <h3 className="text-[15px] font-bold text-text-primary">Info</h3>
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-        <Input label="Full name" value={form.name} onChange={(v) => patch({ name: v })} />
+        <Input
+          label="Full name"
+          value={form.name}
+          onChange={(v) => patch({ name: v })}
+          error={fieldErrors?.name}
+        />
         <Input
           label="Email address"
           type="email"
           value={form.email}
           onChange={(v) => patch({ email: v })}
+          error={fieldErrors?.email}
         />
       </div>
 
@@ -75,6 +84,7 @@ export function AgentInfoSection({
           disabled={isEditingSelf || roles.length === 0}
           options={roles}
           optionLabels={roleOptionLabels(roles)}
+          error={fieldErrors?.role}
         />
         <Select
           label="Status"
@@ -132,6 +142,7 @@ export function AgentInfoSection({
                 onChange={(v) => patch({ password: v })}
                 endAction={passwordEndAction}
                 autoComplete="new-password"
+                error={fieldErrors?.password}
               />
               <Input
                 label="Confirm password"
@@ -140,6 +151,7 @@ export function AgentInfoSection({
                 onChange={(v) => patch({ confirmPassword: v })}
                 endAction={confirmPasswordEndAction}
                 autoComplete="new-password"
+                error={fieldErrors?.confirmPassword}
               />
             </div>
             <PasswordRequirementPills password={form.password} />
