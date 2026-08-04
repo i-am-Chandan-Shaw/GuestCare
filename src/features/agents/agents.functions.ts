@@ -8,7 +8,7 @@ import { mapAgentRow, type AgentRow } from "@/features/agents/lib/map-agent-row"
 import { throwHttpError } from "@/features/agents/lib/server-fn-error";
 import { createAgentSchema } from "@/features/agents/create-agent.schema";
 import { isPasswordStrong } from "@/features/agents/validations/agent-form.schema";
-import { parseSessionToken, readSessionCookie } from "@/features/auth/server/session";
+import { getAuthSession } from "@/features/auth/server/session";
 import { createSupabaseAdmin } from "@/shared/lib/supabase/admin";
 import type { Agent } from "@/shared/types/agent";
 
@@ -31,11 +31,8 @@ function isDuplicateAuthError(message: string, status?: number): boolean {
 export const createAgentFn = createServerFn({ method: "POST" })
   .validator(createAgentSchema)
   .handler(async ({ data }): Promise<Agent> => {
-    const token = readSessionCookie();
-    if (!token) throwHttpError("You must be signed in to create agents.", 401);
-
-    const session = await parseSessionToken(token);
-    if (!session) throwHttpError("Your session expired. Please sign in again.", 401);
+    const session = await getAuthSession();
+    if (!session) throwHttpError("You must be signed in to create agents.", 401);
 
     const actor = session.agent;
     if (!canManageAgents(actor)) {

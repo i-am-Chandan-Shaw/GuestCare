@@ -22,45 +22,49 @@ function isValidScope(scope: unknown): scope is AgentCustomerScope {
   return typed.type === "specific" && Array.isArray(typed.customerIds);
 }
 
+function isCompleteAgent(candidate: Partial<Agent> & { agentId?: string }): candidate is Agent {
+  const id = candidate.agentId ?? candidate.id;
+  return (
+    typeof id === "string" &&
+    typeof candidate.name === "string" &&
+    typeof candidate.email === "string" &&
+    isValidRole(candidate.role) &&
+    typeof candidate.isActive === "boolean" &&
+    isValidScope(candidate.customerScope)
+  );
+}
+
 /**
- * Resolve session agent from slim cookie payload or legacy full-agent cookies.
- * Returns null when the agent cannot be found — never falls back to a default manager.
+ * Resolve session agent from a full AuthSession payload or legacy seed lookup.
+ * Supabase agents are not in the mock store — complete payloads are used as-is.
  */
 export function normalizeSessionAgent(raw: unknown): Agent | null {
   if (!raw || typeof raw !== "object") return null;
 
   const candidate = raw as Partial<Agent> & LegacyAgentProfile & { agentId?: string };
   const id = candidate.agentId ?? candidate.id;
-  const seedById = id ? findAgentById(id) : undefined;
-  const emailFromHandle = candidate.handle?.startsWith("@")
-    ? `${candidate.handle.slice(1)}@guestcare.com`
-    : undefined;
-  const email = candidate.email ?? emailFromHandle;
-  const seedByEmail = email ? findAgentByEmail(email) : undefined;
-  const seed = seedById ?? seedByEmail;
 
-  if (!seed) return null;
-
-  if (
-    candidate.email &&
-    candidate.name &&
-    isValidRole(candidate.role) &&
-    typeof candidate.isActive === "boolean" &&
-    isValidScope(candidate.customerScope)
-  ) {
+  if (isCompleteAgent(candidate)) {
     return {
-      id: candidate.id ?? seed.id,
+      id: id!,
       name: candidate.name,
       email: candidate.email,
       role: candidate.role,
       isActive: candidate.isActive,
       customerScope: candidate.customerScope,
-      createdAt: candidate.createdAt ?? seed.createdAt,
-      updatedAt: candidate.updatedAt ?? seed.updatedAt,
+      imageUrl: candidate.imageUrl,
+      createdAt: candidate.createdAt ?? new Date(0).toISOString(),
+      updatedAt: candidate.updatedAt ?? new Date(0).toISOString(),
     };
   }
 
-  return seed;
+  const emailFromHandle = candidate.handle?.startsWith("@")
+    ? `${candidate.handle.slice(1)}@guestcare.com`
+    : undefined;
+  const email = candidate.email ?? emailFromHandle;
+  const seedById = id ? findAgentById(id) : undefined;
+  const seedByEmail = email ? findAgentByEmail(email) : undefined;
+  return seedById ?? seedByEmail ?? null;
 }
 
 /** Resolve a report actor from session/agent payload. Never invents a default manager. */
