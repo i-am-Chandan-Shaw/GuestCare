@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/Button";
 import {
   Dialog,
@@ -8,12 +9,16 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Input, Select, Textarea } from "@/shared/components/form-controls";
-import { REPORT_STATUS_LABELS } from "@/features/reports/lib/report-status";
+import { Input, Select, Textarea, useCopyEndAction } from "@/shared/components/form-controls";
+import { useIssues } from "@/features/copilot/hooks/useProtocolData";
+import {
+  mapLegacyIncidentStatus,
+  mapReportStatusToLegacyIncidentStatus,
+} from "@/features/reports/lib/report-status";
 import { priorityMeta } from "@/shared/constants/agent";
-import { INCIDENT_TYPES } from "@/shared/constants/incident";
-import type { Priority } from "@/shared/types";
-import type { Report, ReportStatus, UpdateReportInput } from "@/shared/types/report";
+import { INCIDENT_STATUSES, INCIDENT_TYPES } from "@/shared/constants/incident";
+import type { IncidentStatus, IncidentType, Priority } from "@/shared/types";
+import type { Report, UpdateReportInput } from "@/shared/types/report";
 
 type ReportFormState = Pick<
   Report,
@@ -60,6 +65,19 @@ export function ReportEditDialog({
   onSave: (input: UpdateReportInput) => void;
 }) {
   const [form, setForm] = useState<ReportFormState>(() => toFormState(report));
+  const { data: issues = [] } = useIssues();
+  const pMeta = priorityMeta[form.priority];
+  const propertyLabel = report.propertyName || "";
+  const propertyCopy = useCopyEndAction(propertyLabel, "property");
+  const reservationCopy = useCopyEndAction(form.reservationNumber, "reservation");
+
+  const issueOptions = (() => {
+    const names = issues.map((i) => i.name);
+    if (form.issueName && !names.includes(form.issueName)) {
+      return [form.issueName, ...names];
+    }
+    return names.length ? names : form.issueName ? [form.issueName] : ["Other"];
+  })();
 
   useEffect(() => {
     if (open) setForm(toFormState(report));
@@ -83,82 +101,100 @@ export function ReportEditDialog({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="min-h-0 flex-1 space-y-5 overflow-y-auto px-6 py-5">
-          <section className="space-y-3">
-            <h3 className="text-[13px] font-bold text-text-primary">Issue information</h3>
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-              <div className="sm:col-span-2">
-                <Input
-                  label="Issue summary"
-                  value={form.issueName}
-                  onChange={(v) => update("issueName", v)}
-                />
-              </div>
-              <Select
-                label="Issue type"
-                value={form.issueType}
-                onChange={(v) => update("issueType", v)}
-                options={INCIDENT_TYPES}
-              />
+        <div className="min-h-0 flex-1 overflow-y-auto px-6 py-5">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <Input label="Customer" value={report.customerName} readOnly />
+
+            <Input
+              label="Property"
+              value={propertyLabel}
+              readOnly
+              endAction={propertyLabel ? propertyCopy : undefined}
+            />
+
+            <Input
+              label="Guest full name"
+              value={form.callerName}
+              onChange={(v) => update("callerName", v)}
+            />
+
+            <Input
+              label="Guest contact"
+              value={form.callerContact}
+              onChange={(v) => update("callerContact", v)}
+            />
+
+            <Input
+              label="Reservation number"
+              value={form.reservationNumber}
+              onChange={(v) => update("reservationNumber", v)}
+              mono
+              endAction={reservationCopy}
+            />
+
+            <Input
+              label="Name on the booking"
+              value={form.nameOnBooking}
+              onChange={(v) => update("nameOnBooking", v)}
+            />
+
+            <Select
+              label="Issue type"
+              value={form.issueType}
+              onChange={(v) => update("issueType", v as IncidentType)}
+              options={INCIDENT_TYPES}
+            />
+
+            <Select
+              label="What is the issue?"
+              value={form.issueName}
+              onChange={(v) => update("issueName", v)}
+              options={issueOptions}
+            />
+
+            <div className="relative">
               <Select
                 label="Priority"
+                className="[&_select]:pl-8"
                 value={form.priority}
                 onChange={(v) => update("priority", v as Priority)}
-                options={Object.keys(priorityMeta) as Priority[]}
-                optionLabels={Object.fromEntries(
-                  (Object.keys(priorityMeta) as Priority[]).map((key) => [
-                    key,
-                    priorityMeta[key].name,
-                  ]),
+                options={["P1", "P2", "P3", "P4"]}
+                optionLabels={{
+                  P1: priorityMeta.P1.name,
+                  P2: priorityMeta.P2.name,
+                  P3: priorityMeta.P3.name,
+                  P4: priorityMeta.P4.name,
+                }}
+              />
+              <span
+                className={cn(
+                  "pointer-events-none absolute left-3 top-[30px] h-2 w-2 rounded-full",
+                  pMeta.dot,
                 )}
               />
-              <div className="sm:col-span-2">
-                <Select
-                  label="Status"
-                  value={form.status}
-                  onChange={(v) => update("status", v as ReportStatus)}
-                  options={Object.keys(REPORT_STATUS_LABELS) as ReportStatus[]}
-                  optionLabels={REPORT_STATUS_LABELS}
-                />
+            </div>
+
+            <Select
+              label="Issue status"
+              value={mapReportStatusToLegacyIncidentStatus(form.status)}
+              onChange={(v) =>
+                update("status", mapLegacyIncidentStatus(v as IncidentStatus))
+              }
+              options={INCIDENT_STATUSES}
+            />
+
+            <div className="relative sm:col-span-2">
+              <Textarea
+                label="Call notes"
+                value={form.callNotes}
+                onChange={(v) => update("callNotes", v.slice(0, 2000))}
+                rows={5}
+              />
+              <div className="pointer-events-none absolute bottom-2.5 right-3 text-[11px] font-medium text-text-muted">
+                {form.callNotes.length} / 2000
               </div>
             </div>
-          </section>
-
-          <section className="space-y-3 border-t border-border-color pt-5">
-            <h3 className="text-[13px] font-bold text-text-primary">Call notes</h3>
-            <Textarea
-              label="Call notes"
-              value={form.callNotes}
-              onChange={(v) => update("callNotes", v)}
-              rows={4}
-            />
-          </section>
-
-          <section className="space-y-3 border-t border-border-color pt-5">
-            <h3 className="text-[13px] font-bold text-text-primary">Caller & booking</h3>
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-              <Input
-                label="Caller name"
-                value={form.callerName}
-                onChange={(v) => update("callerName", v)}
-              />
-              <Input
-                label="Caller contact"
-                value={form.callerContact}
-                onChange={(v) => update("callerContact", v)}
-              />
-              <Input
-                label="Reservation"
-                value={form.reservationNumber}
-                onChange={(v) => update("reservationNumber", v)}
-              />
-              <Input
-                label="Name on booking"
-                value={form.nameOnBooking}
-                onChange={(v) => update("nameOnBooking", v)}
-              />
-            </div>
-          </section>
+          </div>
         </div>
 
         <DialogFooter className="shrink-0 gap-3 border-t border-border-color px-6 py-4 sm:justify-end">

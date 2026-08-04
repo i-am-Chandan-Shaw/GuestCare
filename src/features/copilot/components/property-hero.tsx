@@ -1,7 +1,7 @@
-import { ExternalLink, MapPin, Search } from "lucide-react";
+import { ExternalLink, MapPin, Search, X } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
-import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogClose, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import type { Property } from "@/shared/types";
 
 const PROPERTY_HERO_IMAGE =
@@ -36,17 +36,24 @@ export function PropertyHero({ property }: { property: Property }) {
       <Dialog open={imagePreviewOpen} onOpenChange={setImagePreviewOpen}>
         <DialogContent
           className={cn(
-            "max-w-[min(96vw,1100px)] border-0 bg-transparent p-0 shadow-none",
-            "[&>button]:right-3 [&>button]:top-3 [&>button]:flex [&>button]:h-9 [&>button]:w-9 [&>button]:items-center [&>button]:justify-center",
-            "[&>button]:rounded-full [&>button]:bg-white [&>button]:opacity-100 [&>button]:text-foreground [&>button]:shadow-md",
+            "w-full max-w-[min(96vw,1100px)] border-0 bg-transparent p-0 shadow-none",
+            "[&>button]:hidden",
           )}
         >
           <DialogTitle className="sr-only">{property.name} photo</DialogTitle>
-          <img
-            src={heroSrc}
-            alt={property.name}
-            className="max-h-[90vh] w-full rounded-lg object-contain"
-          />
+          <div className="relative w-full">
+            <img
+              src={heroSrc}
+              alt={property.name}
+              className="max-h-[90vh] w-full rounded-lg object-contain"
+            />
+            <DialogClose
+              className="absolute -right-3 -top-3 flex h-9 w-9 items-center justify-center rounded-full bg-white text-foreground shadow-md opacity-100 ring-offset-background transition-opacity hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+              aria-label="Close"
+            >
+              <X className="h-4 w-4" />
+            </DialogClose>
+          </div>
         </DialogContent>
       </Dialog>
 

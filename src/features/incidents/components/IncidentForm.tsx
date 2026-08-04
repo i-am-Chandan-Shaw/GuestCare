@@ -177,8 +177,14 @@ export function IncidentForm({
             label="Priority"
             className="[&_select]:pl-8"
             value={form.priority}
-            onChange={(v) => update("priority", v.split(" ")[0] as Priority)}
-            options={["P1 · Critical", "P2 · High", "P3 · Medium", "P4 · Low"]}
+            onChange={(v) => update("priority", v as Priority)}
+            options={["P1", "P2", "P3", "P4"]}
+            optionLabels={{
+              P1: priorityMeta.P1.name,
+              P2: priorityMeta.P2.name,
+              P3: priorityMeta.P3.name,
+              P4: priorityMeta.P4.name,
+            }}
           />
           <span
             className={cn(

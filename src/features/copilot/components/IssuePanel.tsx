@@ -183,7 +183,7 @@ export function IssuePanel({
                 )}
               >
                 <span className={cn("h-1.5 w-1.5 rounded-full", pMeta.dot)} />
-                {pMeta.label}
+                {pMeta.name}
               </Chip>
             </div>
             <div className="flex shrink-0 items-center gap-1.5">

@@ -79,69 +79,69 @@ export function PropertyAccessTab({ property }: { property: Property }) {
 
       <SectionCard title="Access Information" className={propertyCardClass} padded={false}>
         <div className="divide-y divide-border/60">
-          {accessCode && (
+          {accessCode ? (
             <CopyRow label="Access Code" value={accessCode} mono icon={KeyRound} />
-          )}
-          {property.accessSummary?.keyNest && (
+          ) : null}
+          {property.accessSummary?.keyNest ? (
             <StackedCopyField
               label="KeyNest"
               value={property.accessSummary.keyNest}
               icon={Key}
             />
-          )}
-          {property.spareKeys && (
+          ) : null}
+          {property.spareKeys ? (
             <ExpandableNote
               title="Spare / Emergency"
               text={property.spareKeys}
               icon={ShieldAlert}
             />
-          )}
-          {property.parking && (
+          ) : null}
+          {property.parking ? (
             <CopyRow label="Parking" value={property.parking} icon={Car} />
-          )}
-          {property.checkIn.instructions && (
+          ) : null}
+          {property.checkIn.instructions ? (
             <ExpandableNote
               title="Check-in instructions"
               text={property.checkIn.instructions}
               icon={ClipboardList}
             />
-          )}
-          {property.checkOut.instructions && (
+          ) : null}
+          {property.checkOut.instructions ? (
             <ExpandableNote
               title="Check-out instructions"
               text={property.checkOut.instructions}
               icon={LogOut}
             />
-          )}
+          ) : null}
         </div>
       </SectionCard>
 
       {(property.wifi.network || property.wifi.password || property.wifi.raw) && (
         <SectionCard title="WiFi" className={propertyCardClass} padded={false}>
           <div className="divide-y divide-border/60">
-            {property.wifi.network && (
+            {property.wifi.network ? (
               <StackedCopyField
                 label="Network"
                 value={property.wifi.network}
                 icon={Wifi}
               />
-            )}
-            {property.wifi.location && (
+            ) : null}
+            {property.wifi.location ? (
               <StackedField label="Place" value={property.wifi.location} icon={MapPin} />
-            )}
-            {property.wifi.password && (
+            ) : null}
+            {property.wifi.password ? (
               <StackedCopyField
                 label="Password"
                 value={property.wifi.password}
                 mono
                 icon={Lock}
               />
-            )}
-            {!property.wifi.network && !property.wifi.password && property.wifi.raw && (
+            ) : null}
+            {!property.wifi.network && !property.wifi.password && property.wifi.raw ? (
               <p className="break-words px-4 py-3 text-[12.5px] leading-relaxed text-foreground">
                 {property.wifi.raw}
               </p>
-            )}
+            ) : null}
           </div>
         </SectionCard>
       )}

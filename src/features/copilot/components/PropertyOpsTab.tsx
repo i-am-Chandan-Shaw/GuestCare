@@ -82,33 +82,35 @@ export function PropertyOpsTab({ property }: { property: Property }) {
       )}
 
       {(property.laundry || property.waste) && (
-        <SectionCard title="Laundry & Waste" className={propertyCardClass}>
-          {property.laundry && (
-            <div className="py-2">
-              <FieldLabel
-                icon={Shirt}
-                className="text-[11.5px] font-semibold text-muted-foreground"
-              >
-                Laundry
-              </FieldLabel>
-              <p className="mt-1 text-[12.5px] leading-relaxed text-foreground">
-                {property.laundry}
-              </p>
-            </div>
-          )}
-          {property.waste && (
-            <div className="border-t border-border/60 py-2">
-              <FieldLabel
-                icon={Trash2}
-                className="text-[11.5px] font-semibold text-muted-foreground"
-              >
-                Waste
-              </FieldLabel>
-              <p className="mt-1 text-[12.5px] leading-relaxed text-foreground">
-                {property.waste}
-              </p>
-            </div>
-          )}
+        <SectionCard title="Laundry & Waste" className={propertyCardClass} padded={false}>
+          <div className="divide-y divide-border/60">
+            {property.laundry ? (
+              <div className="px-4 py-3">
+                <FieldLabel
+                  icon={Shirt}
+                  className="text-[11.5px] font-semibold text-muted-foreground"
+                >
+                  Laundry
+                </FieldLabel>
+                <p className="mt-1 text-[12.5px] leading-relaxed text-foreground">
+                  {property.laundry}
+                </p>
+              </div>
+            ) : null}
+            {property.waste ? (
+              <div className="px-4 py-3">
+                <FieldLabel
+                  icon={Trash2}
+                  className="text-[11.5px] font-semibold text-muted-foreground"
+                >
+                  Waste
+                </FieldLabel>
+                <p className="mt-1 text-[12.5px] leading-relaxed text-foreground">
+                  {property.waste}
+                </p>
+              </div>
+            ) : null}
+          </div>
         </SectionCard>
       )}
 
