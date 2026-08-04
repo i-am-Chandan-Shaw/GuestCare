@@ -1,8 +1,8 @@
-import type { ReportActor } from "@/shared/types/agent";
+import type { AgentAccess } from "@/shared/types/agent";
 
-export function agentCanAccessCustomer(actor: ReportActor, customerId: string): boolean {
-  if (actor.role === "admin") return true;
-  if (!actor.customerScope) return true;
-  if (actor.customerScope.type === "all") return true;
-  return actor.customerScope.customerIds.includes(customerId);
+export function agentCanAccessCustomer(currentAgent: AgentAccess, customerId: string): boolean {
+  if (currentAgent.role === "admin") return true;
+  if (!currentAgent.customerScope) return true;
+  if (currentAgent.customerScope.type === "all") return true;
+  return currentAgent.customerScope.customerIds.includes(customerId);
 }

@@ -1,5 +1,5 @@
 import type { Priority } from "@/shared/types/index";
-import type { IsoDateTime, ReportActor } from "@/shared/types/agent";
+import type { IsoDateTime, AgentAccess } from "@/shared/types/agent";
 
 export type ReportStatus = "OPEN" | "ESCALATED" | "HANDEDOVER" | "RESOLVED";
 export type ReportSource = "copilot" | "manual";
@@ -174,4 +174,4 @@ export interface UpdateReportCommentInput {
   body: string;
 }
 
-export type { ReportActor };
+export type { AgentAccess };

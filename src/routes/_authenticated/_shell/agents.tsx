@@ -1,7 +1,7 @@
 import { createFileRoute, redirect } from "@tanstack/react-router";
 import { AgentsPage } from "@/features/agents";
 import { canManageAgents } from "@/features/agents/lib/agent-permissions";
-import { toReportActor } from "@/features/reports/lib/report-scope";
+import { toAgentAccess } from "@/features/reports/lib/report-scope";
 
 export const Route = createFileRoute("/_authenticated/_shell/agents")({
   beforeLoad: ({ context }) => {
@@ -9,7 +9,7 @@ export const Route = createFileRoute("/_authenticated/_shell/agents")({
     if (!auth) {
       throw redirect({ to: "/login" });
     }
-    if (!canManageAgents(toReportActor(auth.agent))) {
+    if (!canManageAgents(toAgentAccess(auth.agent))) {
       throw redirect({ to: "/" });
     }
   },

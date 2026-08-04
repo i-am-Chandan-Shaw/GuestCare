@@ -9,7 +9,7 @@ import type {
   IncidentLogFilters,
   IncidentStatus,
 } from "@/shared/types";
-import type { ReportActor } from "@/shared/types/agent";
+import type { AgentAccess } from "@/shared/types/agent";
 
 const createIncidentSchema = z.object({
   callerName: z.string(),
@@ -26,9 +26,9 @@ const createIncidentSchema = z.object({
   propertyId: z.string().optional(),
   propertyLabel: z.string().optional(),
   protocolIssueId: z.string().optional(),
-  /** @deprecated Ignored — actor comes from session. */
+  /** @deprecated Ignored — signed-in agent comes from session. */
   agentName: z.string().optional(),
-  /** @deprecated Ignored — actor comes from session. */
+  /** @deprecated Ignored — signed-in agent comes from session. */
   submittedBy: z.string().optional(),
 });
 
@@ -78,7 +78,7 @@ export async function getIncidentLogs(filters: IncidentLogFilters = {}): Promise
 
 export async function createIncident(
   input: CreateIncidentInput,
-  actor: ReportActor,
+  currentAgent: AgentAccess,
 ): Promise<IncidentLog> {
   const parsed = createIncidentSchema.safeParse(input);
   if (!parsed.success) {
@@ -108,7 +108,7 @@ export async function createIncident(
       protocolIssueId: data.protocolIssueId,
       source: data.protocolIssueId ? "copilot" : "manual",
     },
-    actor,
+    currentAgent,
   );
 
   return reportToIncidentLog(report);

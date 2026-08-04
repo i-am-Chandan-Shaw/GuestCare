@@ -178,9 +178,9 @@ export interface CreateIncidentInput {
   propertyId?: string;
   propertyLabel?: string;
   protocolIssueId?: string;
-  /** @deprecated Ignored — identity comes from session actor. */
+  /** @deprecated Ignored — identity comes from session currentAgent. */
   agentName?: string;
-  /** @deprecated Ignored — identity comes from session actor. */
+  /** @deprecated Ignored — identity comes from session currentAgent. */
   submittedBy?: string;
 }
 
@@ -230,7 +230,7 @@ export type {
   AgentListItem,
   AgentRole,
   IsoDateTime,
-  ReportActor,
+  AgentAccess,
 } from "./agent";
 
 export type {

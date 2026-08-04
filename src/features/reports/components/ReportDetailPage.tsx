@@ -17,7 +17,7 @@ import {
   useAddReportCommentMutation,
   useAssignmentAgentsQuery,
   useRemoveReportAssigneeMutation,
-  useReportActor,
+  useAgentAccess,
   useReportDetailQuery,
   useUpdateReportCommentMutation,
   useUpdateReportMutation,
@@ -200,7 +200,7 @@ function ReportDetailView({ report }: { report: Report }) {
 }
 
 export function ReportDetailPage({ reportId, onBack }: { reportId: string; onBack: () => void }) {
-  const actor = useReportActor();
+  const currentAgent = useAgentAccess();
   const { data, isLoading } = useReportDetailQuery(reportId);
   const { data: agents = [] } = useAssignmentAgentsQuery();
   const updateReport = useUpdateReportMutation(reportId);
@@ -244,8 +244,8 @@ export function ReportDetailPage({ reportId, onBack }: { reportId: string; onBac
   }
 
   const { report, thread } = data;
-  const canEdit = agentCanEditReport(actor, report);
-  const canAssign = agentCanAssignReport(actor, report);
+  const canEdit = agentCanEditReport(currentAgent, report);
+  const canAssign = agentCanAssignReport(currentAgent, report);
   const priority = priorityMeta[report.priority];
   const displayId = formatReportId(report.id);
 
@@ -389,7 +389,7 @@ export function ReportDetailPage({ reportId, onBack }: { reportId: string; onBac
             <ReportConversations
               entries={thread}
               reporterAgentId={report.createdByAgentId}
-              currentActorId={actor.id}
+              currentAgentId={currentAgent.id}
               sortOrder={sortOrder}
               onSortChange={setSortOrder}
               replyPending={addComment.isPending}

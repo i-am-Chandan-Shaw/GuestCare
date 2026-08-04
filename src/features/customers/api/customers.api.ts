@@ -10,7 +10,7 @@ import type {
   Property,
   PropertySummary,
 } from "@/shared/types";
-import type { ReportActor } from "@/shared/types/agent";
+import type { AgentAccess } from "@/shared/types/agent";
 
 import { isOpenIncident } from "@/shared/lib/incident-status";
 
@@ -80,10 +80,10 @@ export async function getPropertyById(propertyId: string): Promise<Property | nu
   return PROPERTIES.find((p) => p.id === propertyId) ?? null;
 }
 
-export async function getCustomerSummaries(actor?: ReportActor): Promise<CustomerSummary[]> {
+export async function getCustomerSummaries(currentAgent?: AgentAccess): Promise<CustomerSummary[]> {
   const logs = await getIncidentLogs();
-  const visible = actor
-    ? CUSTOMERS.filter((customer) => agentCanAccessCustomer(actor, customer.id))
+  const visible = currentAgent
+    ? CUSTOMERS.filter((customer) => agentCanAccessCustomer(currentAgent, customer.id))
     : CUSTOMERS;
   return visible.map((customer) => summarizeCustomer(customer, logs));
 }

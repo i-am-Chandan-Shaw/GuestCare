@@ -1,7 +1,7 @@
 import { Link, useRouter, useRouterState } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { canManageAgents } from "@/features/agents/lib/agent-permissions";
-import { toReportActor } from "@/features/reports/lib/report-scope";
+import { toAgentAccess } from "@/features/reports/lib/report-scope";
 import { getAgentInitials, formatAgentRole } from "@/shared/lib/agent-display";
 import { readIncidentsNavSearch } from "@/features/workspace/lib/workspace-persistence";
 import type { WorkspaceSearch } from "@/features/workspace/lib/workspace-url";
@@ -34,7 +34,7 @@ export function AppSidebar() {
   }, []);
   const nav = useMemo(
     () =>
-      canManageAgents(toReportActor(agent))
+      canManageAgents(toAgentAccess(agent))
         ? baseNav
         : baseNav.filter((item) => item.id !== "agents"),
     [agent],

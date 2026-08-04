@@ -12,7 +12,7 @@ import type {
   AgentsQuery,
   CreateAgentInput,
   PaginatedAgents,
-  ReportActor,
+  AgentAccess,
   UpdateAgentInput,
 } from "@/shared/types/agent";
 
@@ -31,19 +31,19 @@ function toListItem(agent: Agent): AgentListItem {
   };
 }
 
-/** `actor` kept for call-site / query-key compatibility; auth is enforced in listAgentsFn. */
-export async function getAgents(_actor: ReportActor): Promise<Agent[]> {
+/** `currentAgent` kept for call-site / query-key compatibility; auth is enforced in listAgentsFn. */
+export async function getAgents(_currentAgent: AgentAccess): Promise<Agent[]> {
   return listAgentsFn();
 }
 
-/** `actor` kept for call-site compatibility; auth is enforced in getAgentByIdFn. */
-export async function getAgentById(id: string, _actor: ReportActor): Promise<Agent | null> {
+/** `currentAgent` kept for call-site compatibility; auth is enforced in getAgentByIdFn. */
+export async function getAgentById(id: string, _currentAgent: AgentAccess): Promise<Agent | null> {
   return getAgentByIdFn({ data: { id } });
 }
 
 export async function getAgentsPaginated(
   query: AgentsQuery,
-  _actor: ReportActor,
+  _currentAgent: AgentAccess,
 ): Promise<PaginatedAgents> {
   const { page, limit, search = "" } = query;
   const store = await listAgentsFn();
@@ -74,11 +74,11 @@ export async function createAgent(input: CreateAgentInput): Promise<Agent> {
   return createAgentFn({ data: input });
 }
 
-/** `actor` kept for call-site compatibility; auth/permissions enforced in updateAgentFn. */
+/** `currentAgent` kept for call-site compatibility; auth/permissions enforced in updateAgentFn. */
 export async function updateAgent(
   id: string,
   input: UpdateAgentInput,
-  _actor: ReportActor,
+  _currentAgent: AgentAccess,
 ): Promise<Agent> {
   return updateAgentFn({
     data: {

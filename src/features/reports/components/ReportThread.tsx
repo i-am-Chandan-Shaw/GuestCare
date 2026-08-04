@@ -211,7 +211,7 @@ function InlineReplyComposer({
 export function ReportConversations({
   entries,
   reporterAgentId,
-  currentActorId,
+  currentAgentId,
   sortOrder,
   onSortChange,
   onReply,
@@ -221,7 +221,7 @@ export function ReportConversations({
 }: {
   entries: ReportThreadEntry[];
   reporterAgentId: string;
-  currentActorId: string;
+  currentAgentId: string;
   sortOrder: ThreadSortOrder;
   onSortChange: (order: ThreadSortOrder) => void;
   onReply: (parentId: string, body: string) => void;
@@ -312,7 +312,7 @@ export function ReportConversations({
                     <CommentBody
                       entry={root}
                       isReporter={root.authorAgentId === reporterAgentId}
-                      canEdit={root.authorAgentId === currentActorId}
+                      canEdit={root.authorAgentId === currentAgentId}
                       isRoot
                       onReply={() => setReplyingTo(root.id)}
                       onSaveEdit={(body) => onEdit(root.id, body)}
@@ -366,7 +366,7 @@ export function ReportConversations({
                             <CommentBody
                               entry={child}
                               isReporter={child.authorAgentId === reporterAgentId}
-                              canEdit={child.authorAgentId === currentActorId}
+                              canEdit={child.authorAgentId === currentAgentId}
                               isRoot={false}
                               onSaveEdit={(body) => onEdit(child.id, body)}
                               editPending={editPending}

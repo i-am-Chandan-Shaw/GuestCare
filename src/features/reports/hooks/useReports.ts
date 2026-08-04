@@ -11,7 +11,7 @@ import {
   updateReport,
   updateReportComment,
 } from "@/features/reports/api/reports.api";
-import { toReportActor } from "@/features/reports/lib/report-scope";
+import { toAgentAccess } from "@/features/reports/lib/report-scope";
 import { useAuth } from "@/features/auth/hooks/useAuth";
 import { queryKeys } from "@/shared/lib/query-keys";
 import type {
@@ -24,42 +24,42 @@ import type {
   UpdateReportInput,
 } from "@/shared/types/report";
 
-export function useReportActor() {
+export function useAgentAccess() {
   const { agent } = useAuth();
-  return useMemo(() => toReportActor(agent), [agent]);
+  return useMemo(() => toAgentAccess(agent), [agent]);
 }
 
 export function useReportsPaginatedQuery(query: ReportsQuery) {
-  const actor = useReportActor();
+  const currentAgent = useAgentAccess();
   return useQuery({
-    queryKey: queryKeys.reports.list(query, actor.id),
-    queryFn: () => getReportsPaginated(query, actor),
+    queryKey: queryKeys.reports.list(query, currentAgent.id),
+    queryFn: () => getReportsPaginated(query, currentAgent),
   });
 }
 
 export function useReportDetailQuery(reportId: string | null) {
-  const actor = useReportActor();
+  const currentAgent = useAgentAccess();
   return useQuery({
     queryKey: reportId ? queryKeys.reports.detail(reportId) : queryKeys.reports.all,
-    queryFn: () => (reportId ? getReportById(reportId, actor) : null),
+    queryFn: () => (reportId ? getReportById(reportId, currentAgent) : null),
     enabled: Boolean(reportId),
   });
 }
 
 export function useAssignmentAgentsQuery() {
-  const actor = useReportActor();
+  const currentAgent = useAgentAccess();
   return useQuery({
-    queryKey: ["assignment-agents", actor.id],
-    queryFn: () => getAgentsForAssignment(actor),
+    queryKey: ["assignment-agents", currentAgent.id],
+    queryFn: () => getAgentsForAssignment(currentAgent),
   });
 }
 
 export function useUpdateReportMutation(reportId: string) {
-  const actor = useReportActor();
+  const currentAgent = useAgentAccess();
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (input: UpdateReportInput) => updateReport(reportId, input, actor),
+    mutationFn: (input: UpdateReportInput) => updateReport(reportId, input, currentAgent),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: queryKeys.reports.detail(reportId) });
       void queryClient.invalidateQueries({ queryKey: queryKeys.reports.all });
@@ -68,11 +68,11 @@ export function useUpdateReportMutation(reportId: string) {
 }
 
 export function useAssignReportMutation(reportId: string) {
-  const actor = useReportActor();
+  const currentAgent = useAgentAccess();
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (input: AssignReportInput) => assignReport(reportId, input, actor),
+    mutationFn: (input: AssignReportInput) => assignReport(reportId, input, currentAgent),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: queryKeys.reports.detail(reportId) });
       void queryClient.invalidateQueries({ queryKey: queryKeys.reports.all });
@@ -81,11 +81,11 @@ export function useAssignReportMutation(reportId: string) {
 }
 
 export function useAddReportAssigneeMutation(reportId: string) {
-  const actor = useReportActor();
+  const currentAgent = useAgentAccess();
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (input: AddReportAssigneeInput) => addReportAssignee(reportId, input, actor),
+    mutationFn: (input: AddReportAssigneeInput) => addReportAssignee(reportId, input, currentAgent),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: queryKeys.reports.detail(reportId) });
       void queryClient.invalidateQueries({ queryKey: queryKeys.reports.all });
@@ -94,11 +94,11 @@ export function useAddReportAssigneeMutation(reportId: string) {
 }
 
 export function useRemoveReportAssigneeMutation(reportId: string) {
-  const actor = useReportActor();
+  const currentAgent = useAgentAccess();
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (input: RemoveReportAssigneeInput) => removeReportAssignee(reportId, input, actor),
+    mutationFn: (input: RemoveReportAssigneeInput) => removeReportAssignee(reportId, input, currentAgent),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: queryKeys.reports.detail(reportId) });
       void queryClient.invalidateQueries({ queryKey: queryKeys.reports.all });
@@ -107,11 +107,11 @@ export function useRemoveReportAssigneeMutation(reportId: string) {
 }
 
 export function useAddReportCommentMutation(reportId: string) {
-  const actor = useReportActor();
+  const currentAgent = useAgentAccess();
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (input: AddReportCommentInput) => addReportComment(reportId, input, actor),
+    mutationFn: (input: AddReportCommentInput) => addReportComment(reportId, input, currentAgent),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: queryKeys.reports.detail(reportId) });
       void queryClient.invalidateQueries({ queryKey: queryKeys.reports.all });
@@ -120,12 +120,12 @@ export function useAddReportCommentMutation(reportId: string) {
 }
 
 export function useUpdateReportCommentMutation(reportId: string) {
-  const actor = useReportActor();
+  const currentAgent = useAgentAccess();
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: ({ commentId, input }: { commentId: string; input: UpdateReportCommentInput }) =>
-      updateReportComment(reportId, commentId, input, actor),
+      updateReportComment(reportId, commentId, input, currentAgent),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: queryKeys.reports.detail(reportId) });
       void queryClient.invalidateQueries({ queryKey: queryKeys.reports.all });

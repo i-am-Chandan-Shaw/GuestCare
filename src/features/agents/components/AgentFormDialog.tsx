@@ -24,7 +24,7 @@ import {
 } from "@/components/ui/Dialog";
 import { usePasswordEndAction } from "@/shared/components/FloatingLabelField";
 import { cn } from "@/lib/utils";
-import type { AgentListItem, ReportActor } from "@/shared/types/agent";
+import type { AgentListItem, AgentAccess } from "@/shared/types/agent";
 
 import { useAgentFormState } from "@/features/agents/hooks/use-agent-form";
 import { AgentInfoSection } from "@/features/agents/components/AgentInfoSection";
@@ -84,19 +84,19 @@ export function AgentFormDialog({
   open,
   mode,
   agent,
-  actor,
+  currentAgent,
   onOpenChange,
   onSaved,
 }: {
   open: boolean;
   mode: "create" | "edit";
   agent?: AgentListItem | null;
-  actor: ReportActor;
+  currentAgent: AgentAccess;
   onOpenChange: (open: boolean) => void;
   onSaved: () => void;
 }) {
-  const roles = creatableRoles(actor);
-  const canAll = canGrantAllCustomers(actor);
+  const roles = creatableRoles(currentAgent);
+  const canAll = canGrantAllCustomers(currentAgent);
   const defaultRole = roles[0] ?? "user";
   const defaultScopeType = canAll ? "all" : "specific";
   const agentId = agent?.id ?? null;
@@ -119,7 +119,7 @@ export function AgentFormDialog({
     open,
     mode,
     agent,
-    actor,
+    currentAgent,
     canAll,
     defaultRole,
     defaultScopeType,
@@ -151,7 +151,7 @@ export function AgentFormDialog({
   const accessRef = useRef<HTMLElement>(null);
   const scrollingToSectionRef = useRef(false);
 
-  const isEditingSelf = mode === "edit" && agentId === actor.id;
+  const isEditingSelf = mode === "edit" && agentId === currentAgent.id;
   const isCreate = mode === "create";
   const showPasswordFields = isCreate || form.changePassword;
   const customersDisabled = form.scopeType !== "specific";
@@ -292,7 +292,7 @@ export function AgentFormDialog({
             ...shared,
             password: form.changePassword ? form.password : undefined,
           },
-          actor,
+          currentAgent,
         );
         toast.success("Agent updated");
       }

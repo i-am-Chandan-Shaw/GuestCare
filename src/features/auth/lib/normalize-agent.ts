@@ -67,11 +67,11 @@ export function normalizeSessionAgent(raw: unknown): Agent | null {
   return seedById ?? seedByEmail ?? null;
 }
 
-/** Resolve a report actor from session/agent payload. Never invents a default manager. */
-export function normalizeReportActor(raw: unknown): Agent {
+/** Resolve signed-in agent access fields from session/agent payload. Never invents a default. */
+export function normalizeAgentAccess(raw: unknown): Agent {
   const agent = normalizeSessionAgent(raw);
   if (!agent) {
-    throw new Error("Unable to resolve report actor from session.");
+    throw new Error("Unable to resolve signed-in agent from session.");
   }
   return agent;
 }

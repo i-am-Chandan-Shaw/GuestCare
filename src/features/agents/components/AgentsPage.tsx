@@ -8,7 +8,7 @@ import { AgentFormDialog } from "@/features/agents/components/AgentFormDialog";
 import { createAgentsTableColumnDefs } from "@/features/agents/components/agents-table-columns";
 import { canEditAgent, canManageAgents } from "@/features/agents/lib/agent-permissions";
 import { useAuth } from "@/features/auth/hooks/useAuth";
-import { toReportActor } from "@/features/reports/lib/report-scope";
+import { toAgentAccess } from "@/features/reports/lib/report-scope";
 import {
   ServerPaginatedTable,
   computeInfiniteScrollLastRow,
@@ -19,7 +19,7 @@ import type { AgentListItem } from "@/shared/types/agent";
 
 export function AgentsPage() {
   const { agent } = useAuth();
-  const actor = useMemo(() => toReportActor(agent), [agent]);
+  const currentAgent = useMemo(() => toAgentAccess(agent), [agent]);
   const [search, setSearch] = useState("");
   const debouncedSearch = useDebouncedValue(search, 300);
   const gridRef = useRef<AgGridReact<AgentListItem>>(null);
@@ -29,7 +29,7 @@ export function AgentsPage() {
   const [dialogMode, setDialogMode] = useState<"create" | "edit">("create");
   const [editingAgent, setEditingAgent] = useState<AgentListItem | null>(null);
 
-  const canManage = canManageAgents(actor);
+  const canManage = canManageAgents(currentAgent);
 
   const openCreate = () => {
     setDialogMode("create");
@@ -46,10 +46,10 @@ export function AgentsPage() {
   const columnDefs = useMemo(
     () =>
       createAgentsTableColumnDefs({
-        canEdit: (row) => canEditAgent(actor, row),
+        canEdit: (row) => canEditAgent(currentAgent, row),
         onEdit: openEdit,
       }),
-    [actor, openEdit],
+    [currentAgent, openEdit],
   );
 
   const handleFetchData = useCallback(
@@ -64,7 +64,7 @@ export function AgentsPage() {
           limit,
           search: debouncedSearch,
         },
-        actor,
+        currentAgent,
       );
 
       const lastRow = computeInfiniteScrollLastRow({
@@ -76,7 +76,7 @@ export function AgentsPage() {
 
       return { data: result.data, lastRow };
     },
-    [actor, debouncedSearch],
+    [currentAgent, debouncedSearch],
   );
 
   useEffect(() => {
@@ -141,7 +141,7 @@ export function AgentsPage() {
           open={dialogOpen}
           mode={dialogMode}
           agent={editingAgent}
-          actor={actor}
+          currentAgent={currentAgent}
           onOpenChange={setDialogOpen}
           onSaved={handleSaved}
         />

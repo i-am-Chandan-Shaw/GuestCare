@@ -4,7 +4,7 @@ import {
   canEditAgent,
   canManageAgents,
   creatableRoles,
-  validateCustomerScopeForActor,
+  validateCustomerScope,
 } from "@/features/agents/lib/agent-permissions";
 import { mapAgentRow, type AgentRow } from "@/features/agents/lib/map-agent-row";
 import { throwHttpError } from "@/features/agents/lib/server-fn-error";
@@ -103,12 +103,12 @@ export const createAgentFn = createServerFn({ method: "POST" })
     const session = await getAuthSession();
     if (!session) throwHttpError("You must be signed in to create agents.", 401);
 
-    const actor = session.agent;
-    if (!canManageAgents(actor)) {
+    const currentAgent = session.agent;
+    if (!canManageAgents(currentAgent)) {
       throwHttpError("You do not have permission to create agents.", 403);
     }
 
-    const allowedRoles = creatableRoles(actor);
+    const allowedRoles = creatableRoles(currentAgent);
     if (!allowedRoles.includes(data.role)) {
       throwHttpError("You cannot create an agent with that role.", 403);
     }
@@ -121,7 +121,7 @@ export const createAgentFn = createServerFn({ method: "POST" })
       throwHttpError(WEAK_PASSWORD_ERROR, 400);
     }
 
-    const scopeError = validateCustomerScopeForActor(actor, data.customerScope);
+    const scopeError = validateCustomerScope(currentAgent, data.customerScope);
     if (scopeError) throwHttpError(scopeError, 400);
 
     const supabase = createSupabaseAdmin();
@@ -188,7 +188,7 @@ export const updateAgentFn = createServerFn({ method: "POST" })
     const session = await getAuthSession();
     if (!session) throwHttpError("You must be signed in to update agents.", 401);
 
-    const actor = session.agent;
+    const currentAgent = session.agent;
     const supabase = createSupabaseAdmin();
 
     const { data: existingRow, error: loadError } = await supabase
@@ -204,11 +204,11 @@ export const updateAgentFn = createServerFn({ method: "POST" })
 
     const target = mapAgentRow(existingRow as AgentRow);
 
-    if (!canEditAgent(actor, target)) {
+    if (!canEditAgent(currentAgent, target)) {
       throwHttpError("You do not have permission to edit this agent.", 403);
     }
 
-    const allowedRoles = creatableRoles(actor);
+    const allowedRoles = creatableRoles(currentAgent);
     if (!allowedRoles.includes(data.role)) {
       throwHttpError("You cannot assign that role.", 403);
     }
@@ -217,7 +217,7 @@ export const updateAgentFn = createServerFn({ method: "POST" })
     const email = data.email.trim().toLowerCase();
     const password = data.password?.trim();
 
-    if (actor.id === data.id) {
+    if (currentAgent.id === data.id) {
       if (data.role !== target.role) {
         throwHttpError("You cannot change your own role.", 400);
       }
@@ -226,7 +226,7 @@ export const updateAgentFn = createServerFn({ method: "POST" })
       }
     }
 
-    const scopeError = validateCustomerScopeForActor(actor, data.customerScope);
+    const scopeError = validateCustomerScope(currentAgent, data.customerScope);
     if (scopeError) throwHttpError(scopeError, 400);
 
     if (password && !isPasswordStrong(password)) {

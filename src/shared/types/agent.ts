@@ -73,4 +73,5 @@ export interface AgentCredentials {
   passwordHash: string;
 }
 
-export type ReportActor = Pick<Agent, "id" | "name" | "role" | "customerScope">;
+/** Signed-in agent fields used for permission checks (not the full profile). */
+export type AgentAccess = Pick<Agent, "id" | "name" | "role" | "customerScope">;

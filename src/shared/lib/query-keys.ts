@@ -27,8 +27,8 @@ export const queryKeys = {
   },
   reports: {
     all: ["reports"] as const,
-    list: (query: unknown, actorId: string) =>
-      [...queryKeys.reports.all, "list", query, actorId] as const,
+    list: (query: unknown, agentId: string) =>
+      [...queryKeys.reports.all, "list", query, agentId] as const,
     detail: (id: string) => [...queryKeys.reports.all, "detail", id] as const,
   },
 };

@@ -1,7 +1,7 @@
 import { useState, useMemo, useEffect } from "react";
 import { assignableCustomerIds } from "@/features/agents/lib/agent-permissions";
 import type { AgentFormValues } from "@/features/agents/validations/agent-form.schema";
-import type { Agent, AgentListItem, ReportActor } from "@/shared/types/agent";
+import type { Agent, AgentListItem, AgentAccess } from "@/shared/types/agent";
 import { CUSTOMERS } from "@/mock-data/mocks/customers.mock";
 
 type AgentFormSource = Pick<
@@ -46,7 +46,7 @@ export function useAgentFormState({
   open,
   mode,
   agent,
-  actor,
+  currentAgent,
   canAll,
   defaultRole,
   defaultScopeType,
@@ -54,7 +54,7 @@ export function useAgentFormState({
   open: boolean;
   mode: "create" | "edit";
   agent?: AgentListItem | null;
-  actor: ReportActor;
+  currentAgent: AgentAccess;
   canAll: boolean;
   defaultRole: AgentFormValues["role"];
   defaultScopeType: AgentFormValues["scopeType"];
@@ -107,9 +107,9 @@ export function useAgentFormState({
   };
 
   const assignableCustomers = useMemo(() => {
-    const allowed = new Set(assignableCustomerIds(actor));
+    const allowed = new Set(assignableCustomerIds(currentAgent));
     return CUSTOMERS.filter((c) => allowed.has(c.id)).sort((a, b) => a.name.localeCompare(b.name));
-  }, [actor]);
+  }, [currentAgent]);
 
   const selectedCustomers = useMemo(() => {
     const selected = new Set(form.customerIds);
