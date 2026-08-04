@@ -27,19 +27,19 @@ export function AgentsPage() {
 
   const [dialogOpen, setDialogOpen] = useState(false);
   const [dialogMode, setDialogMode] = useState<"create" | "edit">("create");
-  const [editingAgentId, setEditingAgentId] = useState<string | null>(null);
+  const [editingAgent, setEditingAgent] = useState<AgentListItem | null>(null);
 
   const canManage = canManageAgents(actor);
 
   const openCreate = () => {
     setDialogMode("create");
-    setEditingAgentId(null);
+    setEditingAgent(null);
     setDialogOpen(true);
   };
 
-  const openEdit = useCallback((agentId: string) => {
+  const openEdit = useCallback((row: AgentListItem) => {
     setDialogMode("edit");
-    setEditingAgentId(agentId);
+    setEditingAgent(row);
     setDialogOpen(true);
   }, []);
 
@@ -140,7 +140,7 @@ export function AgentsPage() {
         <AgentFormDialog
           open={dialogOpen}
           mode={dialogMode}
-          agentId={editingAgentId}
+          agent={editingAgent}
           actor={actor}
           onOpenChange={setDialogOpen}
           onSaved={handleSaved}

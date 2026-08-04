@@ -24,7 +24,7 @@ import {
 } from "@/components/ui/Dialog";
 import { usePasswordEndAction } from "@/shared/components/FloatingLabelField";
 import { cn } from "@/lib/utils";
-import type { ReportActor } from "@/shared/types/agent";
+import type { AgentListItem, ReportActor } from "@/shared/types/agent";
 
 import { useAgentFormState } from "@/features/agents/hooks/use-agent-form";
 import { AgentInfoSection } from "@/features/agents/components/AgentInfoSection";
@@ -83,14 +83,14 @@ function SectionNav({
 export function AgentFormDialog({
   open,
   mode,
-  agentId,
+  agent,
   actor,
   onOpenChange,
   onSaved,
 }: {
   open: boolean;
   mode: "create" | "edit";
-  agentId?: string | null;
+  agent?: AgentListItem | null;
   actor: ReportActor;
   onOpenChange: (open: boolean) => void;
   onSaved: () => void;
@@ -99,6 +99,7 @@ export function AgentFormDialog({
   const canAll = canGrantAllCustomers(actor);
   const defaultRole = roles[0] ?? "user";
   const defaultScopeType = canAll ? "all" : "specific";
+  const agentId = agent?.id ?? null;
 
   const {
     form,
@@ -117,7 +118,7 @@ export function AgentFormDialog({
   } = useAgentFormState({
     open,
     mode,
-    agentId,
+    agent,
     actor,
     canAll,
     defaultRole,

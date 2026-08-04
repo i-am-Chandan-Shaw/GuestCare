@@ -1,17 +1,9 @@
 import {
-  canEditAgent,
-  canManageAgents,
-  creatableRoles,
-  validateCustomerScopeForActor,
-} from "@/features/agents/lib/agent-permissions";
-import {
-  findAgentByEmail,
-  findAgentById,
-  listAgents,
-  patchAgent,
-} from "@/features/agents/lib/agent-store";
-import { createAgentFn } from "@/features/agents/agents.functions";
-import { isPasswordStrong } from "@/features/agents/validations/agent-form.schema";
+  createAgentFn,
+  getAgentByIdFn,
+  listAgentsFn,
+  updateAgentFn,
+} from "@/features/agents/agents.functions";
 import { filterBySearch } from "@/shared/components/SearchToolbar";
 import { formatCustomerScope } from "@/shared/lib/agent-display";
 import type {
@@ -24,9 +16,6 @@ import type {
   UpdateAgentInput,
 } from "@/shared/types/agent";
 
-const WEAK_PASSWORD_ERROR =
-  "Password must be 8+ characters with uppercase, number, and special character.";
-
 function toListItem(agent: Agent): AgentListItem {
   return {
     id: agent.id,
@@ -34,35 +23,30 @@ function toListItem(agent: Agent): AgentListItem {
     email: agent.email,
     role: agent.role,
     isActive: agent.isActive,
+    customerScope: agent.customerScope,
     customerScopeLabel: formatCustomerScope(agent.customerScope),
     imageUrl: agent.imageUrl,
     createdAt: agent.createdAt,
+    updatedAt: agent.updatedAt,
   };
 }
 
-function assertCanReadAgents(actor: ReportActor): void {
-  if (!canManageAgents(actor)) {
-    throw new Error("You do not have permission to view agents.");
-  }
+/** `actor` kept for call-site / query-key compatibility; auth is enforced in listAgentsFn. */
+export async function getAgents(_actor: ReportActor): Promise<Agent[]> {
+  return listAgentsFn();
 }
 
-export async function getAgents(actor: ReportActor): Promise<Agent[]> {
-  assertCanReadAgents(actor);
-  return listAgents();
-}
-
-export async function getAgentById(id: string, actor: ReportActor): Promise<Agent | null> {
-  assertCanReadAgents(actor);
-  return findAgentById(id) ?? null;
+/** `actor` kept for call-site compatibility; auth is enforced in getAgentByIdFn. */
+export async function getAgentById(id: string, _actor: ReportActor): Promise<Agent | null> {
+  return getAgentByIdFn({ data: { id } });
 }
 
 export async function getAgentsPaginated(
   query: AgentsQuery,
-  actor: ReportActor,
+  _actor: ReportActor,
 ): Promise<PaginatedAgents> {
-  assertCanReadAgents(actor);
   const { page, limit, search = "" } = query;
-  const store = listAgents();
+  const store = await listAgentsFn();
 
   let results = filterBySearch(store, search, (agent) =>
     [agent.name, agent.email, agent.role, formatCustomerScope(agent.customerScope)].join(" "),
@@ -90,58 +74,21 @@ export async function createAgent(input: CreateAgentInput): Promise<Agent> {
   return createAgentFn({ data: input });
 }
 
+/** `actor` kept for call-site compatibility; auth/permissions enforced in updateAgentFn. */
 export async function updateAgent(
   id: string,
   input: UpdateAgentInput,
-  actor: ReportActor,
+  _actor: ReportActor,
 ): Promise<Agent> {
-  const target = findAgentById(id);
-  if (!target) throw new Error("Agent not found.");
-
-  if (!canEditAgent(actor, target)) {
-    throw new Error("You do not have permission to edit this agent.");
-  }
-
-  const allowedRoles = creatableRoles(actor);
-  if (!allowedRoles.includes(input.role)) {
-    throw new Error("You cannot assign that role.");
-  }
-
-  const name = input.name.trim();
-  const email = input.email.trim().toLowerCase();
-
-  if (!name) throw new Error("Name is required.");
-  if (!email || !email.includes("@")) throw new Error("A valid email is required.");
-
-  if (actor.id === id) {
-    if (input.role !== target.role) {
-      throw new Error("You cannot change your own role.");
-    }
-    if (!input.isActive) {
-      throw new Error("You cannot deactivate your own account.");
-    }
-  }
-
-  const scopeError = validateCustomerScopeForActor(actor, input.customerScope);
-  if (scopeError) throw new Error(scopeError);
-
-  const emailOwner = findAgentByEmail(email);
-  if (emailOwner && emailOwner.id !== id) {
-    throw new Error("An agent with this email already exists.");
-  }
-
-  const password = input.password?.trim();
-  if (password && !isPasswordStrong(password)) {
-    throw new Error(WEAK_PASSWORD_ERROR);
-  }
-
-  const updated = await patchAgent(id, {
-    ...input,
-    name,
-    email,
-    password: password || undefined,
+  return updateAgentFn({
+    data: {
+      id,
+      name: input.name,
+      email: input.email,
+      role: input.role,
+      isActive: input.isActive,
+      customerScope: input.customerScope,
+      password: input.password,
+    },
   });
-
-  if (!updated) throw new Error("Agent not found.");
-  return updated;
 }

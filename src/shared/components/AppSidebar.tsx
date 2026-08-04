@@ -1,9 +1,10 @@
 import { Link, useRouter, useRouterState } from "@tanstack/react-router";
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { canManageAgents } from "@/features/agents/lib/agent-permissions";
 import { toReportActor } from "@/features/reports/lib/report-scope";
 import { getAgentInitials, formatAgentRole } from "@/shared/lib/agent-display";
 import { readIncidentsNavSearch } from "@/features/workspace/lib/workspace-persistence";
+import type { WorkspaceSearch } from "@/features/workspace/lib/workspace-url";
 import { cn } from "@/lib/utils";
 import { logout } from "@/features/auth/api/auth.api";
 import { useAuth } from "@/features/auth/hooks/useAuth";
@@ -26,7 +27,11 @@ export function AppSidebar() {
   const router = useRouter();
   const { agent } = useAuth();
   const active = useActiveNav();
-  const incidentsSearch = readIncidentsNavSearch();
+  // Avoid reading localStorage during render (SSR/client mismatch).
+  const [incidentsSearch, setIncidentsSearch] = useState<WorkspaceSearch>({});
+  useEffect(() => {
+    setIncidentsSearch(readIncidentsNavSearch());
+  }, []);
   const nav = useMemo(
     () =>
       canManageAgents(toReportActor(agent))

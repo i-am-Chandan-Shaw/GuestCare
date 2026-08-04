@@ -1,9 +1,13 @@
 import { useState, useMemo, useEffect } from "react";
-import { getAgentById } from "@/features/agents/api/agents.api";
 import { assignableCustomerIds } from "@/features/agents/lib/agent-permissions";
 import type { AgentFormValues } from "@/features/agents/validations/agent-form.schema";
-import type { Agent, ReportActor } from "@/shared/types/agent";
+import type { Agent, AgentListItem, ReportActor } from "@/shared/types/agent";
 import { CUSTOMERS } from "@/mock-data/mocks/customers.mock";
+
+type AgentFormSource = Pick<
+  Agent,
+  "name" | "email" | "role" | "isActive" | "customerScope"
+>;
 
 export function emptyForm(defaults: {
   role: AgentFormValues["role"];
@@ -22,7 +26,7 @@ export function emptyForm(defaults: {
   };
 }
 
-export function formFromAgent(agent: Agent, canAll: boolean): AgentFormValues {
+export function formFromAgent(agent: AgentFormSource, canAll: boolean): AgentFormValues {
   const scopeType = agent.customerScope.type === "all" && canAll ? "all" : "specific";
   return {
     name: agent.name,
@@ -41,7 +45,7 @@ export function formFromAgent(agent: Agent, canAll: boolean): AgentFormValues {
 export function useAgentFormState({
   open,
   mode,
-  agentId,
+  agent,
   actor,
   canAll,
   defaultRole,
@@ -49,7 +53,7 @@ export function useAgentFormState({
 }: {
   open: boolean;
   mode: "create" | "edit";
-  agentId?: string | null;
+  agent?: AgentListItem | null;
   actor: ReportActor;
   canAll: boolean;
   defaultRole: AgentFormValues["role"];
@@ -63,51 +67,31 @@ export function useAgentFormState({
   );
   const [customerQuery, setCustomerQuery] = useState("");
   const [viewSelectedOnly, setViewSelectedOnly] = useState(false);
-  const [hydrating, setHydrating] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!open) return;
 
-    let cancelled = false;
     setError(null);
     setCustomerQuery("");
     setViewSelectedOnly(false);
 
-    async function hydrate() {
-      if (mode === "edit" && agentId) {
-        setHydrating(true);
-        try {
-          const agent = await getAgentById(agentId, actor);
-          if (cancelled) return;
-          if (!agent) {
-            setError("Agent not found.");
-            return;
-          }
-          setForm(formFromAgent(agent, canAll));
-        } catch (e) {
-          if (!cancelled) {
-            setError(e instanceof Error ? e.message : "Failed to load agent.");
-          }
-        } finally {
-          if (!cancelled) setHydrating(false);
-        }
+    if (mode === "edit") {
+      if (!agent) {
+        setError("Agent not found.");
         return;
       }
-
-      setForm(
-        emptyForm({
-          role: defaultRole,
-          scopeType: defaultScopeType,
-        }),
-      );
+      setForm(formFromAgent(agent, canAll));
+      return;
     }
 
-    void hydrate();
-    return () => {
-      cancelled = true;
-    };
-  }, [open, mode, agentId, canAll, defaultRole, defaultScopeType, actor]);
+    setForm(
+      emptyForm({
+        role: defaultRole,
+        scopeType: defaultScopeType,
+      }),
+    );
+  }, [open, mode, agent, canAll, defaultRole, defaultScopeType]);
 
   const patch = (partial: Partial<AgentFormValues>) => {
     setForm((prev) => ({ ...prev, ...partial }));
@@ -151,7 +135,7 @@ export function useAgentFormState({
     setCustomerQuery,
     viewSelectedOnly,
     setViewSelectedOnly,
-    hydrating,
+    hydrating: false,
     error,
     setError,
     assignableCustomers,

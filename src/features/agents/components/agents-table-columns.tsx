@@ -45,7 +45,7 @@ function EditCell({
   onEdit,
 }: ICellRendererParams<AgentListItem> & {
   canEdit: (agent: AgentListItem) => boolean;
-  onEdit: (agentId: string) => void;
+  onEdit: (agent: AgentListItem) => void;
 }) {
   if (!data || !canEdit(data)) return null;
   return (
@@ -53,7 +53,7 @@ function EditCell({
       type="button"
       onClick={(e) => {
         e.stopPropagation();
-        onEdit(data.id);
+        onEdit(data);
       }}
       aria-label={`Edit ${data.name}`}
       className="inline-flex h-7 w-7 items-center justify-center rounded-md text-text-secondary transition-colors hover:bg-app-bg hover:text-text-primary"
@@ -68,7 +68,7 @@ export function createAgentsTableColumnDefs({
   onEdit,
 }: {
   canEdit: (agent: AgentListItem) => boolean;
-  onEdit: (agentId: string) => void;
+  onEdit: (agent: AgentListItem) => void;
 }): ColDef<AgentListItem>[] {
   return [
     {

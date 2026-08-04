@@ -24,10 +24,13 @@ export interface AgentListItem {
   email: string;
   role: AgentRole;
   isActive: boolean;
+  /** Full scope for edit forms; label is for table display. */
+  customerScope: AgentCustomerScope;
   customerScopeLabel: string;
   /** Profile image URL when available; UI falls back to initials. */
   imageUrl?: string;
   createdAt: IsoDateTime;
+  updatedAt: IsoDateTime;
 }
 
 export interface CreateAgentInput {

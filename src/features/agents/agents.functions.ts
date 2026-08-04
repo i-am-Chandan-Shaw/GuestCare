@@ -1,5 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
+import { z } from "zod";
 import {
+  canEditAgent,
   canManageAgents,
   creatableRoles,
   validateCustomerScopeForActor,
@@ -11,6 +13,28 @@ import { isPasswordStrong } from "@/features/agents/validations/agent-form.schem
 import { getAuthSession } from "@/features/auth/server/session";
 import { createSupabaseAdmin } from "@/shared/lib/supabase/admin";
 import type { Agent } from "@/shared/types/agent";
+
+const agentIdSchema = z.object({
+  id: z.string().uuid("Invalid agent id."),
+});
+
+const customerScopeSchema = z.union([
+  z.object({ type: z.literal("all") }),
+  z.object({
+    type: z.literal("specific"),
+    customerIds: z.array(z.string()).min(1),
+  }),
+]);
+
+const updateAgentSchema = z.object({
+  id: z.string().uuid("Invalid agent id."),
+  name: z.string().trim().min(1, "Name is required."),
+  email: z.string().trim().email("A valid email is required."),
+  role: z.enum(["admin", "manager", "user"]),
+  isActive: z.boolean(),
+  customerScope: customerScopeSchema,
+  password: z.string().optional(),
+});
 
 const WEAK_PASSWORD_ERROR =
   "Password must be 8+ characters with uppercase, number, and special character.";
@@ -27,6 +51,51 @@ function isDuplicateAuthError(message: string, status?: number): boolean {
     normalized.includes("exists")
   );
 }
+
+export const listAgentsFn = createServerFn({ method: "GET" }).handler(
+  async (): Promise<Agent[]> => {
+    const session = await getAuthSession();
+    if (!session) throwHttpError("You must be signed in to view agents.", 401);
+
+    if (!canManageAgents(session.agent)) {
+      throwHttpError("You do not have permission to view agents.", 403);
+    }
+
+    const supabase = createSupabaseAdmin();
+    const { data, error } = await supabase.from("agents").select("*").order("name");
+
+    if (error) {
+      throwHttpError(error.message || "Failed to load agents.", 500);
+    }
+
+    return (data ?? []).map((row) => mapAgentRow(row as AgentRow));
+  },
+);
+
+export const getAgentByIdFn = createServerFn({ method: "GET" })
+  .validator(agentIdSchema)
+  .handler(async ({ data }): Promise<Agent | null> => {
+    const session = await getAuthSession();
+    if (!session) throwHttpError("You must be signed in to view agents.", 401);
+
+    if (!canManageAgents(session.agent)) {
+      throwHttpError("You do not have permission to view agents.", 403);
+    }
+
+    const supabase = createSupabaseAdmin();
+    const { data: row, error } = await supabase
+      .from("agents")
+      .select("*")
+      .eq("id", data.id)
+      .maybeSingle();
+
+    if (error) {
+      throwHttpError(error.message || "Failed to load agent.", 500);
+    }
+    if (!row) return null;
+
+    return mapAgentRow(row as AgentRow);
+  });
 
 export const createAgentFn = createServerFn({ method: "POST" })
   .validator(createAgentSchema)
@@ -108,6 +177,115 @@ export const createAgentFn = createServerFn({ method: "POST" })
         throwHttpError(DUPLICATE_EMAIL_ERROR, 409);
       }
       throwHttpError(insertError?.message ?? "Failed to create agent profile.", 500);
+    }
+
+    return mapAgentRow(row as AgentRow);
+  });
+
+export const updateAgentFn = createServerFn({ method: "POST" })
+  .validator(updateAgentSchema)
+  .handler(async ({ data }): Promise<Agent> => {
+    const session = await getAuthSession();
+    if (!session) throwHttpError("You must be signed in to update agents.", 401);
+
+    const actor = session.agent;
+    const supabase = createSupabaseAdmin();
+
+    const { data: existingRow, error: loadError } = await supabase
+      .from("agents")
+      .select("*")
+      .eq("id", data.id)
+      .maybeSingle();
+
+    if (loadError) {
+      throwHttpError(loadError.message || "Failed to load agent.", 500);
+    }
+    if (!existingRow) throwHttpError("Agent not found.", 404);
+
+    const target = mapAgentRow(existingRow as AgentRow);
+
+    if (!canEditAgent(actor, target)) {
+      throwHttpError("You do not have permission to edit this agent.", 403);
+    }
+
+    const allowedRoles = creatableRoles(actor);
+    if (!allowedRoles.includes(data.role)) {
+      throwHttpError("You cannot assign that role.", 403);
+    }
+
+    const name = data.name.trim();
+    const email = data.email.trim().toLowerCase();
+    const password = data.password?.trim();
+
+    if (actor.id === data.id) {
+      if (data.role !== target.role) {
+        throwHttpError("You cannot change your own role.", 400);
+      }
+      if (!data.isActive) {
+        throwHttpError("You cannot deactivate your own account.", 400);
+      }
+    }
+
+    const scopeError = validateCustomerScopeForActor(actor, data.customerScope);
+    if (scopeError) throwHttpError(scopeError, 400);
+
+    if (password && !isPasswordStrong(password)) {
+      throwHttpError(WEAK_PASSWORD_ERROR, 400);
+    }
+
+    const { data: emailOwner, error: emailCheckError } = await supabase
+      .from("agents")
+      .select("id")
+      .eq("email", email)
+      .maybeSingle();
+
+    if (emailCheckError) {
+      throwHttpError(emailCheckError.message || "Failed to check email.", 500);
+    }
+    if (emailOwner && emailOwner.id !== data.id) {
+      throwHttpError(DUPLICATE_EMAIL_ERROR, 409);
+    }
+
+    const authPatch: {
+      email?: string;
+      password?: string;
+      user_metadata?: { name: string };
+    } = {};
+    if (email !== target.email) authPatch.email = email;
+    if (password) authPatch.password = password;
+    if (name !== target.name) authPatch.user_metadata = { name };
+
+    if (Object.keys(authPatch).length > 0) {
+      const { error: authError } = await supabase.auth.admin.updateUserById(data.id, authPatch);
+      if (authError) {
+        const message = authError.message || "Failed to update auth user.";
+        const status = (authError as { status?: number } | null)?.status;
+        if (isDuplicateAuthError(message, status)) {
+          throwHttpError(DUPLICATE_EMAIL_ERROR, 409);
+        }
+        throwHttpError(message, 500);
+      }
+    }
+
+    const { data: row, error: updateError } = await supabase
+      .from("agents")
+      .update({
+        name,
+        email,
+        role: data.role,
+        is_active: data.isActive,
+        customer_scope: data.customerScope,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", data.id)
+      .select("*")
+      .single();
+
+    if (updateError || !row) {
+      if (updateError?.code === "23505") {
+        throwHttpError(DUPLICATE_EMAIL_ERROR, 409);
+      }
+      throwHttpError(updateError?.message ?? "Failed to update agent.", 500);
     }
 
     return mapAgentRow(row as AgentRow);
