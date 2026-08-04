@@ -3,6 +3,7 @@ import { UserPlus } from "lucide-react";
 import { toast } from "sonner";
 import { createAgent, updateAgent } from "@/features/agents/api/agents.api";
 import { canGrantAllCustomers, creatableRoles } from "@/features/agents/lib/agent-permissions";
+import { getClientErrorMessage } from "@/features/agents/lib/client-error";
 import {
   formValuesToCustomerScope,
   validateAgentPasswords,
@@ -246,7 +247,7 @@ export function AgentFormDialog({
     setLoading(true);
     try {
       if (isCreate) {
-        await createAgent({ ...shared, password: form.password }, actor);
+        await createAgent({ ...shared, password: form.password });
         toast.success("Agent created");
       } else if (agentId) {
         await updateAgent(
@@ -262,7 +263,12 @@ export function AgentFormDialog({
       onSaved();
       onOpenChange(false);
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Something went wrong.");
+      const message = getClientErrorMessage(e);
+      setError(message);
+      toast.error(message);
+      if (message.toLowerCase().includes("email")) {
+        scrollToSection("info");
+      }
     } finally {
       setLoading(false);
     }

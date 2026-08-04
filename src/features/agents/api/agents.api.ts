@@ -7,10 +7,10 @@ import {
 import {
   findAgentByEmail,
   findAgentById,
-  insertAgent,
   listAgents,
   patchAgent,
 } from "@/features/agents/lib/agent-store";
+import { createAgentFn } from "@/features/agents/agents.functions";
 import { isPasswordStrong } from "@/features/agents/validations/agent-form.schema";
 import { filterBySearch } from "@/shared/components/SearchToolbar";
 import { formatCustomerScope } from "@/shared/lib/agent-display";
@@ -86,40 +86,8 @@ export async function getAgentsPaginated(
   };
 }
 
-export async function createAgent(input: CreateAgentInput, actor: ReportActor): Promise<Agent> {
-  if (!canManageAgents(actor)) {
-    throw new Error("You do not have permission to create agents.");
-  }
-
-  const allowedRoles = creatableRoles(actor);
-  if (!allowedRoles.includes(input.role)) {
-    throw new Error("You cannot create an agent with that role.");
-  }
-
-  const name = input.name.trim();
-  const email = input.email.trim().toLowerCase();
-  const password = input.password.trim();
-
-  if (!name) throw new Error("Name is required.");
-  if (!email || !email.includes("@")) throw new Error("A valid email is required.");
-  if (!isPasswordStrong(password)) {
-    throw new Error(WEAK_PASSWORD_ERROR);
-  }
-
-  const scopeError = validateCustomerScopeForActor(actor, input.customerScope);
-  if (scopeError) throw new Error(scopeError);
-
-  if (findAgentByEmail(email)) {
-    throw new Error("An agent with this email already exists.");
-  }
-
-  return await insertAgent({
-    ...input,
-    name,
-    email,
-    password,
-    isActive: input.isActive ?? true,
-  });
+export async function createAgent(input: CreateAgentInput): Promise<Agent> {
+  return createAgentFn({ data: input });
 }
 
 export async function updateAgent(
