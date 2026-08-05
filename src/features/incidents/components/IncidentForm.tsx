@@ -16,7 +16,7 @@ import type {
 import { IncidentPreview } from "./IncidentPreview";
 import { ProtocolProgressCard } from "./ProtocolProgressCard";
 import type { FormState } from "./incident-form.types";
-import { Input, Select, Textarea, useCopyEndAction } from "@/shared/components/form-controls";
+import { Input, Select, Textarea, useCopyEndAction } from "@/shared/components/FloatingLabelField";
 
 function ClearFormConfirmBanner({
   onCancel,
@@ -112,11 +112,7 @@ export function IncidentForm({
   const formFields = (
     <div className="space-y-4">
       <div>
-        <Input
-          label="Customer"
-          value={customer?.name ?? ""}
-          readOnly
-        />
+        <Input label="Customer" value={customer?.name ?? ""} readOnly />
         {customer && (
           <p className="mt-1.5 text-[11.5px] text-text-muted">
             {customer.email} · {customer.phone}
@@ -158,7 +154,7 @@ export function IncidentForm({
       />
 
       <Select
-        label="Incident type"
+        label="Issue type"
         value={form.incidentType}
         onChange={(v) => update("incidentType", v as IncidentType)}
         options={INCIDENT_TYPES}
@@ -177,8 +173,14 @@ export function IncidentForm({
             label="Priority"
             className="[&_select]:pl-8"
             value={form.priority}
-            onChange={(v) => update("priority", v.split(" ")[0] as Priority)}
-            options={["P1 · Critical", "P2 · High", "P3 · Medium", "P4 · Low"]}
+            onChange={(v) => update("priority", v as Priority)}
+            options={["P1", "P2", "P3", "P4"]}
+            optionLabels={{
+              P1: priorityMeta.P1.name,
+              P2: priorityMeta.P2.name,
+              P3: priorityMeta.P3.name,
+              P4: priorityMeta.P4.name,
+            }}
           />
           <span
             className={cn(
@@ -219,10 +221,12 @@ export function IncidentForm({
       loading={isSubmitting}
       className={cn("active:scale-[0.99]", embedded ? "min-w-0 flex-1" : "w-full")}
     >
-      {embedded ? "Log Incident" : (
+      {embedded ? (
+        "Log Report"
+      ) : (
         <>
           <FilePlus2 className="h-4 w-4" />
-          Log Incident
+          Log Report
         </>
       )}
     </Button>
@@ -231,9 +235,7 @@ export function IncidentForm({
   if (embedded) {
     return (
       <div className="relative flex h-full flex-col bg-surface">
-        {isSubmitting && (
-          <div className="absolute inset-0 z-10 cursor-wait" aria-hidden />
-        )}
+        {isSubmitting && <div className="absolute inset-0 z-10 cursor-wait" aria-hidden />}
         {confirmClear ? (
           <ClearFormConfirmBanner
             onCancel={() => setConfirmClear(false)}
@@ -255,9 +257,7 @@ export function IncidentForm({
 
   return (
     <div className="relative flex h-full flex-col bg-surface">
-      {isSubmitting && (
-        <div className="absolute inset-0 z-10 cursor-wait" aria-hidden />
-      )}
+      {isSubmitting && <div className="absolute inset-0 z-10 cursor-wait" aria-hidden />}
       {confirmClear ? (
         <ClearFormConfirmBanner
           onCancel={() => setConfirmClear(false)}
@@ -266,7 +266,7 @@ export function IncidentForm({
       ) : null}
       <div className={cn("flex-1 overflow-y-auto scrollbar-thin", scrollPadding)}>
         <div className="mb-4 flex items-center justify-between">
-          <h2 className="text-[18px] font-bold text-foreground">Incident Details</h2>
+          <h2 className="text-[18px] font-bold text-foreground">Report Details</h2>
           <button
             type="button"
             onClick={requestClear}

@@ -1,8 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import {
-  fetchGlobalContact,
-  getIssues,
-} from "@/features/copilot/api/protocols.api";
+import { fetchGlobalContact, getIssues } from "@/features/copilot/api/protocols.api";
 import { queryKeys } from "@/shared/lib/query-keys";
 
 export function useIssues() {

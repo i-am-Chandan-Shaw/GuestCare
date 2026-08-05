@@ -27,8 +27,7 @@ export function WorkspaceStep({
   const displayLabel = isCompleted && value ? value : label;
   const canClear = Boolean(value && onClear);
 
-  const fill =
-    isCurrent ? "bg-blue-50" : isCompleted ? "bg-emerald-50" : "bg-gray-100";
+  const fill = isCurrent ? "bg-blue-50" : isCompleted ? "bg-emerald-50" : "bg-gray-100";
 
   return (
     <div
@@ -51,11 +50,7 @@ export function WorkspaceStep({
           )}
           aria-hidden
         >
-          {isCompleted ? (
-            <Check className="h-3 w-3" strokeWidth={2.5} />
-          ) : (
-            stepNumber
-          )}
+          {isCompleted ? <Check className="h-3 w-3" strokeWidth={2.5} /> : stepNumber}
         </span>
 
         <span

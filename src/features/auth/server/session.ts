@@ -1,157 +1,99 @@
-import { getRequestHeader, setResponseHeader } from "@tanstack/react-start/server";
-import { findAgentById } from "@/features/agents/lib/agent-store";
-import { normalizeSessionAgent } from "@/features/auth/lib/normalize-agent";
-import { getPasswordPepper } from "@/features/auth/lib/password";
-import type { Agent } from "@/shared/types/agent";
+import { deleteCookie, getCookie, setCookie } from "@tanstack/react-start/server";
+import { mapAgentRow, type AgentRow } from "@/features/agents/lib/map-agent-row";
+import { createSupabaseAdmin } from "@/shared/lib/supabase/admin";
+import { createSupabaseServer } from "@/shared/lib/supabase/server";
 import type { AuthSession } from "@/features/auth/types";
 
-const COOKIE = "gc_session";
-const MAX_AGE_SECONDS = 8 * 60 * 60;
+const ACCESS_COOKIE = "gc_access_token";
+const REFRESH_COOKIE = "gc_refresh_token";
+const DEFAULT_MAX_AGE_SECONDS = 60 * 60;
 
-interface SlimSessionPayload {
-  userId: string;
-  email: string;
-  agentId: string;
-  exp: number;
+function secureCookie() {
+  return process.env.NODE_ENV === "production";
 }
 
-/** Legacy cookies that embedded a full Agent object. */
-interface LegacySessionPayload {
-  userId: string;
-  email: string;
-  agent: Agent;
-  exp: number;
-}
-
-/** Mock-auth HMAC key. Falls back to the demo pepper when AUTH_SECRET is unset (e.g. Vercel). */
-function getSecret() {
-  return getPasswordPepper();
-}
-
-function secureSuffix() {
-  return process.env.NODE_ENV === "production" ? "; Secure" : "";
-}
-
-function toBase64Url(bytes: Uint8Array): string {
-  let binary = "";
-  for (const byte of bytes) binary += String.fromCharCode(byte);
-  return btoa(binary).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
-}
-
-function fromBase64Url(value: string): Uint8Array {
-  const base64 = value.replace(/-/g, "+").replace(/_/g, "/");
-  const padded = base64 + "=".repeat((4 - (base64.length % 4)) % 4);
-  const binary = atob(padded);
-  const bytes = new Uint8Array(binary.length);
-  for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
-  return bytes;
-}
-
-async function hmacSign(value: string): Promise<string> {
-  const key = await crypto.subtle.importKey(
-    "raw",
-    new TextEncoder().encode(getSecret()),
-    { name: "HMAC", hash: "SHA-256" },
-    false,
-    ["sign"],
-  );
-  const signature = await crypto.subtle.sign("HMAC", key, new TextEncoder().encode(value));
-  return toBase64Url(new Uint8Array(signature));
-}
-
-async function hmacVerify(value: string, signature: string): Promise<boolean> {
-  const key = await crypto.subtle.importKey(
-    "raw",
-    new TextEncoder().encode(getSecret()),
-    { name: "HMAC", hash: "SHA-256" },
-    false,
-    ["verify"],
-  );
-  return crypto.subtle.verify(
-    "HMAC",
-    key,
-    Uint8Array.from(fromBase64Url(signature)),
-    new TextEncoder().encode(value),
-  );
-}
-
-export function readSessionCookie(): string | null {
-  const header = getRequestHeader("cookie");
-  if (!header) return null;
-
-  for (const part of header.split(/;\s*/)) {
-    const eq = part.indexOf("=");
-    if (eq === -1) continue;
-    if (part.slice(0, eq) === COOKIE) {
-      return decodeURIComponent(part.slice(eq + 1));
-    }
-  }
-  return null;
-}
-
-export function setSessionCookie(token: string) {
-  setResponseHeader(
-    "Set-Cookie",
-    `${COOKIE}=${encodeURIComponent(token)}; HttpOnly; SameSite=Lax; Path=/; Max-Age=${MAX_AGE_SECONDS}${secureSuffix()}`,
-  );
-}
-
-export function clearSessionCookie() {
-  setResponseHeader(
-    "Set-Cookie",
-    `${COOKIE}=; HttpOnly; SameSite=Lax; Path=/; Max-Age=0${secureSuffix()}`,
-  );
-}
-
-export async function createSessionToken(session: AuthSession): Promise<string> {
-  const payload: SlimSessionPayload = {
-    userId: session.userId,
-    email: session.email,
-    agentId: session.agent.id,
-    exp: Date.now() + MAX_AGE_SECONDS * 1000,
+function cookieOptions(maxAge: number) {
+  return {
+    httpOnly: true,
+    sameSite: "lax" as const,
+    path: "/",
+    secure: secureCookie(),
+    maxAge,
   };
-  const encoded = toBase64Url(new TextEncoder().encode(JSON.stringify(payload)));
-  const signature = await hmacSign(encoded);
-  return `${encoded}.${signature}`;
 }
 
-function resolveAgentFromPayload(
-  payload: SlimSessionPayload | LegacySessionPayload,
-): Agent | null {
-  if ("agentId" in payload && typeof payload.agentId === "string") {
-    return findAgentById(payload.agentId) ?? null;
-  }
-  if ("agent" in payload) {
-    return normalizeSessionAgent(payload.agent);
-  }
-  return null;
+export function readAccessToken(): string | null {
+  return getCookie(ACCESS_COOKIE) ?? null;
 }
 
-export async function parseSessionToken(token: string): Promise<AuthSession | null> {
-  const dot = token.lastIndexOf(".");
-  if (dot === -1) return null;
+export function readRefreshToken(): string | null {
+  return getCookie(REFRESH_COOKIE) ?? null;
+}
 
-  const encoded = token.slice(0, dot);
-  const signature = token.slice(dot + 1);
-  if (!(await hmacVerify(encoded, signature))) return null;
+export function setAuthCookies(
+  accessToken: string,
+  refreshToken: string,
+  expiresIn = DEFAULT_MAX_AGE_SECONDS,
+) {
+  const accessMaxAge = Math.max(60, expiresIn);
+  // Refresh tokens last longer; keep ~30 days as a practical default.
+  const refreshMaxAge = Math.max(accessMaxAge, 60 * 60 * 24 * 30);
 
-  try {
-    const payload = JSON.parse(
-      new TextDecoder().decode(fromBase64Url(encoded)),
-    ) as SlimSessionPayload | LegacySessionPayload;
+  setCookie(ACCESS_COOKIE, accessToken, cookieOptions(accessMaxAge));
+  setCookie(REFRESH_COOKIE, refreshToken, cookieOptions(refreshMaxAge));
+}
 
-    if (!payload.userId || !payload.email) return null;
-    if (payload.exp <= Date.now()) return null;
+export function clearAuthCookies() {
+  const options = { path: "/", httpOnly: true, sameSite: "lax" as const, secure: secureCookie() };
+  deleteCookie(ACCESS_COOKIE, options);
+  deleteCookie(REFRESH_COOKIE, options);
+}
 
-    const agent = resolveAgentFromPayload(payload);
-    if (!agent || !agent.isActive) return null;
+async function loadAgentSession(userId: string, email: string): Promise<AuthSession | null> {
+  const admin = createSupabaseAdmin();
+  const { data, error } = await admin.from("agents").select("*").eq("id", userId).maybeSingle();
 
-    return {
-      userId: payload.userId,
-      email: payload.email,
-      agent,
-    };
-  } catch {
+  if (error || !data) return null;
+
+  const agent = mapAgentRow(data as AgentRow);
+  if (!agent.isActive) return null;
+
+  return {
+    userId,
+    email: email || agent.email,
+    agent,
+  };
+}
+
+async function sessionFromAccessToken(accessToken: string): Promise<AuthSession | null> {
+  const supabase = createSupabaseServer();
+  const { data, error } = await supabase.auth.getUser(accessToken);
+  if (error || !data.user) return null;
+  return loadAgentSession(data.user.id, data.user.email ?? "");
+}
+
+export async function getAuthSession(): Promise<AuthSession | null> {
+  const accessToken = readAccessToken();
+  if (accessToken) {
+    const session = await sessionFromAccessToken(accessToken);
+    if (session) return session;
+  }
+
+  const refreshToken = readRefreshToken();
+  if (!refreshToken) return null;
+
+  const supabase = createSupabaseServer();
+  const { data, error } = await supabase.auth.refreshSession({ refresh_token: refreshToken });
+  if (error || !data.session || !data.user) {
+    clearAuthCookies();
     return null;
   }
+
+  setAuthCookies(
+    data.session.access_token,
+    data.session.refresh_token,
+    data.session.expires_in ?? DEFAULT_MAX_AGE_SECONDS,
+  );
+
+  return loadAgentSession(data.user.id, data.user.email ?? "");
 }

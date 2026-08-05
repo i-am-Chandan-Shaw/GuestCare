@@ -1,11 +1,7 @@
 export type Priority = "P1" | "P2" | "P3" | "P4";
 
 export type EscalationKind =
-  | "host"
-  | "emergency-then-host"
-  | "next-day-followup"
-  | "cleaning"
-  | { custom: string };
+  "host" | "emergency-then-host" | "next-day-followup" | "cleaning" | { custom: string };
 
 export type SystemKey =
   | "heating"
@@ -25,18 +21,12 @@ export type SystemInfo = {
   escalation?: EscalationKind;
 };
 
-export type ReservationVerification =
-  | "Required"
-  | "Not Required"
-  | "Required on Escalated";
+export type ReservationVerification = "Required" | "Not Required" | "Required on Escalated";
 
 export type EscalationContactId = "next-day" | "cleaning" | "property";
 
 export type IncidentStatus =
-  | "Resolved"
-  | "Unresolved - Escalation Handover"
-  | "PM Follow-up Needed"
-  | "In Progress";
+  "Resolved" | "Unresolved - Escalation Handover" | "PM Follow-up Needed" | "In Progress";
 
 export type IncidentType =
   | "Technical Issues"
@@ -46,14 +36,37 @@ export type IncidentType =
   | "Guest-Related Issues"
   | "Other";
 
+export interface CustomerContact {
+  id: string;
+  label: string;
+  name: string;
+  phone: string;
+  position: number;
+}
+
+export interface OrderedStepItem {
+  id: string;
+  label: string;
+  hint?: string;
+  position: number;
+}
+
+export interface CustomerPms {
+  url?: string;
+  username?: string;
+  password?: string;
+}
+
 export interface Customer {
   id: string;
   name: string;
   email: string;
   phone: string;
   propertyIds: string[];
-  /** Profile image URL when available; UI falls back to initials. */
   imageUrl?: string;
+  contacts?: CustomerContact[];
+  pms?: CustomerPms;
+  guestVerificationSteps?: OrderedStepItem[];
 }
 
 export interface HostContact {
@@ -69,6 +82,8 @@ export interface Property {
   buildingNumber?: string;
   unit?: string;
   address: string;
+  postalCode?: string;
+  area?: string;
   floor?: string;
   guideUrl?: string;
   listingUrl?: string;
@@ -120,7 +135,6 @@ export interface Issue {
   escalation: string;
   priorityCategory: string;
   priority: Priority;
-  slaMinutes: number;
   documents: { title: string; type: string; url?: string }[];
   aiRecommendation: string;
 }
@@ -189,9 +203,9 @@ export interface CreateIncidentInput {
   propertyId?: string;
   propertyLabel?: string;
   protocolIssueId?: string;
-  /** @deprecated Ignored — identity comes from session actor. */
+  /** @deprecated Ignored — identity comes from session currentAgent. */
   agentName?: string;
-  /** @deprecated Ignored — identity comes from session actor. */
+  /** @deprecated Ignored — identity comes from session currentAgent. */
   submittedBy?: string;
 }
 
@@ -241,7 +255,7 @@ export type {
   AgentListItem,
   AgentRole,
   IsoDateTime,
-  ReportActor,
+  AgentAccess,
 } from "./agent";
 
 export type {

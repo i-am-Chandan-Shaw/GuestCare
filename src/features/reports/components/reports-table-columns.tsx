@@ -3,10 +3,7 @@ import type { ColDef } from "ag-grid-community";
 import { Eye } from "lucide-react";
 import { StatusChip } from "@/components/ui/StatusChip";
 import { priorityMeta } from "@/shared/constants/agent";
-import {
-  REPORT_STATUS_LABELS,
-  REPORT_STATUS_TONES,
-} from "@/features/reports/lib/report-status";
+import { REPORT_STATUS_LABELS, REPORT_STATUS_TONES } from "@/features/reports/lib/report-status";
 import { formatActivityTimestamp } from "@/shared/lib/datetime";
 import type { ReportListItem } from "@/shared/types/report";
 

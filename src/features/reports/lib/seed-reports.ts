@@ -1,6 +1,6 @@
-import { CUSTOMERS } from "@/data/mocks/customers.mock";
-import { INCIDENT_LOGS } from "@/data/incidents";
-import { DEFAULT_AGENT_ID } from "@/data/agents.seed";
+import { CUSTOMERS } from "@/mock-data/mocks/customers.mock";
+import { INCIDENT_LOGS } from "@/mock-data/incidents";
+import { DEFAULT_AGENT_ID } from "@/mock-data/agents.seed";
 import { findAgentByName } from "@/features/agents/lib/agent-store";
 import { parseLegacyDisplayTimestamp, nowIso } from "@/shared/lib/datetime";
 import { mapLegacyIncidentStatus } from "@/features/reports/lib/report-status";
@@ -9,9 +9,7 @@ import type { Report, ReportThreadEntry } from "@/shared/types/report";
 function resolveCustomerId(propertyId?: string, customerId?: string): string {
   if (customerId) return customerId;
   if (!propertyId) return CUSTOMERS[0]?.id ?? "c1";
-  return (
-    CUSTOMERS.find((c) => c.propertyIds.includes(propertyId))?.id ?? CUSTOMERS[0]?.id ?? "c1"
-  );
+  return CUSTOMERS.find((c) => c.propertyIds.includes(propertyId))?.id ?? CUSTOMERS[0]?.id ?? "c1";
 }
 
 function resolveCustomerName(customerId: string): string {
@@ -113,7 +111,7 @@ export function seedReportsFromIncidents(): { reports: Report[]; threads: Report
         type: "comment",
         authorAgentId: agent.id,
         authorAgentName: agent.name,
-        body: "Logged the guest call and started the standard checklist for this issue.",
+        body: "Logged the guest call and started the standard checklist for this report.",
         createdAt: rootCreated,
       });
       threads.push({

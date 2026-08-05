@@ -1,23 +1,6 @@
-import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import {
-  Building2,
-  Calendar,
-  Check,
-  ChevronDown,
-  ChevronUp,
-  CircleCheck,
-  Filter,
-  Flag,
-  Home,
-  Search,
-  Tag,
-  User,
-  X,
-  type LucideIcon,
-} from "lucide-react";
-import { useAgents } from "@/features/agents/hooks/useAgents";
-import { useCustomerSummaries } from "@/features/customers/hooks/useCustomers";
+import { Building2, Calendar, CircleCheck, Filter, Flag, Home, Tag, User, X } from "lucide-react";
 import {
   countActiveReportsFilters,
   EMPTY_REPORTS_LIST_FILTERS,
@@ -27,161 +10,24 @@ import {
 import { REPORT_STATUS_LABELS } from "@/features/reports/lib/report-status";
 import { INCIDENT_TYPES } from "@/shared/constants/incident";
 import { priorityMeta } from "@/shared/constants/agent";
-import { PROPERTIES } from "@/data/properties";
 import { Button } from "@/components/ui/Button";
-import { cn } from "@/lib/utils";
 import type { Priority } from "@/shared/types";
 import type { ReportStatus } from "@/shared/types/report";
+import {
+  FilterCheckbox,
+  FilterSection,
+  ListSearch,
+} from "@/features/reports/components/FilterComponents";
+import {
+  draftFromApplied,
+  selectedCountBadge,
+  dateRangeBadge,
+  useReportsFiltersState,
+} from "@/features/reports/hooks/use-reports-filters";
 
 const ALL_STATUSES = Object.keys(REPORT_STATUS_LABELS) as ReportStatus[];
 const ALL_PRIORITIES = Object.keys(priorityMeta) as Priority[];
 const PANEL_WIDTH = 360;
-
-type AccordionKey =
-  | "status"
-  | "priority"
-  | "agent"
-  | "customer"
-  | "property"
-  | "issueType"
-  | "dateRange";
-
-function cloneFilters(filters: ReportsListFilters): ReportsListFilters {
-  return {
-    search: filters.search,
-    statuses: [...filters.statuses],
-    priorities: [...filters.priorities],
-    assignedAgentIds: [...filters.assignedAgentIds],
-    customerIds: [...filters.customerIds],
-    propertyIds: [...filters.propertyIds],
-    issueTypes: [...filters.issueTypes],
-    dateFrom: filters.dateFrom,
-    dateTo: filters.dateTo,
-  };
-}
-
-/** Popover draft keeps search from applied (search is edited outside). */
-function draftFromApplied(applied: ReportsListFilters): ReportsListFilters {
-  return {
-    ...cloneFilters(EMPTY_REPORTS_LIST_FILTERS),
-    ...cloneFilters(applied),
-    search: applied.search,
-  };
-}
-
-function selectedCountBadge(count: number): string {
-  return `${count} selected`;
-}
-
-function dateRangeBadge(dateFrom: string, dateTo: string): string {
-  if (!dateFrom && !dateTo) return "Not set";
-  if (dateFrom && dateTo) return "Set";
-  return "1 selected";
-}
-
-function FilterCheckbox({
-  checked,
-  label,
-  onToggle,
-}: {
-  checked: boolean;
-  label: string;
-  onToggle: () => void;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onToggle}
-      className="flex w-full items-center gap-2.5 rounded-md py-1.5 text-left transition-colors hover:bg-app-bg"
-    >
-      <span
-        className={cn(
-          "flex h-4 w-4 shrink-0 items-center justify-center rounded border transition-colors",
-          checked
-            ? "border-brand-primary bg-brand-primary text-white"
-            : "border-border-color bg-card-bg",
-        )}
-        aria-hidden
-      >
-        {checked ? <Check className="h-3 w-3" strokeWidth={3} /> : null}
-      </span>
-      <span className="text-[13px] text-text-primary">{label}</span>
-    </button>
-  );
-}
-
-function FilterSection({
-  title,
-  icon: Icon,
-  iconClassName,
-  badge,
-  open,
-  onToggle,
-  children,
-}: {
-  title: string;
-  icon: LucideIcon;
-  iconClassName: string;
-  badge: string;
-  open: boolean;
-  onToggle: () => void;
-  children: ReactNode;
-}) {
-  return (
-    <div>
-      <button
-        type="button"
-        onClick={onToggle}
-        aria-expanded={open}
-        className="flex w-full items-center gap-3 px-4 py-3.5 text-left transition-colors hover:bg-app-bg/60"
-      >
-        <span
-          className={cn(
-            "flex h-7 w-7 shrink-0 items-center justify-center rounded-md",
-            iconClassName,
-          )}
-          aria-hidden
-        >
-          <Icon className="h-3.5 w-3.5" strokeWidth={2} />
-        </span>
-        <span className="min-w-0 flex-1 text-[13px] font-semibold text-text-primary">
-          {title}
-        </span>
-        <span className="inline-flex shrink-0 items-center rounded-full bg-app-bg px-2 py-0.5 text-[11px] font-medium text-text-secondary">
-          {badge}
-        </span>
-        {open ? (
-          <ChevronUp className="h-4 w-4 shrink-0 text-text-muted" strokeWidth={2} />
-        ) : (
-          <ChevronDown className="h-4 w-4 shrink-0 text-text-muted" strokeWidth={2} />
-        )}
-      </button>
-      {open ? <div className="px-4 pb-3.5">{children}</div> : null}
-    </div>
-  );
-}
-
-function ListSearch({
-  value,
-  onChange,
-  placeholder,
-}: {
-  value: string;
-  onChange: (value: string) => void;
-  placeholder: string;
-}) {
-  return (
-    <div className="mb-2 flex items-center gap-2 rounded-md border border-border-color bg-app-bg px-2.5 py-1.5">
-      <Search className="h-3.5 w-3.5 shrink-0 text-text-muted" strokeWidth={2} />
-      <input
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        placeholder={placeholder}
-        className="w-full bg-transparent text-[12px] text-text-primary outline-none placeholder:text-text-muted"
-      />
-    </div>
-  );
-}
 
 export function ReportsFiltersPopover({
   applied,
@@ -195,17 +41,27 @@ export function ReportsFiltersPopover({
   customerScoped?: boolean;
 }) {
   const [open, setOpen] = useState(false);
-  const [draft, setDraft] = useState<ReportsListFilters>(() => draftFromApplied(applied));
-  const [expanded, setExpanded] = useState<AccordionKey | null>("status");
-  const [agentQ, setAgentQ] = useState("");
-  const [customerQ, setCustomerQ] = useState("");
-  const [propertyQ, setPropertyQ] = useState("");
   const triggerRef = useRef<HTMLButtonElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
   const [pos, setPos] = useState({ top: 0, left: 0 });
 
-  const { data: agents = [] } = useAgents();
-  const { data: customers = [] } = useCustomerSummaries();
+  const {
+    draft,
+    setDraft,
+    expanded,
+    setExpanded,
+    agentQ,
+    setAgentQ,
+    customerQ,
+    setCustomerQ,
+    propertyQ,
+    setPropertyQ,
+    filteredAgents,
+    filteredCustomers,
+    filteredProperties,
+    toggleAccordion,
+    patch,
+  } = useReportsFiltersState(applied);
 
   const activeCount = countActiveReportsFilters(applied);
 
@@ -257,10 +113,6 @@ export function ReportsFiltersPopover({
     return () => document.removeEventListener("mousedown", handler);
   }, [open]);
 
-  const patch = (partial: Partial<ReportsListFilters>) => {
-    setDraft((prev) => ({ ...prev, ...partial }));
-  };
-
   const handleApply = () => {
     onApply({ ...draft, search: applied.search });
     closePopover();
@@ -272,34 +124,6 @@ export function ReportsFiltersPopover({
     onApply(cleared);
     closePopover();
   };
-
-  const toggleAccordion = (key: AccordionKey) => {
-    setExpanded((prev) => (prev === key ? null : key));
-  };
-
-  const filteredAgents = useMemo(() => {
-    const q = agentQ.trim().toLowerCase();
-    return [...agents]
-      .filter((a) => a.isActive)
-      .filter((a) => !q || a.name.toLowerCase().includes(q))
-      .sort((a, b) => a.name.localeCompare(b.name));
-  }, [agents, agentQ]);
-
-  const filteredCustomers = useMemo(() => {
-    const q = customerQ.trim().toLowerCase();
-    return [...customers]
-      .filter((c) => !q || c.name.toLowerCase().includes(q))
-      .sort((a, b) => a.name.localeCompare(b.name));
-  }, [customers, customerQ]);
-
-  const filteredProperties = useMemo(() => {
-    const q = propertyQ.trim().toLowerCase();
-    return [...PROPERTIES]
-      .filter(
-        (p) => !q || p.name.toLowerCase().includes(q) || p.address.toLowerCase().includes(q),
-      )
-      .sort((a, b) => a.name.localeCompare(b.name));
-  }, [propertyQ]);
 
   const statusAllSelected = draft.statuses.length === 0;
   const priorityAllSelected = draft.priorities.length === 0;
@@ -350,9 +174,7 @@ export function ReportsFiltersPopover({
                   key={status}
                   checked={draft.statuses.includes(status)}
                   label={REPORT_STATUS_LABELS[status]}
-                  onToggle={() =>
-                    patch({ statuses: toggleIdInList(draft.statuses, status) })
-                  }
+                  onToggle={() => patch({ statuses: toggleIdInList(draft.statuses, status) })}
                 />
               ))}
             </FilterSection>
@@ -392,11 +214,7 @@ export function ReportsFiltersPopover({
               open={expanded === "agent"}
               onToggle={() => toggleAccordion("agent")}
             >
-              <ListSearch
-                value={agentQ}
-                onChange={setAgentQ}
-                placeholder="Search agents…"
-              />
+              <ListSearch value={agentQ} onChange={setAgentQ} placeholder="Search agents…" />
               <div className="max-h-40 space-y-0.5 overflow-y-auto">
                 {filteredAgents.map((agent) => (
                   <FilterCheckbox
@@ -405,10 +223,7 @@ export function ReportsFiltersPopover({
                     label={agent.name}
                     onToggle={() =>
                       patch({
-                        assignedAgentIds: toggleIdInList(
-                          draft.assignedAgentIds,
-                          agent.id,
-                        ),
+                        assignedAgentIds: toggleIdInList(draft.assignedAgentIds, agent.id),
                       })
                     }
                   />

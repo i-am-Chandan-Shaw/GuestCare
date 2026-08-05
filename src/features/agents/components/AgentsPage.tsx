@@ -1,3 +1,4 @@
+import { useDebouncedValue } from "@/shared/hooks/use-debounced-value";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { IGetRowsParams } from "ag-grid-community";
 import type { AgGridReact } from "ag-grid-react";
@@ -5,12 +6,8 @@ import { Plus } from "lucide-react";
 import { getAgentsPaginated } from "@/features/agents/api/agents.api";
 import { AgentFormDialog } from "@/features/agents/components/AgentFormDialog";
 import { createAgentsTableColumnDefs } from "@/features/agents/components/agents-table-columns";
-import {
-  canEditAgent,
-  canManageAgents,
-} from "@/features/agents/lib/agent-permissions";
+import { canEditAgent, canManageAgents } from "@/features/agents/lib/agent-permissions";
 import { useAuth } from "@/features/auth/hooks/useAuth";
-import { toReportActor } from "@/features/reports/lib/report-scope";
 import {
   ServerPaginatedTable,
   computeInfiniteScrollLastRow,
@@ -19,20 +16,8 @@ import { Button } from "@/components/ui/Button";
 import { SearchToolbar } from "@/shared/components/SearchToolbar";
 import type { AgentListItem } from "@/shared/types/agent";
 
-function useDebouncedValue<T>(value: T, delayMs: number): T {
-  const [debounced, setDebounced] = useState(value);
-
-  useEffect(() => {
-    const timer = window.setTimeout(() => setDebounced(value), delayMs);
-    return () => window.clearTimeout(timer);
-  }, [value, delayMs]);
-
-  return debounced;
-}
-
 export function AgentsPage() {
   const { agent } = useAuth();
-  const actor = useMemo(() => toReportActor(agent), [agent]);
   const [search, setSearch] = useState("");
   const debouncedSearch = useDebouncedValue(search, 300);
   const gridRef = useRef<AgGridReact<AgentListItem>>(null);
@@ -40,29 +25,29 @@ export function AgentsPage() {
 
   const [dialogOpen, setDialogOpen] = useState(false);
   const [dialogMode, setDialogMode] = useState<"create" | "edit">("create");
-  const [editingAgentId, setEditingAgentId] = useState<string | null>(null);
+  const [editingAgent, setEditingAgent] = useState<AgentListItem | null>(null);
 
-  const canManage = canManageAgents(actor);
+  const canManage = canManageAgents(agent);
 
   const openCreate = () => {
     setDialogMode("create");
-    setEditingAgentId(null);
+    setEditingAgent(null);
     setDialogOpen(true);
   };
 
-  const openEdit = useCallback((agentId: string) => {
+  const openEdit = useCallback((row: AgentListItem) => {
     setDialogMode("edit");
-    setEditingAgentId(agentId);
+    setEditingAgent(row);
     setDialogOpen(true);
   }, []);
 
   const columnDefs = useMemo(
     () =>
       createAgentsTableColumnDefs({
-        canEdit: (row) => canEditAgent(actor, row),
+        canEdit: (row) => canEditAgent(agent, row),
         onEdit: openEdit,
       }),
-    [actor, openEdit],
+    [agent, openEdit],
   );
 
   const handleFetchData = useCallback(
@@ -71,14 +56,11 @@ export function AgentsPage() {
       const limit = Math.max(1, (params.endRow ?? startRow + 50) - startRow);
       const page = Math.floor(startRow / limit) + 1;
 
-      const result = await getAgentsPaginated(
-        {
-          page,
-          limit,
-          search: debouncedSearch,
-        },
-        actor,
-      );
+      const result = await getAgentsPaginated({
+        page,
+        limit,
+        search: debouncedSearch,
+      });
 
       const lastRow = computeInfiniteScrollLastRow({
         startRow,
@@ -89,7 +71,7 @@ export function AgentsPage() {
 
       return { data: result.data, lastRow };
     },
-    [actor, debouncedSearch],
+    [debouncedSearch],
   );
 
   useEffect(() => {
@@ -117,8 +99,8 @@ export function AgentsPage() {
             </p>
           </div>
           {canManage ? (
-            <Button type="button" onClick={openCreate} className="!h-9 shrink-0 !px-3">
-              <Plus className="mr-1.5 h-4 w-4" strokeWidth={2} />
+            <Button type="button" size="sm" onClick={openCreate} className="shrink-0">
+              <Plus className="h-4 w-4" strokeWidth={2} />
               Add agent
             </Button>
           ) : null}
@@ -153,8 +135,8 @@ export function AgentsPage() {
         <AgentFormDialog
           open={dialogOpen}
           mode={dialogMode}
-          agentId={editingAgentId}
-          actor={actor}
+          agent={editingAgent}
+          currentAgent={agent}
           onOpenChange={setDialogOpen}
           onSaved={handleSaved}
         />

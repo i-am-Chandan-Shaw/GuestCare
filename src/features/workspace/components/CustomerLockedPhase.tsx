@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { usePropertySummaries } from "@/features/customers/hooks/useCustomers";
-import { CustomerIssueHistoryPanel } from "@/features/workspace/components/CustomerIssueHistoryPanel";
+import { IssueHistoryPanel } from "@/features/workspace/components/IssueHistoryPanel";
 import { PropertyListRow } from "@/features/workspace/components/PropertyListRow";
 import { LoadingState } from "@/shared/components/LoadingState";
 import { QueryErrorState } from "@/shared/components/QueryErrorState";
@@ -93,7 +93,7 @@ export function CustomerLockedPhase({
       </div>
 
       <div className="flex min-h-0 min-w-0 flex-[3] flex-col overflow-hidden">
-        <CustomerIssueHistoryPanel customerId={customer.id} />
+        <IssueHistoryPanel customerId={customer.id} />
       </div>
     </div>
   );

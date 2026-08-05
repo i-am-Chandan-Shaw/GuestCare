@@ -45,9 +45,7 @@ export function PropertyListRow({
       }}
       className={cn(
         "group flex w-full cursor-pointer items-center gap-4 px-4 py-3.5 text-left transition-colors duration-200",
-        striped
-          ? "bg-grid-header-bg/40 hover:bg-grid-header-bg/60"
-          : "hover:bg-app-bg",
+        striped ? "bg-grid-header-bg/40 hover:bg-grid-header-bg/60" : "hover:bg-app-bg",
       )}
     >
       <PortfolioCardThumbnail
@@ -72,7 +70,7 @@ export function PropertyListRow({
         <MetricCell>
           <PortfolioMetricColumn
             icon={<AlertCircle strokeWidth={1.75} />}
-            label="Open Issues"
+            label="Open Reports"
             value={property.openReportsCount}
           />
         </MetricCell>
@@ -86,7 +84,7 @@ export function PropertyListRow({
         <MetricCell>
           <PortfolioMetricColumn
             icon={<ClipboardList strokeWidth={1.75} />}
-            label="Total Issues"
+            label="Total Reports"
             value={totalIssues}
           />
         </MetricCell>

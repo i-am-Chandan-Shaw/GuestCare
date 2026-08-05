@@ -54,18 +54,11 @@ export function CustomerPortfolioCard({
       }}
       className={cn(
         "group flex w-full cursor-pointer items-center gap-4 px-4 py-3.5 text-left transition-colors duration-200",
-        striped
-          ? "bg-grid-header-bg/40 hover:bg-grid-header-bg/60"
-          : "hover:bg-app-bg",
+        striped ? "bg-grid-header-bg/40 hover:bg-grid-header-bg/60" : "hover:bg-app-bg",
       )}
     >
       <div className="flex min-w-0 w-[240px] shrink-0 items-center gap-3 border-r border-border-color pr-4">
-        <Avatar
-          name={customer.name}
-          seed={customer.id}
-          src={customer.imageUrl}
-          size="lg"
-        />
+        <Avatar name={customer.name} seed={customer.id} src={customer.imageUrl} size="lg" />
         <div className="min-w-0">
           <h3 className={cn(PORTFOLIO_CARD_TITLE_CLASS, "min-w-0 truncate text-[14px]")}>
             {customer.name}
@@ -80,7 +73,7 @@ export function CustomerPortfolioCard({
         <MetricCell>
           <PortfolioMetricColumn
             icon={<AlertCircle strokeWidth={1.75} />}
-            label="Open Issues"
+            label="Open Reports"
             value={customer.openReportsCount}
           />
         </MetricCell>
@@ -94,14 +87,14 @@ export function CustomerPortfolioCard({
         <MetricCell>
           <PortfolioMetricColumn
             icon={<ClipboardList strokeWidth={1.75} />}
-            label="Total Issues"
+            label="Total Reports"
             value={customer.totalIssuesCount}
           />
         </MetricCell>
         <MetricCell>
           <PortfolioMetricColumn
             icon={<Clock strokeWidth={1.75} />}
-            label="Last Issue"
+            label="Last Report"
             labelAccessory={
               lastIssueAgo ? (
                 <span className="inline-flex h-3.5 shrink-0 items-center rounded border border-warning/20 bg-warning/10 px-1 text-[9px] font-semibold leading-none text-warning">

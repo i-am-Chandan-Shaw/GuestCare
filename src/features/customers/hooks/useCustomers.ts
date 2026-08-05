@@ -1,22 +1,19 @@
 import { useQuery } from "@tanstack/react-query";
-import {
-  getCustomerSummaries,
-  getPropertySummaries,
-} from "@/features/customers/api/customers.api";
+import { getCustomerSummaries, getPropertySummaries } from "@/features/customers/api/customers.api";
 import { queryKeys } from "@/shared/lib/query-keys";
-import type { ReportActor } from "@/shared/types/agent";
+import type { AgentAccess } from "@/shared/types/agent";
 
-export function useCustomerSummaries(actor?: ReportActor) {
+export function useCustomerSummaries(currentAgent?: AgentAccess) {
   return useQuery({
     queryKey: [
       ...queryKeys.customers.summaries(),
-      actor?.id ?? "all",
-      actor?.role ?? "none",
-      actor?.customerScope?.type === "specific"
-        ? actor.customerScope.customerIds.join(",")
-        : actor?.customerScope?.type ?? "none",
+      currentAgent?.id ?? "all",
+      currentAgent?.role ?? "none",
+      currentAgent?.customerScope?.type === "specific"
+        ? currentAgent.customerScope.customerIds.join(",")
+        : (currentAgent?.customerScope?.type ?? "none"),
     ],
-    queryFn: () => getCustomerSummaries(actor),
+    queryFn: () => getCustomerSummaries(currentAgent),
   });
 }
 

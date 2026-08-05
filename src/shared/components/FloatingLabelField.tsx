@@ -10,20 +10,24 @@ export type FloatingEndAction = {
   disabled?: boolean;
 };
 
-type ShellProps = {
+export type ShellProps = {
   label: string;
   value: string;
   disabled?: boolean;
   readOnly?: boolean;
   className?: string;
+  labelClassName?: string;
   id?: string;
   endAction?: FloatingEndAction;
   alwaysFloat?: boolean;
+  error?: string;
   children: (props: {
     id: string;
     className: string;
     onFocus: () => void;
     onBlur: () => void;
+    ariaInvalid?: boolean;
+    ariaDescribedBy?: string;
   }) => ReactNode;
 };
 
@@ -54,62 +58,76 @@ function EndActionButton({
   );
 }
 
-function FloatingShell({
+export function FloatingShell({
   label,
   value,
   disabled,
   readOnly,
   className,
+  labelClassName,
   id: idProp,
   endAction,
   alwaysFloat,
+  error,
   children,
 }: ShellProps) {
   const autoId = useId();
   const id = idProp ?? autoId;
+  const errorId = `${id}-error`;
   const [focused, setFocused] = useState(false);
   const locked = Boolean(disabled || readOnly);
   const hasValue = value.trim().length > 0;
   const floated = alwaysFloat || hasValue || (!locked && focused);
+  const hasError = Boolean(error);
 
   return (
-    <div
-      className={cn(
-        "relative overflow-hidden rounded-[var(--kn-radius-lg)] border border-input-border bg-card-bg transition-colors duration-150",
-        !locked && "focus-within:border-input-border-focus",
-        locked && "cursor-not-allowed bg-app-bg/60",
-        disabled && "opacity-60",
-        className,
-      )}
-    >
-      <label
-        htmlFor={id}
+    <div className={cn("block", className)}>
+      <div
         className={cn(
-          "pointer-events-none absolute left-3 z-[1] origin-left uppercase tracking-wide text-text-muted transition-all duration-150",
-          floated
-            ? "top-2 translate-y-0 text-[10px] font-semibold"
-            : "top-1/2 -translate-y-1/2 text-[13px] font-medium",
+          "relative overflow-hidden rounded-[var(--kn-radius-lg)] border bg-card-bg transition-colors duration-150",
+          hasError
+            ? "border-destructive focus-within:border-destructive"
+            : cn("border-input-border", !locked && "focus-within:border-input-border-focus"),
+          locked && "cursor-not-allowed bg-app-bg/60",
+          disabled && "opacity-60",
         )}
       >
-        {label}
-      </label>
-      {children({
-        id,
-        onFocus: () => {
-          if (!locked) setFocused(true);
-        },
-        onBlur: () => setFocused(false),
-        className: cn(
-          "w-full bg-transparent text-[13px] text-text-primary outline-none",
-          "placeholder:text-transparent",
-          floated ? "pb-2.5 pt-5" : "py-3",
-          endAction ? "pr-11" : "pr-3",
-          "pl-3",
-          locked && "cursor-not-allowed text-text-secondary",
-        ),
-      })}
-      {endAction ? (
-        <EndActionButton action={endAction} fieldDisabled={disabled} />
+        <label
+          htmlFor={id}
+          className={cn(
+            "pointer-events-none absolute left-3 z-[1] origin-left uppercase tracking-wide transition-all duration-150",
+            hasError ? "text-destructive" : "text-text-muted",
+            floated
+              ? "top-[6px] translate-y-0 text-[10px] font-[600]"
+              : "top-1/2 -translate-y-1/2 text-[15px] font-[500]",
+            labelClassName
+          )}
+        >
+          {label}
+        </label>
+        {children({
+          id,
+          onFocus: () => {
+            if (!locked) setFocused(true);
+          },
+          onBlur: () => setFocused(false),
+          ariaInvalid: hasError || undefined,
+          ariaDescribedBy: hasError ? errorId : undefined,
+          className: cn(
+            "w-full bg-transparent text-[15px] font-medium text-text-primary outline-none",
+            "placeholder:text-transparent",
+            floated ? "pb-2.5 pt-5" : "py-3",
+            endAction ? "pr-11" : "pr-3",
+            "pl-3",
+            locked && "cursor-not-allowed text-text-secondary",
+          ),
+        })}
+        {endAction ? <EndActionButton action={endAction} fieldDisabled={disabled} /> : null}
+      </div>
+      {hasError ? (
+        <p id={errorId} className="mt-1.5 text-[11px] leading-snug text-destructive" role="alert">
+          {error}
+        </p>
       ) : null}
     </div>
   );
@@ -129,6 +147,7 @@ export function FloatingLabelInput({
   autoComplete,
   name,
   required,
+  error,
 }: {
   label: string;
   value: string;
@@ -143,6 +162,7 @@ export function FloatingLabelInput({
   autoComplete?: string;
   name?: string;
   required?: boolean;
+  error?: string;
 }) {
   return (
     <FloatingShell
@@ -153,8 +173,9 @@ export function FloatingLabelInput({
       className={className}
       id={id}
       endAction={endAction}
+      error={error}
     >
-      {({ id: fieldId, className: fieldClassName, onFocus, onBlur }) => (
+      {({ id: fieldId, className: fieldClassName, onFocus, onBlur, ariaInvalid, ariaDescribedBy }) => (
         <input
           id={fieldId}
           name={name}
@@ -165,10 +186,13 @@ export function FloatingLabelInput({
           onBlur={onBlur}
           disabled={disabled}
           readOnly={readOnly}
+          tabIndex={readOnly || disabled ? -1 : undefined}
           autoComplete={autoComplete}
           required={required}
           placeholder={label}
-          className={cn(fieldClassName, "h-[52px]", mono && "font-mono")}
+          aria-invalid={ariaInvalid}
+          aria-describedby={ariaDescribedBy}
+          className={cn(fieldClassName, "h-12", mono && "font-mono")}
         />
       )}
     </FloatingShell>
@@ -185,6 +209,7 @@ export function FloatingLabelTextarea({
   className,
   id,
   endAction,
+  error,
 }: {
   label: string;
   value: string;
@@ -195,6 +220,7 @@ export function FloatingLabelTextarea({
   className?: string;
   id?: string;
   endAction?: FloatingEndAction;
+  error?: string;
 }) {
   return (
     <FloatingShell
@@ -206,8 +232,9 @@ export function FloatingLabelTextarea({
       id={id}
       endAction={endAction}
       alwaysFloat
+      error={error}
     >
-      {({ id: fieldId, className: fieldClassName, onFocus, onBlur }) => (
+      {({ id: fieldId, className: fieldClassName, onFocus, onBlur, ariaInvalid, ariaDescribedBy }) => (
         <textarea
           id={fieldId}
           value={value}
@@ -216,8 +243,11 @@ export function FloatingLabelTextarea({
           onBlur={onBlur}
           disabled={disabled}
           readOnly={readOnly}
+          tabIndex={readOnly || disabled ? -1 : undefined}
           rows={rows}
           placeholder={label}
+          aria-invalid={ariaInvalid}
+          aria-describedby={ariaDescribedBy}
           className={cn(fieldClassName, "resize-none leading-relaxed")}
         />
       )}
@@ -235,6 +265,7 @@ export function FloatingLabelSelect({
   className,
   id,
   endAction,
+  error,
 }: {
   label: string;
   value: string;
@@ -245,6 +276,7 @@ export function FloatingLabelSelect({
   className?: string;
   id?: string;
   endAction?: FloatingEndAction;
+  error?: string;
 }) {
   return (
     <FloatingShell
@@ -255,8 +287,9 @@ export function FloatingLabelSelect({
       id={id}
       endAction={endAction}
       alwaysFloat
+      error={error}
     >
-      {({ id: fieldId, className: fieldClassName, onFocus, onBlur }) => (
+      {({ id: fieldId, className: fieldClassName, onFocus, onBlur, ariaInvalid, ariaDescribedBy }) => (
         <select
           id={fieldId}
           value={value}
@@ -264,9 +297,11 @@ export function FloatingLabelSelect({
           onFocus={onFocus}
           onBlur={onBlur}
           disabled={disabled}
+          aria-invalid={ariaInvalid}
+          aria-describedby={ariaDescribedBy}
           className={cn(
             fieldClassName,
-            "h-[52px] appearance-none font-medium",
+            "h-12 appearance-none font-medium",
             "bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20width%3D%2220%22%20height%3D%2220%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Cpath%20d%3D%22M5%208l5%205%205-5%22%20stroke%3D%22%23666%22%20stroke-width%3D%221.5%22%20fill%3D%22none%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%2F%3E%3C%2Fsvg%3E')] bg-no-repeat bg-[position:right_0.5rem_center]",
             endAction ? "pr-16" : "pr-9",
             disabled ? "cursor-not-allowed" : "cursor-pointer",
@@ -371,3 +406,21 @@ export function createInfoEndAction(onClick: () => void, disabled?: boolean): Fl
     disabled,
   };
 }
+
+export function Field({ label, children }: { label: string; children: ReactNode }) {
+  return (
+    <div className="block">
+      <span className="mb-2 block text-[13px] font-semibold text-text-primary">{label}</span>
+      {children}
+    </div>
+  );
+}
+
+export {
+  FloatingLabelInput as Input,
+  FloatingLabelTextarea as Textarea,
+  FloatingLabelSelect as Select,
+};
+
+export { FloatingLabelPhone as Phone } from "./FloatingLabelPhone";
+

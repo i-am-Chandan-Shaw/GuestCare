@@ -29,35 +29,34 @@ export function IncidentComposeShell() {
         <button
           type="button"
           onClick={() => actions.openIncidentPanel("expanded")}
-          aria-label="Create incident report"
+          aria-label="Create report"
           className="fixed bottom-6 right-6 z-[10000] flex h-14 w-14 items-center justify-center rounded-full btn-primary-gradient text-white shadow-lg shadow-brand-primary/20 transition-transform hover:scale-105 active:scale-95"
-          title="Create incident report"
+          title="Create report"
         >
           <FilePlus2 className="h-6 w-6" strokeWidth={2} />
         </button>
       )}
 
-      {!meta.isDetached &&
-        (state.panelMode === "expanded" || state.panelMode === "minimized") && (
-          <IncidentComposeWindow
-            mode={state.panelMode}
-            customer={customer}
-            property={property}
-            issue={issue}
-            form={state.form}
-            setForm={actions.setForm}
-            onClear={actions.clearForm}
-            onSubmit={actions.submitIncident}
-            isIncidentFormDirty={meta.isIncidentFormDirty}
-            isSubmitting={meta.isSubmitting}
-            onMinimize={actions.minimizeIncidentPanel}
-            onDetach={actions.detachIncidentPanel}
-            onExpand={actions.expandIncidentPanel}
-            onRequestClose={actions.closeIncidentPanel}
-          />
-        )}
+      {!meta.isDetached && (state.panelMode === "expanded" || state.panelMode === "minimized") && (
+        <IncidentComposeWindow
+          mode={state.panelMode}
+          customer={customer}
+          property={property}
+          issue={issue}
+          form={state.form}
+          setForm={actions.setForm}
+          onClear={actions.clearForm}
+          onSubmit={actions.submitIncident}
+          isIncidentFormDirty={meta.isIncidentFormDirty}
+          isSubmitting={meta.isSubmitting}
+          onMinimize={actions.minimizeIncidentPanel}
+          onDetach={actions.detachIncidentPanel}
+          onExpand={actions.expandIncidentPanel}
+          onRequestClose={actions.closeIncidentPanel}
+        />
+      )}
 
-      {meta.isDetached && state.pipWindow && <IncidentComposePopupPage alwaysOnTop />}
+      {meta.isDetached && state.pipWindow && <IncidentComposePopupPage />}
     </>,
     state.pipWindow?.document.body ?? document.body,
   );

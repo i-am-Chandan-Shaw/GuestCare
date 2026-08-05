@@ -13,14 +13,8 @@ export function ProtocolPhase({
   onBack?: () => void;
 }) {
   const { property, issue, selectIssue } = useWorkspaceSelection();
-  const {
-    checked,
-    verificationChecked,
-    outcome,
-    setOutcome,
-    toggleStep,
-    toggleVerification,
-  } = useProtocolChecklist();
+  const { checked, verificationChecked, outcome, setOutcome, toggleStep, toggleVerification } =
+    useProtocolChecklist();
 
   if (!property) return null;
 

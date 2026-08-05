@@ -1,23 +1,32 @@
 import { Link, useRouter, useRouterState } from "@tanstack/react-router";
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { canManageAgents } from "@/features/agents/lib/agent-permissions";
-import { toReportActor } from "@/features/reports/lib/report-scope";
 import { getAgentInitials, formatAgentRole } from "@/shared/lib/agent-display";
 import { readIncidentsNavSearch } from "@/features/workspace/lib/workspace-persistence";
+import type { WorkspaceSearch } from "@/features/workspace/lib/workspace-url";
 import { cn } from "@/lib/utils";
 import { logout } from "@/features/auth/api/auth.api";
 import { useAuth } from "@/features/auth/hooks/useAuth";
-import { BarChart3, LayoutDashboard, UserCircle, LifeBuoy, LogOut } from "lucide-react";
+import {
+  BarChart3,
+  FolderTree,
+  LayoutDashboard,
+  UserCircle,
+  LifeBuoy,
+  LogOut,
+} from "lucide-react";
 
 const baseNav = [
   { id: "issues" as const, label: "Workspace", href: "/", icon: LayoutDashboard },
   { id: "reports" as const, label: "Reports", href: "/reports", icon: BarChart3 },
+  { id: "directory" as const, label: "Directory", href: "/directory", icon: FolderTree },
   { id: "agents" as const, label: "Agents", href: "/agents", icon: UserCircle },
 ];
 
 function useActiveNav() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   if (pathname.startsWith("/reports")) return "reports";
+  if (pathname.startsWith("/directory")) return "directory";
   if (pathname.startsWith("/agents")) return "agents";
   return "issues";
 }
@@ -26,12 +35,16 @@ export function AppSidebar() {
   const router = useRouter();
   const { agent } = useAuth();
   const active = useActiveNav();
-  const incidentsSearch = readIncidentsNavSearch();
+  // Avoid reading localStorage during render (SSR/client mismatch).
+  const [incidentsSearch, setIncidentsSearch] = useState<WorkspaceSearch>({});
+  useEffect(() => {
+    setIncidentsSearch(readIncidentsNavSearch());
+  }, []);
   const nav = useMemo(
     () =>
-      canManageAgents(toReportActor(agent))
+      canManageAgents(agent)
         ? baseNav
-        : baseNav.filter((item) => item.id !== "agents"),
+        : baseNav.filter((item) => item.id !== "agents" && item.id !== "directory"),
     [agent],
   );
 
@@ -70,11 +83,11 @@ export function AppSidebar() {
               className={cn(
                 "flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-[13px] font-medium transition-colors duration-150",
                 isActive
-                  ? "btn-primary-gradient text-white"
-                  : "text-sidebar-text hover:bg-white/[0.05] hover:text-white",
+                  ? "bg-brand-primary text-white"
+                  : "bg-transparent text-sidebar-text hover:bg-white/[0.05] hover:text-white",
               )}
             >
-              <Icon className="h-[18px] w-[18px] shrink-0" strokeWidth={isActive ? 2.25 : 1.75} />
+              <Icon className="h-[18px] w-[18px] shrink-0" strokeWidth={1.75} />
               <span className="truncate">{item.label}</span>
             </Link>
           );
@@ -91,7 +104,9 @@ export function AppSidebar() {
           </div>
           <div className="min-w-0 flex-1">
             <div className="truncate text-[13px] font-medium text-white">{agent.name}</div>
-            <div className="truncate text-[11px] text-sidebar-text">{formatAgentRole(agent.role)}</div>
+            <div className="truncate text-[11px] text-sidebar-text">
+              {formatAgentRole(agent.role)}
+            </div>
           </div>
           <button
             type="button"

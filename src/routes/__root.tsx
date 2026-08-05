@@ -10,7 +10,7 @@ import { useEffect, type ReactNode } from "react";
 
 import appCss from "../styles.css?url";
 import { Button } from "@/components/ui/Button";
-import { Toaster } from "@/components/ui/sonner";
+import { Toaster } from "@/components/ui/Sonner";
 import { getSession } from "@/features/auth/api/auth.api";
 import type { AuthSession } from "@/features/auth/types";
 
@@ -67,7 +67,7 @@ export const Route = createRootRouteWithContext<RouterContext>()({
       {
         name: "description",
         content:
-          "Real-time support workspace for GuestCare agents — property intel, guided protocols, and one-click incident reports.",
+          "Real-time support workspace for GuestCare agents — property intel, guided protocols, and one-click reports.",
       },
       { property: "og:title", content: "GuestCare Live Copilot" },
       {
@@ -85,7 +85,7 @@ export const Route = createRootRouteWithContext<RouterContext>()({
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
       {
         rel: "stylesheet",
-        href: "https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,400;0,700;1,400&family=Poppins:wght@500;700&family=JetBrains+Mono:wght@400;500&display=swap",
+        href: "https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,400;0,500;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;500&display=swap",
       },
     ],
   }),

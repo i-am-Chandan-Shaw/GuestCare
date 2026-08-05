@@ -8,7 +8,6 @@ export const getRouter = () => {
     defaultOptions: {
       queries: {
         retry: 1,
-        staleTime: 30_000,
       },
     },
   });
@@ -22,6 +21,7 @@ export const getRouter = () => {
     scrollRestoration: true,
     defaultPreload: "intent",
     defaultPreloadStaleTime: 0,
+
   });
 
   return router;

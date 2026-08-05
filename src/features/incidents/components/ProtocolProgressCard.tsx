@@ -1,6 +1,7 @@
 import { AlertCircle, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useWorkspaceContext } from "@/features/workspace/context/WorkspaceProvider";
+import { verificationId } from "@/features/workspace/lib/verification-id";
 import type { Issue } from "@/shared/types";
 
 type StepStatus = "completed" | "in_progress" | "not_required";
@@ -84,8 +85,7 @@ function ProtocolProgressRow({
   verificationStatus: StepStatus;
   troubleshootingStatus: StepStatus;
 }) {
-  const connectorTone =
-    verificationStatus === "completed" ? "success" : "warning";
+  const connectorTone = verificationStatus === "completed" ? "success" : "warning";
 
   return (
     <div className="flex w-full min-w-0 items-stretch">
@@ -110,10 +110,7 @@ export function ProtocolProgressCard({ issue }: { issue: Issue | null }) {
 
   if (!issue) {
     return (
-      <ProtocolProgressRow
-        verificationStatus="in_progress"
-        troubleshootingStatus="in_progress"
-      />
+      <ProtocolProgressRow verificationStatus="in_progress" troubleshootingStatus="in_progress" />
     );
   }
 
@@ -121,7 +118,9 @@ export function ProtocolProgressCard({ issue }: { issue: Issue | null }) {
   const verificationComplete =
     !verificationRequired ||
     (issue.verification.length > 0 &&
-      issue.verification.every((_, i) => verificationChecked[`v${i}`]));
+      issue.verification.every(
+        (text, i) => verificationChecked[verificationId(issue.id, i, text)],
+      ));
 
   const troubleshootingComplete =
     issue.steps.length > 0 && issue.steps.every((step) => checked[step.id]);
@@ -132,9 +131,7 @@ export function ProtocolProgressCard({ issue }: { issue: Issue | null }) {
       ? "completed"
       : "in_progress";
 
-  const troubleshootingStatus: StepStatus = troubleshootingComplete
-    ? "completed"
-    : "in_progress";
+  const troubleshootingStatus: StepStatus = troubleshootingComplete ? "completed" : "in_progress";
 
   return (
     <ProtocolProgressRow

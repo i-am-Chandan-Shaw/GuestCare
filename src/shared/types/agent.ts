@@ -3,9 +3,7 @@ export type IsoDateTime = string;
 
 export type AgentRole = "admin" | "manager" | "user";
 
-export type AgentCustomerScope =
-  | { type: "all" }
-  | { type: "specific"; customerIds: string[] };
+export type AgentCustomerScope = { type: "all" } | { type: "specific"; customerIds: string[] };
 
 export interface Agent {
   id: string;
@@ -26,10 +24,13 @@ export interface AgentListItem {
   email: string;
   role: AgentRole;
   isActive: boolean;
+  /** Full scope for edit forms; label is for table display. */
+  customerScope: AgentCustomerScope;
   customerScopeLabel: string;
   /** Profile image URL when available; UI falls back to initials. */
   imageUrl?: string;
   createdAt: IsoDateTime;
+  updatedAt: IsoDateTime;
 }
 
 export interface CreateAgentInput {
@@ -66,10 +67,5 @@ export interface PaginatedAgents {
   };
 }
 
-/** Server/auth only — never expose to client */
-export interface AgentCredentials {
-  agentId: string;
-  passwordHash: string;
-}
-
-export type ReportActor = Pick<Agent, "id" | "name" | "role" | "customerScope">;
+/** Signed-in agent fields used for permission checks (not the full profile). */
+export type AgentAccess = Pick<Agent, "id" | "name" | "role" | "customerScope">;

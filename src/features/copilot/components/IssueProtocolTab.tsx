@@ -1,18 +1,8 @@
-import {
-  AlertTriangle,
-  ArrowUpRight,
-  Check,
-  ChevronDown,
-  ChevronRight,
-} from "lucide-react";
+import { AlertTriangle, ArrowUpRight, Check, ChevronDown, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { SectionCard } from "@/shared/components/ui-kit";
+import { SectionCard } from "@/components/ui/UiKit";
+import { verificationId } from "@/features/workspace/lib/verification-id";
 import type { Issue } from "@/shared/types";
-
-function verificationId(issueId: string, index: number, text: string): string {
-  const slug = text.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 40);
-  return `${issueId}-v-${index}-${slug || "check"}`;
-}
 
 export function IssueProtocolTab({
   issue,
@@ -45,15 +35,17 @@ export function IssueProtocolTab({
   const activeStepIdx = firstUncheckedIdx === -1 ? issue.steps.length : firstUncheckedIdx;
   const verificationRequired = issue.reservationVerification === "Required";
   const verificationOptional = issue.reservationVerification === "Required on Escalated";
-  const verificationDone = issue.verification.filter((text, i) =>
-    verificationChecked[verificationId(issue.id, i, text)],
+  const verificationDone = issue.verification.filter(
+    (text, i) => verificationChecked[verificationId(issue.id, i, text)],
   ).length;
 
   return (
     <>
       {issue.reservationVerification === "Not Required" ? (
         <SectionCard title="Verification" className="shadow-sm border border-border rounded-sm">
-          <p className="text-[13px] text-muted-foreground py-1">Verification not required for this issue type.</p>
+          <p className="text-[13px] text-muted-foreground py-1">
+            Verification not required for this issue type.
+          </p>
         </SectionCard>
       ) : (
         <CollapsibleCard
@@ -84,7 +76,9 @@ export function IssueProtocolTab({
                     <span
                       className={cn(
                         "flex h-5 w-5 shrink-0 items-center justify-center rounded-full shadow-sm border",
-                        done ? "bg-success text-white border-success" : "bg-white border-border text-transparent",
+                        done
+                          ? "bg-success text-white border-success"
+                          : "bg-white border-border text-transparent",
                       )}
                     >
                       <Check className="h-3 w-3" strokeWidth={3} />
@@ -108,14 +102,17 @@ export function IssueProtocolTab({
           {issue.steps.map((step, idx) => {
             const isCompleted = checked[step.id];
             const isCurrent = idx === activeStepIdx;
-            const bodyOpen = stepExpanded[step.id] !== undefined ? stepExpanded[step.id] : isCurrent;
+            const bodyOpen =
+              stepExpanded[step.id] !== undefined ? stepExpanded[step.id] : isCurrent;
             const hasBody = Boolean(step.hint);
             return (
               <li
                 key={step.id}
                 className={cn(
                   "relative flex items-start justify-between gap-4 p-4 rounded-sm border transition-all mb-2",
-                  isCurrent ? "bg-brand-primary/8 border-brand-primary/20" : "bg-card-bg border-transparent",
+                  isCurrent
+                    ? "bg-brand-primary/8 border-brand-primary/20"
+                    : "bg-card-bg border-transparent",
                 )}
               >
                 {idx < issue.steps.length - 1 && (
@@ -262,9 +259,16 @@ function CollapsibleCard({
       className="shadow-sm border border-border rounded-sm"
       title={
         <button className="flex w-full items-center gap-2.5 text-left" onClick={onToggle}>
-          <ChevronDown className={cn("h-4 w-4 shrink-0 text-foreground transition-transform", !open && "-rotate-90")} />
+          <ChevronDown
+            className={cn(
+              "h-4 w-4 shrink-0 text-foreground transition-transform",
+              !open && "-rotate-90",
+            )}
+          />
           <span className="text-[14.5px] font-bold text-foreground">{title}</span>
-          {badge && <span className="ml-auto text-[12px] font-medium text-muted-foreground">{badge}</span>}
+          {badge && (
+            <span className="ml-auto text-[12px] font-medium text-muted-foreground">{badge}</span>
+          )}
         </button>
       }
     >

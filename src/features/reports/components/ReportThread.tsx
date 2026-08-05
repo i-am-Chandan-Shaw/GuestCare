@@ -1,22 +1,10 @@
 import { useMemo, useState } from "react";
-import {
-  Check,
-  ChevronDown,
-  ChevronUp,
-  CornerUpLeft,
-  Pencil,
-} from "lucide-react";
+import { Check, ChevronDown, ChevronUp, CornerUpLeft, Pencil } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/Button";
-import {
-  REPORT_STATUS_LABELS,
-  REPORT_STATUS_TONES,
-} from "@/features/reports/lib/report-status";
+import { REPORT_STATUS_LABELS, REPORT_STATUS_TONES } from "@/features/reports/lib/report-status";
 import { Avatar } from "@/shared/components/Avatar";
-import {
-  formatActivityTimestamp,
-  formatActivityTimestampRelative,
-} from "@/shared/lib/datetime";
+import { formatActivityTimestamp, formatActivityTimestampRelative } from "@/shared/lib/datetime";
 import type { ReportThreadEntry } from "@/shared/types/report";
 
 export type ThreadSortOrder = "oldest" | "newest";
@@ -36,9 +24,7 @@ export function threadSummary(entry: ReportThreadEntry): string {
       const from = entry.metadata?.fromStatus
         ? REPORT_STATUS_LABELS[entry.metadata.fromStatus]
         : "—";
-      const to = entry.metadata?.toStatus
-        ? REPORT_STATUS_LABELS[entry.metadata.toStatus]
-        : "—";
+      const to = entry.metadata?.toStatus ? REPORT_STATUS_LABELS[entry.metadata.toStatus] : "—";
       return `changed status from ${from} to ${to}`;
     }
     case "field_edit":
@@ -78,9 +64,7 @@ function CommentBody({
   return (
     <div className="min-w-0 flex-1">
       <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5">
-        <span className="text-[13px] font-semibold text-text-primary">
-          {entry.authorAgentName}
-        </span>
+        <span className="text-[13px] font-semibold text-text-primary">{entry.authorAgentName}</span>
         {isReporter ? (
           <span className="rounded bg-brand-primary/10 px-1.5 py-0.5 text-[10px] font-semibold text-brand-primary">
             Reporter
@@ -204,12 +188,7 @@ function InlineReplyComposer({
           }
         }}
       />
-      <Button
-        type="button"
-        variant="ghost"
-        onClick={onCancel}
-        className="!h-8 !px-3 text-[12px]"
-      >
+      <Button type="button" variant="ghost" onClick={onCancel} className="!h-8 !px-3 text-[12px]">
         Cancel
       </Button>
       <Button
@@ -232,7 +211,7 @@ function InlineReplyComposer({
 export function ReportConversations({
   entries,
   reporterAgentId,
-  currentActorId,
+  currentAgentId,
   sortOrder,
   onSortChange,
   onReply,
@@ -242,7 +221,7 @@ export function ReportConversations({
 }: {
   entries: ReportThreadEntry[];
   reporterAgentId: string;
-  currentActorId: string;
+  currentAgentId: string;
   sortOrder: ThreadSortOrder;
   onSortChange: (order: ThreadSortOrder) => void;
   onReply: (parentId: string, body: string) => void;
@@ -250,10 +229,7 @@ export function ReportConversations({
   replyPending?: boolean;
   editPending?: boolean;
 }) {
-  const comments = useMemo(
-    () => entries.filter((e) => e.type === "comment"),
-    [entries],
-  );
+  const comments = useMemo(() => entries.filter((e) => e.type === "comment"), [entries]);
 
   const roots = useMemo(() => {
     const list = comments.filter((c) => !c.parentId);
@@ -286,8 +262,7 @@ export function ReportConversations({
     <section className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h2 className="text-[14px] font-semibold text-text-primary">
-          Conversations{" "}
-          <span className="font-normal text-text-secondary">({comments.length})</span>
+          Conversations <span className="font-normal text-text-secondary">({comments.length})</span>
         </h2>
         <label className="relative inline-flex items-center">
           <span className="sr-only">Sort conversations</span>
@@ -323,11 +298,7 @@ export function ReportConversations({
                 <div className="flex gap-3">
                   <div className="flex w-9 shrink-0 flex-col items-center self-stretch">
                     <div className="relative z-[1] shrink-0 rounded-full bg-card-bg">
-                      <Avatar
-                        name={root.authorAgentName}
-                        seed={root.authorAgentId}
-                        size="md"
-                      />
+                      <Avatar name={root.authorAgentName} seed={root.authorAgentId} size="md" />
                     </div>
                     {showThread ? (
                       <div
@@ -341,7 +312,7 @@ export function ReportConversations({
                     <CommentBody
                       entry={root}
                       isReporter={root.authorAgentId === reporterAgentId}
-                      canEdit={root.authorAgentId === currentActorId}
+                      canEdit={root.authorAgentId === currentAgentId}
                       isRoot
                       onReply={() => setReplyingTo(root.id)}
                       onSaveEdit={(body) => onEdit(root.id, body)}
@@ -394,10 +365,8 @@ export function ReportConversations({
                             </div>
                             <CommentBody
                               entry={child}
-                              isReporter={
-                                child.authorAgentId === reporterAgentId
-                              }
-                              canEdit={child.authorAgentId === currentActorId}
+                              isReporter={child.authorAgentId === reporterAgentId}
+                              canEdit={child.authorAgentId === currentAgentId}
                               isRoot={false}
                               onSaveEdit={(body) => onEdit(child.id, body)}
                               editPending={editPending}

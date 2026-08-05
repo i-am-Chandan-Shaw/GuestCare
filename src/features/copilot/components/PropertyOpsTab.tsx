@@ -19,15 +19,10 @@ import {
   Zap,
   type LucideIcon,
 } from "lucide-react";
-import { SectionCard } from "@/shared/components/ui-kit";
+import { SectionCard } from "@/components/ui/UiKit";
 import { SYSTEM_LABELS } from "@/shared/constants/system-labels";
 import type { Property, SystemKey } from "@/shared/types";
-import {
-  ExpandableNote,
-  FieldLabel,
-  PhoneRow,
-  propertyCardClass,
-} from "./property-shared";
+import { ExpandableNote, FieldLabel, PhoneRow, propertyCardClass } from "./PropertyDetailSections";
 
 const SYSTEM_ICONS: Record<SystemKey, LucideIcon> = {
   heating: Flame,
@@ -82,33 +77,35 @@ export function PropertyOpsTab({ property }: { property: Property }) {
       )}
 
       {(property.laundry || property.waste) && (
-        <SectionCard title="Laundry & Waste" className={propertyCardClass}>
-          {property.laundry && (
-            <div className="py-2">
-              <FieldLabel
-                icon={Shirt}
-                className="text-[11.5px] font-semibold text-muted-foreground"
-              >
-                Laundry
-              </FieldLabel>
-              <p className="mt-1 text-[12.5px] leading-relaxed text-foreground">
-                {property.laundry}
-              </p>
-            </div>
-          )}
-          {property.waste && (
-            <div className="border-t border-border/60 py-2">
-              <FieldLabel
-                icon={Trash2}
-                className="text-[11.5px] font-semibold text-muted-foreground"
-              >
-                Waste
-              </FieldLabel>
-              <p className="mt-1 text-[12.5px] leading-relaxed text-foreground">
-                {property.waste}
-              </p>
-            </div>
-          )}
+        <SectionCard title="Laundry & Waste" className={propertyCardClass} padded={false}>
+          <div className="divide-y divide-border/60">
+            {property.laundry ? (
+              <div className="px-4 py-3">
+                <FieldLabel
+                  icon={Shirt}
+                  className="text-[11.5px] font-semibold text-muted-foreground"
+                >
+                  Laundry
+                </FieldLabel>
+                <p className="mt-1 text-[12.5px] leading-relaxed text-foreground">
+                  {property.laundry}
+                </p>
+              </div>
+            ) : null}
+            {property.waste ? (
+              <div className="px-4 py-3">
+                <FieldLabel
+                  icon={Trash2}
+                  className="text-[11.5px] font-semibold text-muted-foreground"
+                >
+                  Waste
+                </FieldLabel>
+                <p className="mt-1 text-[12.5px] leading-relaxed text-foreground">
+                  {property.waste}
+                </p>
+              </div>
+            ) : null}
+          </div>
         </SectionCard>
       )}
 
@@ -163,7 +160,9 @@ export function PropertyOpsTab({ property }: { property: Property }) {
       <SectionCard title="Emergency Contacts" className={propertyCardClass} padded={false}>
         <div className="divide-y divide-border/60">
           {property.hosts.length === 0 ? (
-            <p className="px-4 py-3 text-[12.5px] text-muted-foreground">No host contacts on file.</p>
+            <p className="px-4 py-3 text-[12.5px] text-muted-foreground">
+              No host contacts on file.
+            </p>
           ) : (
             property.hosts.map((h) => (
               <PhoneRow

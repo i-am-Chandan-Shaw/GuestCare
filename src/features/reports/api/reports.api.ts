@@ -1,5 +1,5 @@
-import { CUSTOMERS } from "@/data/mocks/customers.mock";
-import { PROPERTIES } from "@/data/properties";
+import { CUSTOMERS } from "@/mock-data/mocks/customers.mock";
+import { PROPERTIES } from "@/mock-data/properties";
 import { listAgents, findAgentById } from "@/features/agents/lib/agent-store";
 import {
   ensureAssignees,
@@ -11,10 +11,10 @@ import {
   agentCanAccessCustomer,
   agentCanAssignReport,
   agentCanEditReport,
-  filterReportsByActor,
+  filterReportsForAgent,
 } from "@/features/reports/lib/report-scope";
 import { nowIso } from "@/shared/lib/datetime";
-import type { ReportActor } from "@/shared/types/agent";
+import type { AgentAccess } from "@/shared/types/agent";
 import type {
   AddReportAssigneeInput,
   AddReportCommentInput,
@@ -33,8 +33,8 @@ import type {
 } from "@/shared/types/report";
 
 const store = createEmptyReportStore();
-let reportStore: Report[] = store.reports;
-let threadStore: ReportThreadEntry[] = store.threads;
+const reportStore: Report[] = store.reports;
+const threadStore: ReportThreadEntry[] = store.threads;
 let reportIdCounter = reportStore.length + 1;
 
 function resolveCustomerName(customerId: string): string {
@@ -94,8 +94,8 @@ function activityDateKey(iso: string): string {
   return iso.slice(0, 10);
 }
 
-function filterReports(query: ReportsQuery, actor?: ReportActor): Report[] {
-  let results = filterReportsByActor([...reportStore], actor);
+function filterReports(query: ReportsQuery, currentAgent?: AgentAccess): Report[] {
+  let results = filterReportsForAgent([...reportStore], currentAgent);
 
   if (query.customerId) {
     const propertyIds = new Set(
@@ -107,9 +107,7 @@ function filterReports(query: ReportsQuery, actor?: ReportActor): Report[] {
   } else if (query.customerIds && query.customerIds.length > 0) {
     const allowed = new Set(query.customerIds);
     const propertyIds = new Set(
-      query.customerIds.flatMap(
-        (id) => CUSTOMERS.find((c) => c.id === id)?.propertyIds ?? [],
-      ),
+      query.customerIds.flatMap((id) => CUSTOMERS.find((c) => c.id === id)?.propertyIds ?? []),
     );
     results = results.filter(
       (r) => allowed.has(r.customerId) || (r.propertyId != null && propertyIds.has(r.propertyId)),
@@ -128,9 +126,7 @@ function filterReports(query: ReportsQuery, actor?: ReportActor): Report[] {
 
   if (query.assignedAgentIds && query.assignedAgentIds.length > 0) {
     const allowed = new Set(query.assignedAgentIds);
-    results = results.filter((r) =>
-      ensureAssignees(r).some((a) => allowed.has(a.agentId)),
-    );
+    results = results.filter((r) => ensureAssignees(r).some((a) => allowed.has(a.agentId)));
   }
 
   if (query.propertyIds && query.propertyIds.length > 0) {
@@ -187,10 +183,10 @@ function nextReportId(): string {
 
 export async function getReportsPaginated(
   query: ReportsQuery,
-  actor?: ReportActor,
+  currentAgent?: AgentAccess,
 ): Promise<PaginatedReports> {
   const { page, limit } = query;
-  const filtered = filterReports(query, actor);
+  const filtered = filterReports(query, currentAgent);
   const total = filtered.length;
   const totalPages = Math.max(1, Math.ceil(total / limit));
   const safePage = Math.max(1, Math.min(page, totalPages));
@@ -203,10 +199,10 @@ export async function getReportsPaginated(
   };
 }
 
-export async function getReportById(id: string, actor?: ReportActor): Promise<ReportDetail | null> {
+export async function getReportById(id: string, currentAgent?: AgentAccess): Promise<ReportDetail | null> {
   const report = reportStore.find((r) => r.id === id);
   if (!report) return null;
-  if (actor && !filterReportsByActor([report], actor).length) return null;
+  if (currentAgent && !filterReportsForAgent([report], currentAgent).length) return null;
 
   report.assignees = ensureAssignees(report);
   syncDerivedAssigneeFields(report);
@@ -218,11 +214,8 @@ export async function getReportById(id: string, actor?: ReportActor): Promise<Re
   return { report: { ...report, assignees: [...report.assignees] }, thread };
 }
 
-export async function createReport(
-  input: CreateReportInput,
-  actor: ReportActor,
-): Promise<Report> {
-  if (!agentCanAccessCustomer(actor, input.customerId)) {
+export async function createReport(input: CreateReportInput, currentAgent: AgentAccess): Promise<Report> {
+  if (!agentCanAccessCustomer(currentAgent, input.customerId)) {
     throw new Error("Not allowed to create a report for this customer");
   }
 
@@ -241,8 +234,8 @@ export async function createReport(
     source: input.source ?? "manual",
     customerId: input.customerId,
     propertyId: input.propertyId,
-    assignedAgentId: actor.id,
-    createdByAgentId: actor.id,
+    assignedAgentId: currentAgent.id,
+    createdByAgentId: currentAgent.id,
     callerName: input.callerName,
     callerContact: input.callerContact,
     reservationNumber: input.reservationNumber,
@@ -252,14 +245,14 @@ export async function createReport(
     protocolIssueId: input.protocolIssueId,
     customerName,
     propertyName,
-    assignedAgentName: actor.name,
-    createdByAgentName: actor.name,
+    assignedAgentName: currentAgent.name,
+    createdByAgentName: currentAgent.name,
     assignees: [
       {
-        agentId: actor.id,
-        agentName: actor.name,
+        agentId: currentAgent.id,
+        agentName: currentAgent.name,
         assignedAt: now,
-        assignedByAgentId: actor.id,
+        assignedByAgentId: currentAgent.id,
       },
     ],
     createdAt: now,
@@ -274,8 +267,8 @@ export async function createReport(
     id: `thr-${id}-create`,
     reportId: id,
     type: "system",
-    authorAgentId: actor.id,
-    authorAgentName: actor.name,
+    authorAgentId: currentAgent.id,
+    authorAgentName: currentAgent.name,
     body: "Report created and assigned to you",
   });
 
@@ -285,11 +278,11 @@ export async function createReport(
 export async function updateReport(
   id: string,
   input: UpdateReportInput,
-  actor: ReportActor,
+  currentAgent: AgentAccess,
 ): Promise<Report> {
   const report = reportStore.find((r) => r.id === id);
   if (!report) throw new Error("Report not found");
-  if (!agentCanEditReport(actor, report)) {
+  if (!agentCanEditReport(currentAgent, report)) {
     throw new Error("Not allowed to update this report");
   }
   if (input.version !== report.version) throw new Error("Report was updated by someone else");
@@ -324,8 +317,7 @@ export async function updateReport(
     report.propertyName = resolvePropertyName(input.propertyId);
   }
 
-  const statusChanged =
-    input.status !== undefined && input.status !== previousStatus;
+  const statusChanged = input.status !== undefined && input.status !== previousStatus;
 
   if (statusChanged) {
     report.status = input.status!;
@@ -343,8 +335,8 @@ export async function updateReport(
       id: `thr-${id}-status-${Date.now()}`,
       reportId: id,
       type: "status_change",
-      authorAgentId: actor.id,
-      authorAgentName: actor.name,
+      authorAgentId: currentAgent.id,
+      authorAgentName: currentAgent.name,
       metadata: { fromStatus: previousStatus, toStatus: input.status! },
     });
   } else if (editFields.length > 0) {
@@ -352,8 +344,8 @@ export async function updateReport(
       id: `thr-${id}-edit-${Date.now()}`,
       reportId: id,
       type: "field_edit",
-      authorAgentId: actor.id,
-      authorAgentName: actor.name,
+      authorAgentId: currentAgent.id,
+      authorAgentName: currentAgent.name,
       metadata: { changedFields: editFields },
     });
   } else {
@@ -367,11 +359,11 @@ export async function updateReport(
 export async function addReportAssignee(
   id: string,
   input: AddReportAssigneeInput,
-  actor: ReportActor,
+  currentAgent: AgentAccess,
 ): Promise<Report> {
   const report = reportStore.find((r) => r.id === id);
   if (!report) throw new Error("Report not found");
-  if (!agentCanAssignReport(actor, report)) {
+  if (!agentCanAssignReport(currentAgent, report)) {
     throw new Error("Not allowed to assign agents on this report");
   }
 
@@ -388,7 +380,7 @@ export async function addReportAssignee(
     agentId: agent.id,
     agentName: agent.name,
     assignedAt: now,
-    assignedByAgentId: actor.id,
+    assignedByAgentId: currentAgent.id,
   });
   syncDerivedAssigneeFields(report);
 
@@ -396,8 +388,8 @@ export async function addReportAssignee(
     id: `thr-${id}-assign-add-${Date.now()}`,
     reportId: id,
     type: "assignment",
-    authorAgentId: actor.id,
-    authorAgentName: actor.name,
+    authorAgentId: currentAgent.id,
+    authorAgentName: currentAgent.name,
     body: input.note,
     metadata: {
       action: "added",
@@ -413,11 +405,11 @@ export async function addReportAssignee(
 export async function removeReportAssignee(
   id: string,
   input: RemoveReportAssigneeInput,
-  actor: ReportActor,
+  currentAgent: AgentAccess,
 ): Promise<Report> {
   const report = reportStore.find((r) => r.id === id);
   if (!report) throw new Error("Report not found");
-  if (!agentCanAssignReport(actor, report)) {
+  if (!agentCanAssignReport(currentAgent, report)) {
     throw new Error("Not allowed to assign agents on this report");
   }
 
@@ -432,8 +424,8 @@ export async function removeReportAssignee(
     id: `thr-${id}-assign-remove-${Date.now()}`,
     reportId: id,
     type: "assignment",
-    authorAgentId: actor.id,
-    authorAgentName: actor.name,
+    authorAgentId: currentAgent.id,
+    authorAgentName: currentAgent.name,
     metadata: {
       action: "removed",
       toAgentId: existing.agentId,
@@ -449,11 +441,11 @@ export async function removeReportAssignee(
 export async function assignReport(
   id: string,
   input: AssignReportInput,
-  actor: ReportActor,
+  currentAgent: AgentAccess,
 ): Promise<Report> {
   const report = reportStore.find((r) => r.id === id);
   if (!report) throw new Error("Report not found");
-  if (!agentCanAssignReport(actor, report)) {
+  if (!agentCanAssignReport(currentAgent, report)) {
     throw new Error("Not allowed to assign agents on this report");
   }
 
@@ -470,7 +462,7 @@ export async function assignReport(
       agentId: toAgent.id,
       agentName: toAgent.name,
       assignedAt: now,
-      assignedByAgentId: actor.id,
+      assignedByAgentId: currentAgent.id,
     },
   ];
   syncDerivedAssigneeFields(report);
@@ -479,8 +471,8 @@ export async function assignReport(
     id: `thr-${id}-assign-${Date.now()}`,
     reportId: id,
     type: "assignment",
-    authorAgentId: actor.id,
-    authorAgentName: actor.name,
+    authorAgentId: currentAgent.id,
+    authorAgentName: currentAgent.name,
     body: input.note,
     metadata: {
       action: "added",
@@ -498,11 +490,11 @@ export async function assignReport(
 export async function addReportComment(
   id: string,
   input: AddReportCommentInput,
-  actor: ReportActor,
+  currentAgent: AgentAccess,
 ): Promise<ReportThreadEntry> {
   const report = reportStore.find((r) => r.id === id);
   if (!report) throw new Error("Report not found");
-  if (!filterReportsByActor([report], actor).length) {
+  if (!filterReportsForAgent([report], currentAgent).length) {
     throw new Error("Not allowed to comment on this report");
   }
 
@@ -523,8 +515,8 @@ export async function addReportComment(
     id: `thr-${id}-comment-${Date.now()}`,
     reportId: id,
     type: "comment",
-    authorAgentId: actor.id,
-    authorAgentName: actor.name,
+    authorAgentId: currentAgent.id,
+    authorAgentName: currentAgent.name,
     body,
     parentId,
   });
@@ -537,11 +529,11 @@ export async function updateReportComment(
   reportId: string,
   commentId: string,
   input: UpdateReportCommentInput,
-  actor: ReportActor,
+  currentAgent: AgentAccess,
 ): Promise<ReportThreadEntry> {
   const report = reportStore.find((r) => r.id === reportId);
   if (!report) throw new Error("Report not found");
-  if (actor && !filterReportsByActor([report], actor).length) {
+  if (currentAgent && !filterReportsForAgent([report], currentAgent).length) {
     throw new Error("Not allowed to update this report");
   }
 
@@ -549,7 +541,7 @@ export async function updateReportComment(
     (t) => t.id === commentId && t.reportId === reportId && t.type === "comment",
   );
   if (!entry) throw new Error("Comment not found");
-  if (entry.authorAgentId !== actor.id) {
+  if (entry.authorAgentId !== currentAgent.id) {
     throw new Error("Only the author can edit this comment");
   }
 
@@ -563,17 +555,17 @@ export async function updateReportComment(
   return { ...entry };
 }
 
-export async function getAgentsForAssignment(actor?: ReportActor) {
+export async function getAgentsForAssignment(currentAgent?: AgentAccess) {
   const agents = listAgents().filter((a) => a.isActive);
-  if (!actor || actor.role === "admin" || actor.customerScope.type !== "specific") {
+  if (!currentAgent || currentAgent.role === "admin" || currentAgent.customerScope.type !== "specific") {
     return agents;
   }
-  const actorCustomerIds = actor.customerScope.customerIds;
+  const allowedCustomerIds = currentAgent.customerScope.customerIds;
   return agents.filter(
     (a) =>
       a.role === "admin" ||
       a.customerScope.type === "all" ||
-      a.customerScope.customerIds.some((id) => actorCustomerIds.includes(id)),
+      a.customerScope.customerIds.some((id) => allowedCustomerIds.includes(id)),
   );
 }
 

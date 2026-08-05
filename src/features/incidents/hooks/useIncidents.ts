@@ -2,7 +2,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { createIncident, getIncidentLogs } from "@/features/incidents/api/incidents.api";
 import { useAuth } from "@/features/auth/hooks/useAuth";
-import { toReportActor } from "@/features/reports/lib/report-scope";
+import { toAgentAccess } from "@/features/reports/lib/report-scope";
 import { queryKeys } from "@/shared/lib/query-keys";
 import type { CreateIncidentInput, IncidentLogFilters } from "@/shared/types";
 
@@ -27,17 +27,21 @@ export function useIncidentLogs(filters: IncidentLogFilters = {}, options?: { en
 export function useCreateIncidentMutation(options?: { onSuccess?: () => void }) {
   const invalidate = useInvalidateIncidentQueries();
   const { agent } = useAuth();
-  const actor = toReportActor(agent);
+  const currentAgent = toAgentAccess(agent);
 
   return useMutation({
-    mutationFn: (input: CreateIncidentInput) => createIncident(input, actor),
+    mutationFn: (input: CreateIncidentInput) => createIncident(input, currentAgent),
     onSuccess: () => {
       invalidate();
       toast.success("Report submitted");
       options?.onSuccess?.();
     },
-    onError: (error: Error) => {
-      toast.error(error.message || "Could not submit report");
+    onError: (error: unknown) => {
+      const message =
+        error instanceof Error && error.message && !error.message.startsWith("[")
+          ? error.message
+          : "Could not submit report. Check the required fields and try again.";
+      toast.error(message);
     },
   });
 }

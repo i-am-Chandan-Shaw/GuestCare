@@ -1,5 +1,5 @@
 import type { Priority } from "@/shared/types/index";
-import type { IsoDateTime, ReportActor } from "@/shared/types/agent";
+import type { IsoDateTime, AgentAccess } from "@/shared/types/agent";
 
 export type ReportStatus = "OPEN" | "ESCALATED" | "HANDEDOVER" | "RESOLVED";
 export type ReportSource = "copilot" | "manual";
@@ -70,11 +70,7 @@ export interface Report {
 }
 
 export type ReportThreadEntryType =
-  | "comment"
-  | "assignment"
-  | "status_change"
-  | "field_edit"
-  | "system";
+  "comment" | "assignment" | "status_change" | "field_edit" | "system";
 
 export interface ReportThreadEntry {
   id: string;
@@ -178,4 +174,4 @@ export interface UpdateReportCommentInput {
   body: string;
 }
 
-export type { ReportActor };
+export type { AgentAccess };

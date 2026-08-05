@@ -83,8 +83,7 @@ export function CallWorkspace() {
     }
   };
 
-  const showProtocolLayout =
-    (phase === "property" || phase === "protocol") && customer && property;
+  const showProtocolLayout = (phase === "property" || phase === "protocol") && customer && property;
 
   return (
     <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
@@ -99,9 +98,7 @@ export function CallWorkspace() {
         onClearIssue={handleClearIssue}
       />
 
-      {phase === "browse" && (
-        <CustomerBrowsePhase onSelect={handleSelectCustomer} />
-      )}
+      {phase === "browse" && <CustomerBrowsePhase onSelect={handleSelectCustomer} />}
 
       {phase === "customer" && customer && (
         <CustomerLockedPhase

@@ -1,18 +1,8 @@
 import { useMemo } from "react";
-import {
-  CheckCircle2,
-  Info,
-  Pencil,
-  UserMinus,
-  UserPlus,
-  type LucideIcon,
-} from "lucide-react";
+import { CheckCircle2, Info, Pencil, UserMinus, UserPlus, type LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { threadSummary } from "@/features/reports/components/ReportThread";
-import {
-  formatActivityTimestamp,
-  formatActivityTimestampRelative,
-} from "@/shared/lib/datetime";
+import { formatActivityTimestamp, formatActivityTimestampRelative } from "@/shared/lib/datetime";
 import type { ReportThreadEntry } from "@/shared/types/report";
 
 const EVENT_ICON: Record<
@@ -50,11 +40,7 @@ function eventVisual(entry: ReportThreadEntry) {
   return EVENT_ICON[entry.type] ?? EVENT_ICON.system;
 }
 
-export function ReportActivityTimeline({
-  entries,
-}: {
-  entries: ReportThreadEntry[];
-}) {
+export function ReportActivityTimeline({ entries }: { entries: ReportThreadEntry[] }) {
   const activity = useMemo(() => {
     const filtered = entries.filter((e) => e.type !== "comment");
     return filtered.sort(
@@ -91,9 +77,7 @@ export function ReportActivityTimeline({
                 </span>
                 <div className="min-w-0 flex-1 pt-0.5">
                   <p className="text-[13px] leading-snug text-text-secondary">
-                    <span className="font-semibold text-text-primary">
-                      {entry.authorAgentName}
-                    </span>{" "}
+                    <span className="font-semibold text-text-primary">{entry.authorAgentName}</span>{" "}
                     {threadSummary(entry)}
                   </p>
                   <p

@@ -1,16 +1,15 @@
-import { useEffect, useEffectEvent, useMemo, useRef, useState, type ReactNode } from "react";
-import { Check, ChevronDown, Globe2, Search, User, UserPlus } from "lucide-react";
+import { useEffect, useEffectEvent, useRef, useState } from "react";
+import { UserPlus } from "lucide-react";
 import { toast } from "sonner";
-import { createAgent, getAgentById, updateAgent } from "@/features/agents/api/agents.api";
+import { createAgent, updateAgent } from "@/features/agents/api/agents.api";
+import { canGrantAllCustomers, creatableRoles } from "@/features/agents/lib/agent-permissions";
 import {
-  assignableCustomerIds,
-  canGrantAllCustomers,
-  creatableRoles,
-} from "@/features/agents/lib/agent-permissions";
+  clearFieldErrorsForPatch,
+  type AgentFormFieldErrors,
+} from "@/features/agents/lib/agent-form-errors";
+import { getClientErrorMessage } from "@/features/agents/lib/client-error";
 import {
   formValuesToCustomerScope,
-  getPasswordRequirementState,
-  roleOptionLabels,
   validateAgentPasswords,
   type AgentFormValues,
 } from "@/features/agents/validations/agent-form.schema";
@@ -22,16 +21,14 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog";
-import {
-  Input,
-  Select,
-  usePasswordEndAction,
-} from "@/shared/components/form-controls";
-import { CUSTOMERS } from "@/data/mocks/customers.mock";
+} from "@/components/ui/Dialog";
+import { usePasswordEndAction } from "@/shared/components/FloatingLabelField";
 import { cn } from "@/lib/utils";
-import { Avatar } from "@/shared/components/Avatar";
-import type { Agent, AgentRole, ReportActor } from "@/shared/types/agent";
+import type { AgentListItem, AgentAccess } from "@/shared/types/agent";
+
+import { useAgentFormState } from "@/features/agents/hooks/use-agent-form";
+import { AgentInfoSection } from "@/features/agents/components/AgentInfoSection";
+import { AgentAccessSection } from "@/features/agents/components/AgentAccessSection";
 
 type FormSection = "info" | "access";
 
@@ -43,106 +40,13 @@ const FORM_SECTIONS: { id: FormSection; label: string }[] = [
 /** Top inset when jumping to a section (matches scroll pane `pt-5`). */
 const SECTION_TOP_INSET = 20;
 
-function emptyForm(defaults: {
-  role: AgentFormValues["role"];
-  scopeType: AgentFormValues["scopeType"];
-}): AgentFormValues {
-  return {
-    name: "",
-    email: "",
-    role: defaults.role,
-    isActive: true,
-    scopeType: defaults.scopeType,
-    customerIds: [],
-    password: "",
-    confirmPassword: "",
-    changePassword: false,
-  };
-}
-
-function formFromAgent(agent: Agent, canAll: boolean): AgentFormValues {
-  const scopeType =
-    agent.customerScope.type === "all" && canAll ? "all" : "specific";
-  return {
-    name: agent.name,
-    email: agent.email,
-    role: agent.role,
-    isActive: agent.isActive,
-    scopeType,
-    customerIds:
-      agent.customerScope.type === "specific" ? [...agent.customerScope.customerIds] : [],
-    password: "",
-    confirmPassword: "",
-    changePassword: false,
-  };
-}
-
-function PasswordRequirementPills({ password }: { password: string }) {
-  const requirements = getPasswordRequirementState(password);
-  return (
-    <div className="flex flex-wrap gap-1.5">
-      {requirements.map((req) => (
-        <span
-          key={req.id}
-          className={cn(
-            "inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-[11px] font-medium",
-            req.met
-              ? "border-success/25 bg-success/10 text-success"
-              : "border-border-color bg-app-bg text-text-muted",
-          )}
-        >
-          <Check className="h-3 w-3" strokeWidth={2.5} />
-          {req.label}
-        </span>
-      ))}
-    </div>
-  );
-}
-
-function ScopePill({
-  selected,
-  icon,
-  title,
-  onClick,
-}: {
-  selected: boolean;
-  icon: ReactNode;
-  title: string;
-  onClick: () => void;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={cn(
-        "inline-flex flex-1 items-center gap-2.5 rounded-md border px-3.5 py-2.5 text-left transition-colors",
-        selected
-          ? "border-brand-primary bg-brand-primary/5"
-          : "border-border-color bg-card-bg hover:bg-app-bg",
-      )}
-    >
-      <span
-        className={cn(
-          "flex h-4 w-4 shrink-0 items-center justify-center rounded-full border",
-          selected
-            ? "border-brand-primary bg-brand-primary"
-            : "border-border-color bg-card-bg",
-        )}
-        aria-hidden
-      >
-        {selected ? <span className="h-1.5 w-1.5 rounded-full bg-white" /> : null}
-      </span>
-      <span
-        className={cn(
-          "text-text-secondary",
-          selected && "text-brand-primary",
-        )}
-      >
-        {icon}
-      </span>
-      <span className="text-[13px] font-semibold text-text-primary">{title}</span>
-    </button>
-  );
+function passwordFieldError(
+  message: string,
+): Pick<AgentFormFieldErrors, "password" | "confirmPassword"> {
+  if (message.toLowerCase().includes("match")) {
+    return { confirmPassword: message };
+  }
+  return { password: message };
 }
 
 function SectionNav({
@@ -179,47 +83,79 @@ function SectionNav({
 export function AgentFormDialog({
   open,
   mode,
-  agentId,
-  actor,
+  agent,
+  currentAgent,
   onOpenChange,
   onSaved,
 }: {
   open: boolean;
   mode: "create" | "edit";
-  agentId?: string | null;
-  actor: ReportActor;
+  agent?: AgentListItem | null;
+  currentAgent: AgentAccess;
   onOpenChange: (open: boolean) => void;
   onSaved: () => void;
 }) {
-  const roles = creatableRoles(actor);
-  const canAll = canGrantAllCustomers(actor);
+  const roles = creatableRoles(currentAgent);
+  const canAll = canGrantAllCustomers(currentAgent);
   const defaultRole = roles[0] ?? "user";
   const defaultScopeType = canAll ? "all" : "specific";
+  const agentId = agent?.id ?? null;
 
+  const {
+    form,
+    patch: patchForm,
+    customerQuery,
+    setCustomerQuery,
+    viewSelectedOnly,
+    setViewSelectedOnly,
+    hydrating,
+    error: formError,
+    setError: setFormError,
+    assignableCustomers,
+    selectedCustomers,
+    filteredCustomers,
+    toggleCustomer: toggleCustomerForm,
+  } = useAgentFormState({
+    open,
+    mode,
+    agent,
+    currentAgent,
+    canAll,
+    defaultRole,
+    defaultScopeType,
+  });
+
+  const [fieldErrors, setFieldErrors] = useState<AgentFormFieldErrors>({});
   const [activeSection, setActiveSection] = useState<FormSection>("info");
-  const [form, setForm] = useState<AgentFormValues>(() =>
-    emptyForm({
-      role: defaultRole,
-      scopeType: defaultScopeType,
-    }),
-  );
-  const [customerQuery, setCustomerQuery] = useState("");
-  const [viewSelectedOnly, setViewSelectedOnly] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [hydrating, setHydrating] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
+  const patch = (partial: Partial<AgentFormValues>) => {
+    patchForm(partial);
+    setFieldErrors((prev) => clearFieldErrorsForPatch(prev, partial));
+  };
+
+  const toggleCustomer = (id: string) => {
+    toggleCustomerForm(id);
+    setFieldErrors((prev) => {
+      if (!prev.customers) return prev;
+      const next = { ...prev };
+      delete next.customers;
+      return next;
+    });
+  };
 
   const scrollRef = useRef<HTMLDivElement>(null);
   const infoRef = useRef<HTMLElement>(null);
   const accessRef = useRef<HTMLElement>(null);
   const scrollingToSectionRef = useRef(false);
 
-  const isEditingSelf = mode === "edit" && agentId === actor.id;
+  const isEditingSelf = mode === "edit" && agentId === currentAgent.id;
   const isCreate = mode === "create";
   const showPasswordFields = isCreate || form.changePassword;
   const customersDisabled = form.scopeType !== "specific";
+
   const passwordEndAction = usePasswordEndAction(showPassword, () =>
     setShowPassword((current) => !current),
   );
@@ -237,86 +173,11 @@ export function AgentFormDialog({
 
   useEffect(() => {
     if (!open) return;
-
-    let cancelled = false;
-    setError(null);
     setActiveSection("info");
-    setCustomerQuery("");
-    setViewSelectedOnly(false);
     setShowPassword(false);
     setShowConfirmPassword(false);
-
-    async function hydrate() {
-      if (mode === "edit" && agentId) {
-        setHydrating(true);
-        try {
-          const agent = await getAgentById(agentId, actor);
-          if (cancelled) return;
-          if (!agent) {
-            setError("Agent not found.");
-            return;
-          }
-          setForm(formFromAgent(agent, canAll));
-        } catch (e) {
-          if (!cancelled) {
-            setError(e instanceof Error ? e.message : "Failed to load agent.");
-          }
-        } finally {
-          if (!cancelled) setHydrating(false);
-        }
-        return;
-      }
-
-      setForm(
-        emptyForm({
-          role: defaultRole,
-          scopeType: defaultScopeType,
-        }),
-      );
-    }
-
-    void hydrate();
-    return () => {
-      cancelled = true;
-    };
-  }, [open, mode, agentId, canAll, defaultRole, defaultScopeType]);
-
-  const assignableCustomers = useMemo(() => {
-    const allowed = new Set(assignableCustomerIds(actor));
-    return CUSTOMERS.filter((c) => allowed.has(c.id)).sort((a, b) =>
-      a.name.localeCompare(b.name),
-    );
-  }, [actor]);
-
-  const selectedCustomers = useMemo(() => {
-    const selected = new Set(form.customerIds);
-    return assignableCustomers.filter((c) => selected.has(c.id));
-  }, [assignableCustomers, form.customerIds]);
-
-  const filteredCustomers = useMemo(() => {
-    const q = customerQuery.trim().toLowerCase();
-    const list = viewSelectedOnly ? selectedCustomers : assignableCustomers;
-    if (!q) return list;
-    return list.filter(
-      (c) =>
-        c.name.toLowerCase().includes(q) ||
-        c.email.toLowerCase().includes(q) ||
-        c.id.toLowerCase().includes(q),
-    );
-  }, [assignableCustomers, customerQuery, selectedCustomers, viewSelectedOnly]);
-
-  const patch = (partial: Partial<AgentFormValues>) => {
-    setForm((prev) => ({ ...prev, ...partial }));
-  };
-
-  const toggleCustomer = (id: string) => {
-    setForm((prev) => ({
-      ...prev,
-      customerIds: prev.customerIds.includes(id)
-        ? prev.customerIds.filter((item) => item !== id)
-        : [...prev.customerIds, id],
-    }));
-  };
+    setFieldErrors({});
+  }, [open]);
 
   const scrollToSection = (section: FormSection) => {
     const root = scrollRef.current;
@@ -355,7 +216,7 @@ export function AgentFormDialog({
     const handleScroll = () => onScrollSync();
     root.addEventListener("scroll", handleScroll, { passive: true });
     return () => root.removeEventListener("scroll", handleScroll);
-  }, [hydrating, open]);
+  }, [hydrating, open, onScrollSync]);
 
   useEffect(() => {
     if (!open || hydrating) return;
@@ -368,42 +229,46 @@ export function AgentFormDialog({
     const observer = new ResizeObserver(() => updateAccessMinHeight());
     observer.observe(root);
     return () => observer.disconnect();
-  }, [open, hydrating]);
+  }, [open, hydrating, updateAccessMinHeight]);
 
   const handleSubmit = async () => {
-    setError(null);
+    setFormError(null);
+    setFieldErrors({});
 
     if (roles.length === 0) {
-      setError("You do not have permission to manage agents.");
+      setFormError("You do not have permission to manage agents.");
       return;
     }
+
+    const nextFieldErrors: AgentFormFieldErrors = {};
 
     if (!roles.includes(form.role)) {
-      setError("You cannot assign that role.");
-      scrollToSection("info");
-      return;
+      nextFieldErrors.role = "You cannot assign that role.";
     }
-
     if (!form.name.trim()) {
-      setError("Full name is required.");
-      scrollToSection("info");
-      return;
+      nextFieldErrors.name = "Full name is required.";
     }
     if (!form.email.trim() || !form.email.includes("@")) {
-      setError("Enter a valid email address.");
-      scrollToSection("info");
-      return;
+      nextFieldErrors.email = "Enter a valid email address.";
     }
     const passwordError = validateAgentPasswords(form, mode);
     if (passwordError) {
-      setError(passwordError);
-      scrollToSection("info");
-      return;
+      Object.assign(nextFieldErrors, passwordFieldError(passwordError));
+    }
+    if (form.scopeType === "specific" && form.customerIds.length === 0) {
+      nextFieldErrors.customers = "Select at least one customer, or choose All customers.";
     }
 
-    if (form.scopeType === "specific" && form.customerIds.length === 0) {
-      setError("Select at least one customer, or choose All customers.");
-      scrollToSection("access");
+    if (Object.keys(nextFieldErrors).length > 0) {
+      setFieldErrors(nextFieldErrors);
+      const hasInfoError = Boolean(
+        nextFieldErrors.name ||
+          nextFieldErrors.email ||
+          nextFieldErrors.password ||
+          nextFieldErrors.confirmPassword ||
+          nextFieldErrors.role,
+      );
+      scrollToSection(hasInfoError ? "info" : "access");
       return;
     }
 
@@ -418,23 +283,36 @@ export function AgentFormDialog({
     setLoading(true);
     try {
       if (isCreate) {
-        await createAgent({ ...shared, password: form.password }, actor);
+        await createAgent({ ...shared, password: form.password });
         toast.success("Agent created");
       } else if (agentId) {
-        await updateAgent(
-          agentId,
-          {
-            ...shared,
-            password: form.changePassword ? form.password : undefined,
-          },
-          actor,
-        );
+        await updateAgent(agentId, {
+          ...shared,
+          password: form.changePassword ? form.password : undefined,
+        });
         toast.success("Agent updated");
       }
       onSaved();
       onOpenChange(false);
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Something went wrong.");
+      const message = getClientErrorMessage(e);
+      toast.error(message);
+      const lower = message.toLowerCase();
+      if (lower.includes("email")) {
+        setFieldErrors({ email: message });
+        scrollToSection("info");
+      } else if (lower.includes("password")) {
+        setFieldErrors(passwordFieldError(message));
+        scrollToSection("info");
+      } else if (lower.includes("customer")) {
+        setFieldErrors({ customers: message });
+        scrollToSection("access");
+      } else if (lower.includes("role")) {
+        setFieldErrors({ role: message });
+        scrollToSection("info");
+      } else {
+        setFormError(message);
+      }
     } finally {
       setLoading(false);
     }
@@ -457,322 +335,89 @@ export function AgentFormDialog({
         <div className="flex min-h-0 flex-1 flex-col overflow-hidden sm:flex-row">
           <SectionNav activeSection={activeSection} onSelect={scrollToSection} />
 
-          <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
-            <div
-              ref={scrollRef}
-              className="min-h-0 flex-1 space-y-8 overflow-y-auto px-6 py-5"
-            >
-              {hydrating ? (
-                <p className="py-10 text-center text-[13px] text-text-muted">Loading agent…</p>
-              ) : (
-                <>
-                  <section ref={infoRef} id="agent-form-info" className="scroll-mt-2 space-y-4">
-                    <h3 className="text-[15px] font-bold text-text-primary">Info</h3>
+          <div
+            ref={scrollRef}
+            className="min-h-0 min-w-0 flex-1 space-y-8 overflow-y-auto px-6 py-5"
+          >
+            {hydrating ? (
+              <p className="py-10 text-center text-[13px] text-text-muted">Loading agent…</p>
+            ) : (
+              <>
+                <section ref={infoRef} id="agent-form-info" className="scroll-mt-2 space-y-4">
+                  <AgentInfoSection
+                    form={form}
+                    patch={patch}
+                    isCreate={isCreate}
+                    isEditingSelf={isEditingSelf}
+                    roles={roles}
+                    showPasswordFields={showPasswordFields}
+                    showPassword={showPassword}
+                    showConfirmPassword={showConfirmPassword}
+                    passwordEndAction={passwordEndAction}
+                    confirmPasswordEndAction={confirmPasswordEndAction}
+                    fieldErrors={fieldErrors}
+                  />
+                </section>
 
-                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                      <Input
-                        label="Full name"
-                        value={form.name}
-                        onChange={(v) => patch({ name: v })}
-                      />
-                      <Input
-                        label="Email address"
-                        type="email"
-                        value={form.email}
-                        onChange={(v) => patch({ email: v })}
-                      />
-                    </div>
+                <section
+                  ref={accessRef}
+                  id="agent-form-access"
+                  className="flex min-h-0 scroll-mt-2 flex-col gap-4"
+                >
+                  <AgentAccessSection
+                    form={form}
+                    patch={patch}
+                    canAll={canAll}
+                    customersDisabled={customersDisabled}
+                    customerQuery={customerQuery}
+                    setCustomerQuery={setCustomerQuery}
+                    viewSelectedOnly={viewSelectedOnly}
+                    setViewSelectedOnly={setViewSelectedOnly}
+                    assignableCustomers={assignableCustomers}
+                    selectedCustomers={selectedCustomers}
+                    filteredCustomers={filteredCustomers}
+                    toggleCustomer={toggleCustomer}
+                    customersError={fieldErrors.customers}
+                  />
+                </section>
+              </>
+            )}
 
-                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                      <Select
-                        label="Role"
-                        value={form.role}
-                        onChange={(v) => patch({ role: v as AgentRole })}
-                        disabled={isEditingSelf || roles.length === 0}
-                        options={roles}
-                        optionLabels={roleOptionLabels(roles)}
-                      />
-                      <Select
-                        label="Status"
-                        value={form.isActive ? "active" : "inactive"}
-                        onChange={(v) => patch({ isActive: v === "active" })}
-                        disabled={isEditingSelf}
-                        options={["active", "inactive"]}
-                        optionLabels={{ active: "Active", inactive: "Inactive" }}
-                      />
-                    </div>
-
-                    <div className="space-y-3 border-t border-border-color pt-4">
-                      {!isCreate && !form.changePassword ? (
-                        <div className="flex justify-end">
-                          <button
-                            type="button"
-                            className="text-[11px] font-semibold text-brand-primary hover:underline"
-                            onClick={() =>
-                              patch({
-                                changePassword: true,
-                                password: "",
-                                confirmPassword: "",
-                              })
-                            }
-                          >
-                            Change password
-                          </button>
-                        </div>
-                      ) : null}
-
-                      {showPasswordFields ? (
-                        <>
-                          {!isCreate ? (
-                            <div className="flex justify-end">
-                              <button
-                                type="button"
-                                className="text-[11px] font-semibold text-brand-primary hover:underline"
-                                onClick={() =>
-                                  patch({
-                                    changePassword: false,
-                                    password: "",
-                                    confirmPassword: "",
-                                  })
-                                }
-                              >
-                                Cancel
-                              </button>
-                            </div>
-                          ) : null}
-                          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                            <Input
-                              label={isCreate ? "Password" : "New password"}
-                              type={showPassword ? "text" : "password"}
-                              value={form.password}
-                              onChange={(v) => patch({ password: v })}
-                              endAction={passwordEndAction}
-                              autoComplete="new-password"
-                            />
-                            <Input
-                              label="Confirm password"
-                              type={showConfirmPassword ? "text" : "password"}
-                              value={form.confirmPassword}
-                              onChange={(v) => patch({ confirmPassword: v })}
-                              endAction={confirmPasswordEndAction}
-                              autoComplete="new-password"
-                            />
-                          </div>
-                          <PasswordRequirementPills password={form.password} />
-                        </>
-                      ) : null}
-                    </div>
-                  </section>
-
-                  <section
-                    ref={accessRef}
-                    id="agent-form-access"
-                    className="flex min-h-0 scroll-mt-2 flex-col gap-4"
-                  >
-                    <div className="shrink-0">
-                      <h3 className="text-[15px] font-bold text-text-primary">Access</h3>
-                      <p className="mt-1 text-[12px] text-text-secondary">
-                        Choose which customers this agent can view and manage.
-                      </p>
-                    </div>
-
-                    <div
-                      className={cn(
-                        "flex shrink-0 flex-col gap-2 sm:flex-row",
-                        !canAll && "sm:flex-col",
-                      )}
-                    >
-                      {canAll ? (
-                        <ScopePill
-                          selected={form.scopeType === "all"}
-                          icon={<Globe2 className="h-4 w-4" strokeWidth={2} />}
-                          title="All customers"
-                          onClick={() => {
-                            patch({ scopeType: "all", customerIds: [] });
-                            setViewSelectedOnly(false);
-                          }}
-                        />
-                      ) : null}
-                      <ScopePill
-                        selected={form.scopeType === "specific"}
-                        icon={<User className="h-4 w-4" strokeWidth={2} />}
-                        title="Specific customers"
-                        onClick={() =>
-                          patch({
-                            scopeType: "specific",
-                            customerIds:
-                              form.scopeType === "specific" ? form.customerIds : [],
-                          })
-                        }
-                      />
-                    </div>
-
-                    <div
-                      className={cn(
-                        "flex min-h-0 flex-1 flex-col overflow-hidden rounded-md border border-border-color transition-opacity",
-                        customersDisabled && "opacity-50",
-                      )}
-                      aria-disabled={customersDisabled}
-                    >
-                      <div className="flex shrink-0 flex-wrap items-center gap-2 border-b border-border-color bg-app-bg px-3 py-2">
-                        <div className="flex min-w-0 flex-1 items-center gap-2">
-                          <Search
-                            className="h-3.5 w-3.5 shrink-0 text-text-muted"
-                            strokeWidth={2}
-                          />
-                          <input
-                            value={customerQuery}
-                            onChange={(e) => setCustomerQuery(e.target.value)}
-                            placeholder="Search customers…"
-                            disabled={customersDisabled}
-                            className="w-full min-w-0 bg-transparent text-[12px] text-text-primary outline-none placeholder:text-text-muted disabled:cursor-not-allowed"
-                          />
-                        </div>
-                        <div className="flex shrink-0 items-center gap-2">
-                          <button
-                            type="button"
-                            disabled={customersDisabled}
-                            className="text-[11px] font-semibold text-brand-primary hover:underline disabled:cursor-not-allowed disabled:no-underline disabled:opacity-50"
-                            onClick={() =>
-                              patch({
-                                customerIds: assignableCustomers.map((c) => c.id),
-                              })
-                            }
-                          >
-                            Select all
-                          </button>
-                          <button
-                            type="button"
-                            disabled={customersDisabled}
-                            className="text-[11px] font-semibold text-text-muted hover:underline disabled:cursor-not-allowed disabled:no-underline disabled:opacity-50"
-                            onClick={() => {
-                              patch({ customerIds: [] });
-                              setViewSelectedOnly(false);
-                            }}
-                          >
-                            Clear
-                          </button>
-                        </div>
-                      </div>
-
-                      <div className="min-h-0 flex-1 space-y-0.5 overflow-y-auto p-1.5">
-                        {filteredCustomers.map((customer) => {
-                          const checked =
-                            !customersDisabled && form.customerIds.includes(customer.id);
-                          return (
-                            <button
-                              key={customer.id}
-                              type="button"
-                              disabled={customersDisabled}
-                              onClick={() => toggleCustomer(customer.id)}
-                              className="flex w-full items-center gap-2.5 rounded-md px-2 py-1.5 text-left hover:bg-app-bg disabled:cursor-not-allowed disabled:hover:bg-transparent"
-                            >
-                              <span
-                                className={cn(
-                                  "flex h-4 w-4 shrink-0 items-center justify-center rounded border",
-                                  checked
-                                    ? "border-brand-primary bg-brand-primary text-white"
-                                    : "border-border-color bg-card-bg",
-                                )}
-                                aria-hidden
-                              >
-                                {checked ? (
-                                  <Check className="h-3 w-3" strokeWidth={3} />
-                                ) : null}
-                              </span>
-                              <Avatar
-                                name={customer.name}
-                                seed={customer.id}
-                                src={customer.imageUrl}
-                                size="md"
-                              />
-                              <span className="min-w-0 flex-1">
-                                <span className="block truncate text-[13px] font-semibold text-text-primary">
-                                  {customer.name}
-                                </span>
-                                <span className="block truncate text-[11px] text-text-muted">
-                                  {customer.email}
-                                </span>
-                              </span>
-                            </button>
-                          );
-                        })}
-                        {filteredCustomers.length === 0 ? (
-                          <p className="px-2 py-3 text-[12px] text-text-muted">
-                            {viewSelectedOnly
-                              ? "No selected customers match your search."
-                              : "No customers found"}
-                          </p>
-                        ) : null}
-                      </div>
-
-                      <div className="flex shrink-0 items-center justify-between gap-2 border-t border-border-color px-3 py-2">
-                        <span className="text-[11px] font-medium text-text-secondary">
-                          {customersDisabled
-                            ? "Select Specific customers to choose"
-                            : `${selectedCustomers.length} customer${
-                                selectedCustomers.length === 1 ? "" : "s"
-                              } selected`}
-                        </span>
-                        <button
-                          type="button"
-                          disabled={customersDisabled || selectedCustomers.length === 0}
-                          onClick={() => setViewSelectedOnly((v) => !v)}
-                          className="inline-flex shrink-0 items-center gap-1 text-[11px] font-semibold text-brand-primary hover:underline disabled:cursor-not-allowed disabled:opacity-40"
-                        >
-                          {viewSelectedOnly
-                            ? "Show all"
-                            : `View selected (${selectedCustomers.length})`}
-                          <ChevronDown
-                            className={cn(
-                              "h-3.5 w-3.5 transition-transform",
-                              viewSelectedOnly && "rotate-180",
-                            )}
-                            strokeWidth={2}
-                          />
-                        </button>
-                      </div>
-                    </div>
-                  </section>
-                </>
-              )}
-
-              {error ? (
-                <p className="rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-[12px] text-destructive">
-                  {error}
-                </p>
-              ) : null}
-            </div>
-
-            <DialogFooter className="shrink-0 gap-3 border-t border-border-color px-6 py-4 sm:flex-row sm:justify-end">
-              <Button
-                type="button"
-                variant="secondary"
-                size="lg"
-                onClick={() => onOpenChange(false)}
-                disabled={loading}
-              >
-                Cancel
-              </Button>
-              <Button
-                type="button"
-                size="lg"
-                onClick={() => void handleSubmit()}
-                loading={loading}
-                disabled={hydrating || roles.length === 0}
-              >
-                {isCreate ? (
-                  <>
-                    <UserPlus className="h-5 w-5" strokeWidth={2} />
-                    Create agent
-                  </>
-                ) : (
-                  "Save changes"
-                )}
-              </Button>
-            </DialogFooter>
+            {formError ? (
+              <p className="rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-[12px] text-destructive">
+                {formError}
+              </p>
+            ) : null}
           </div>
         </div>
+
+        <DialogFooter className="shrink-0 gap-3 border-t border-border-color px-6 py-4 sm:flex-row sm:justify-end">
+          <Button
+            type="button"
+            variant="secondary"
+            size="lg"
+            onClick={() => onOpenChange(false)}
+            disabled={loading}
+          >
+            Cancel
+          </Button>
+          <Button
+            type="button"
+            size="lg"
+            onClick={() => void handleSubmit()}
+            loading={loading}
+            disabled={hydrating || roles.length === 0}
+          >
+            {isCreate ? (
+              <>
+                <UserPlus className="h-5 w-5" strokeWidth={2} />
+                Create agent
+              </>
+            ) : (
+              "Save changes"
+            )}
+          </Button>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );

@@ -1,9 +1,9 @@
 import { IssueHistoryPanel } from "@/features/workspace/components/IssueHistoryPanel";
-import { Building2, Check, Key, Phone, Wifi } from "lucide-react";
+import { Building2, Key, Phone, Wifi } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { cn } from "@/lib/utils";
 import { copyText } from "@/lib/copy-to-clipboard";
-import { Chip, Tabs } from "@/shared/components/ui-kit";
+import { Chip, Tabs } from "@/components/ui/UiKit";
 import { priorityMeta } from "@/shared/constants/agent";
 import { useGlobalContact } from "@/features/copilot/hooks/useProtocolData";
 import { useIncidentComposeActions } from "@/features/incidents/context/IncidentComposeProvider";
@@ -121,18 +121,13 @@ export function IssuePanel({
     return (
       <div className="grid h-full min-h-0 grid-cols-[minmax(0,1fr)_minmax(280px,340px)] overflow-hidden bg-app-bg">
         <div className="min-h-0 border-r border-border-color p-4 pr-2">
-          <IssuePickerSection
-            layout="fill"
-            property={property}
-            onPick={onPick}
-            onBack={onBack}
-          />
+          <IssuePickerSection layout="fill" property={property} onPick={onPick} onBack={onBack} />
         </div>
         <div className="min-h-0 p-4 pl-2">
           <IssueHistoryPanel
             variant="section"
             propertyId={property.id}
-            emptyLabel="No issues recorded for this property."
+            emptyLabel="No reports recorded for this property."
           />
         </div>
       </div>
@@ -183,14 +178,7 @@ export function IssuePanel({
                 )}
               >
                 <span className={cn("h-1.5 w-1.5 rounded-full", pMeta.dot)} />
-                {pMeta.label}
-              </Chip>
-              <Chip
-                tone="success"
-                className="rounded-md border border-success/40 bg-success/15 px-2.5 py-1 text-[12px] font-semibold text-success"
-              >
-                <Check className="h-3.5 w-3.5" strokeWidth={2.75} />
-                SLA {issue.slaMinutes} min
+                {pMeta.name}
               </Chip>
             </div>
             <div className="flex shrink-0 items-center gap-1.5">

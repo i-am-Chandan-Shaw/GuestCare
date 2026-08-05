@@ -1,4 +1,4 @@
-import { ShellFrame } from "@/shared/components/ui-kit";
+import { ShellFrame } from "@/components/ui/UiKit";
 import { AppSidebar } from "@/shared/components/AppSidebar";
 
 export function AppLayout({ children }: { children: React.ReactNode }) {

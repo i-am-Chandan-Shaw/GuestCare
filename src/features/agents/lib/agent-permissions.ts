@@ -1,49 +1,40 @@
-import { CUSTOMERS } from "@/data/mocks/customers.mock";
-import { agentCanAccessCustomer } from "@/shared/lib/access";
-import type {
-  Agent,
-  AgentCustomerScope,
-  AgentRole,
-  ReportActor,
-} from "@/shared/types/agent";
+import { CUSTOMERS } from "@/mock-data/mocks/customers.mock";
+import type { Agent, AgentCustomerScope, AgentRole, AgentAccess } from "@/shared/types/agent";
 
-export function canManageAgents(actor: ReportActor): boolean {
-  return actor.role === "admin" || actor.role === "manager";
+export function canManageAgents(currentAgent: AgentAccess): boolean {
+  return currentAgent.role === "admin" || currentAgent.role === "manager";
 }
 
-export function creatableRoles(actor: ReportActor): AgentRole[] {
-  if (actor.role === "admin") return ["admin", "manager", "user"];
-  return actor.role === "manager" ? ["user"] : [];
+export function creatableRoles(currentAgent: AgentAccess): AgentRole[] {
+  if (currentAgent.role === "admin") return ["admin", "manager", "user"];
+  return currentAgent.role === "manager" ? ["user"] : [];
 }
 
-export function canGrantAllCustomers(actor: ReportActor): boolean {
-  return (
-    actor.role === "admin" ||
-    (actor.role === "manager" && actor.customerScope.type === "all")
-  );
+export function canGrantAllCustomers(currentAgent: AgentAccess): boolean {
+  return currentAgent.role === "admin" || (currentAgent.role === "manager" && currentAgent.customerScope.type === "all");
 }
 
-/** Customers the actor is allowed to assign to another agent. */
-export function assignableCustomerIds(actor: ReportActor): string[] {
-  if (actor.role === "admin" || actor.customerScope.type === "all") {
+/** Customers the signed-in agent may assign to another agent. */
+export function assignableCustomerIds(currentAgent: AgentAccess): string[] {
+  if (currentAgent.role === "admin" || currentAgent.customerScope.type === "all") {
     return CUSTOMERS.map((c) => c.id);
   }
-  return [...actor.customerScope.customerIds];
+  return [...currentAgent.customerScope.customerIds];
 }
 
-export function canEditAgent(actor: ReportActor, target: Pick<Agent, "id" | "role">): boolean {
-  if (!canManageAgents(actor)) return false;
-  if (actor.role === "admin") return true;
+export function canEditAgent(currentAgent: AgentAccess, target: Pick<Agent, "id" | "role">): boolean {
+  if (!canManageAgents(currentAgent)) return false;
+  if (currentAgent.role === "admin") return true;
   // Managers may only edit users (not admins/managers), including not elevating via role UI.
   return target.role === "user";
 }
 
-export function validateCustomerScopeForActor(
-  actor: ReportActor,
+export function validateCustomerScope(
+  currentAgent: AgentAccess,
   scope: AgentCustomerScope,
 ): string | null {
   if (scope.type === "all") {
-    if (!canGrantAllCustomers(actor)) {
+    if (!canGrantAllCustomers(currentAgent)) {
       return "You cannot grant access to all customers.";
     }
     return null;
@@ -53,15 +44,11 @@ export function validateCustomerScopeForActor(
     return "Select at least one customer, or choose All customers.";
   }
 
-  const allowed = new Set(assignableCustomerIds(actor));
+  const allowed = new Set(assignableCustomerIds(currentAgent));
   const invalid = scope.customerIds.filter((id) => !allowed.has(id));
   if (invalid.length > 0) {
     return "One or more selected customers are outside your access.";
   }
 
   return null;
-}
-
-export function actorCanAccessCustomerId(actor: ReportActor, customerId: string): boolean {
-  return agentCanAccessCustomer(actor, customerId);
 }

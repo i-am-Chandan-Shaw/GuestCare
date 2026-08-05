@@ -1,0 +1,130 @@
+/*
+ * GuestCare Phone Input overrides
+ * Base CSS: "intl-tel-input/styles-no-assets" (imported in FloatingLabelPhone).
+ * Flag paths are set via CSS vars in that component. Classes are .iti__ prefixed.
+ */
+
+/* ── Override ITI CSS variables to match our design ── */
+:root {
+  --iti-border-color: var(--kn-color-border);
+  --iti-country-selector-bg: var(--kn-color-surface-elevated);
+  --iti-icon-color: var(--kn-color-text-tertiary);
+}
+
+/* Keep flag button transparent; do not gray-chip the selected country. */
+.gc-phone {
+  --iti-hover-color: transparent;
+}
+
+/* ── Layout: make .iti fill the shell ── */
+.gc-phone .iti {
+  display: block;
+  width: 100%;
+}
+
+/* ── Strip library's input border/outline — our shell handles the border ── */
+.gc-phone .iti__tel-input,
+.gc-phone .iti__tel-input:focus {
+  border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
+  background: transparent !important;
+}
+
+/* Safari outline offset override */
+@supports (-webkit-appearance: none) and (not (background: -webkit-canvas(foo))) {
+  .gc-phone .iti__tel-input:focus {
+    outline-offset: 0 !important;
+    outline: none !important;
+  }
+}
+
+/* ── Country selector — no gray chip behind the flag ── */
+.gc-phone .iti__country-container {
+  padding: 0;
+}
+
+.gc-phone .iti__selected-country,
+.gc-phone .iti__selected-country:hover,
+.gc-phone .iti__selected-country:focus,
+.gc-phone .iti__selected-country[aria-expanded="true"] {
+  background: transparent !important;
+  border: none;
+  border-top-left-radius: var(--kn-radius-lg);
+  border-bottom-left-radius: var(--kn-radius-lg);
+  padding: 0 2px 0 10px;
+  height: 100%;
+  gap: 0;
+  box-shadow: none !important;
+}
+
+.gc-phone .iti__selected-country-primary,
+.gc-phone .iti__selected-country-primary:hover,
+.gc-phone .iti__selected-country-primary:focus {
+  height: 100%;
+  padding: 0 6px 0 0;
+  gap: 0;
+  background: transparent !important;
+  border-radius: 0;
+}
+
+/* ── Dropdown panel — match app theme ── */
+.iti__dropdown-content,
+.iti__country-selector {
+  border: 1px solid var(--kn-color-border) !important;
+  border-radius: var(--kn-radius-md) !important;
+  box-shadow: var(--kn-shadow-3) !important;
+  background-color: var(--kn-color-surface-elevated) !important;
+  overflow: hidden;
+}
+
+/* ── Search input inside country dropdown ── */
+.iti__search-input {
+  font-size: 13px;
+  font-family: var(--kn-font-body);
+  color: var(--kn-color-text-primary);
+  background: var(--kn-color-surface) !important;
+  border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+.iti__search-input:focus {
+  border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+.iti__search-input-wrapper {
+  border-bottom: 1px solid var(--kn-color-border) !important;
+}
+
+/* ── Country list items ── */
+.iti__country {
+  padding: 8px 12px;
+  color: var(--kn-color-text-primary);
+  font-size: 13px;
+}
+
+.iti__country:hover,
+.iti__country.iti__highlight {
+  background-color: var(--kn-color-surface-hover) !important;
+}
+
+.iti__dial-code {
+  color: var(--kn-color-text-secondary);
+}
+
+/* ── Selected dial code and arrow — match number input typography ── */
+.gc-phone .iti__selected-dial-code {
+  margin-left: 4px;
+  font-size: 15px;
+  font-weight: 500;
+  line-height: 1.25rem;
+  color: var(--kn-color-text-primary);
+}
+
+.gc-phone .iti__arrow {
+  margin-left: 6px;
+  border-color: var(--kn-color-text-tertiary);
+}

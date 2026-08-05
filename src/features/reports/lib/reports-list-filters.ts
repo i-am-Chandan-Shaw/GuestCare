@@ -49,12 +49,9 @@ export function reportsListFiltersToQuery(
     search: search || undefined,
     statuses: filters.statuses.length > 0 ? filters.statuses : undefined,
     priorities: filters.priorities.length > 0 ? filters.priorities : undefined,
-    assignedAgentIds:
-      filters.assignedAgentIds.length > 0 ? filters.assignedAgentIds : undefined,
+    assignedAgentIds: filters.assignedAgentIds.length > 0 ? filters.assignedAgentIds : undefined,
     customerIds:
-      !pageScope.customerId && filters.customerIds.length > 0
-        ? filters.customerIds
-        : undefined,
+      !pageScope.customerId && filters.customerIds.length > 0 ? filters.customerIds : undefined,
     propertyIds: filters.propertyIds.length > 0 ? filters.propertyIds : undefined,
     issueTypes: filters.issueTypes.length > 0 ? filters.issueTypes : undefined,
     dateFrom: filters.dateFrom || undefined,

@@ -1,39 +1,67 @@
 import { createServerFn } from "@tanstack/react-start";
-import { findMockAuthUser } from "@/features/auth/data/auth-users.mock";
+import { throwHttpError } from "@/features/agents/lib/server-fn-error";
 import { loginSchema } from "@/features/auth/lib/login-schema";
 import {
-  clearSessionCookie,
-  createSessionToken,
-  parseSessionToken,
-  readSessionCookie,
-  setSessionCookie,
+  clearAuthCookies,
+  getAuthSession,
+  setAuthCookies,
 } from "@/features/auth/server/session";
+import { createSupabaseServer } from "@/shared/lib/supabase/server";
+import { createSupabaseAdmin } from "@/shared/lib/supabase/admin";
+import { mapAgentRow, type AgentRow } from "@/features/agents/lib/map-agent-row";
 import type { AuthSession } from "@/features/auth/types";
 
 export const getSessionFn = createServerFn({ method: "GET" }).handler(async () => {
-  const token = readSessionCookie();
-  if (!token) return null;
-  return parseSessionToken(token);
+  return getAuthSession();
 });
 
 export const loginFn = createServerFn({ method: "POST" })
   .validator(loginSchema)
   .handler(async ({ data }): Promise<AuthSession> => {
-    const user = await findMockAuthUser(data.email, data.password);
-    if (!user) {
-      throw new Error("Invalid email or password");
+    const email = data.email.trim().toLowerCase();
+    const password = data.password;
+
+    const supabase = createSupabaseServer();
+    const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+
+    if (authError || !authData.session || !authData.user) {
+      throwHttpError("Invalid email or password", 401);
     }
 
-    const session: AuthSession = {
-      userId: user.agent.id,
-      email: user.email,
-      agent: user.agent,
-    };
+    const admin = createSupabaseAdmin();
+    const { data: row, error: agentError } = await admin
+      .from("agents")
+      .select("*")
+      .eq("id", authData.user.id)
+      .maybeSingle();
 
-    setSessionCookie(await createSessionToken(session));
-    return session;
+    if (agentError || !row) {
+      clearAuthCookies();
+      throwHttpError("No agent profile found for this account.", 403);
+    }
+
+    const agent = mapAgentRow(row as AgentRow);
+    if (!agent.isActive) {
+      clearAuthCookies();
+      throwHttpError("This agent account is inactive.", 403);
+    }
+
+    setAuthCookies(
+      authData.session.access_token,
+      authData.session.refresh_token,
+      authData.session.expires_in,
+    );
+
+    return {
+      userId: authData.user.id,
+      email: authData.user.email ?? agent.email,
+      agent,
+    };
   });
 
 export const logoutFn = createServerFn({ method: "POST" }).handler(async () => {
-  clearSessionCookie();
+  clearAuthCookies();
 });

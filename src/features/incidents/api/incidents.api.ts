@@ -1,9 +1,6 @@
 import { z } from "zod";
-import { CUSTOMERS } from "@/data/mocks/customers.mock";
-import {
-  __getReportStoreSnapshot,
-  createReport,
-} from "@/features/reports/api/reports.api";
+import { CUSTOMERS } from "@/mock-data/mocks/customers.mock";
+import { __getReportStoreSnapshot, createReport } from "@/features/reports/api/reports.api";
 import { reportToIncidentLog } from "@/features/reports/lib/report-legacy";
 import { mapLegacyIncidentStatus } from "@/features/reports/lib/report-status";
 import type {
@@ -12,15 +9,15 @@ import type {
   IncidentLogFilters,
   IncidentStatus,
 } from "@/shared/types";
-import type { ReportActor } from "@/shared/types/agent";
+import type { AgentAccess } from "@/shared/types/agent";
 
 const createIncidentSchema = z.object({
   callerName: z.string(),
   callerContact: z.string(),
   reservation: z.string(),
   nameOnBooking: z.string(),
-  incidentType: z.string(),
-  issueSummary: z.string().min(1),
+  incidentType: z.string().min(1, "Please select an issue type."),
+  issueSummary: z.string().trim().min(1, "Please select or enter what the issue is."),
   actions: z.array(z.string()),
   priority: z.enum(["P1", "P2", "P3", "P4"]),
   status: z.string(),
@@ -29,11 +26,15 @@ const createIncidentSchema = z.object({
   propertyId: z.string().optional(),
   propertyLabel: z.string().optional(),
   protocolIssueId: z.string().optional(),
-  /** @deprecated Ignored — actor comes from session. */
+  /** @deprecated Ignored — signed-in agent comes from session. */
   agentName: z.string().optional(),
-  /** @deprecated Ignored — actor comes from session. */
+  /** @deprecated Ignored — signed-in agent comes from session. */
   submittedBy: z.string().optional(),
 });
+
+function firstValidationMessage(error: z.ZodError): string {
+  return error.issues[0]?.message ?? "Please complete the required fields.";
+}
 
 function resolveCustomerIdForProperty(propertyId?: string): string | undefined {
   if (!propertyId) return undefined;
@@ -48,9 +49,7 @@ function getIncidentLogsFromStore(filters: IncidentLogFilters = {}): IncidentLog
       CUSTOMERS.find((c) => c.id === filters.customerId)?.propertyIds ?? [],
     );
     reports = reports.filter(
-      (r) =>
-        r.customerId === filters.customerId ||
-        (r.propertyId && propertyIds.has(r.propertyId)),
+      (r) => r.customerId === filters.customerId || (r.propertyId && propertyIds.has(r.propertyId)),
     );
   }
 
@@ -79,34 +78,37 @@ export async function getIncidentLogs(filters: IncidentLogFilters = {}): Promise
 
 export async function createIncident(
   input: CreateIncidentInput,
-  actor: ReportActor,
+  currentAgent: AgentAccess,
 ): Promise<IncidentLog> {
-  const parsed = createIncidentSchema.parse(input);
+  const parsed = createIncidentSchema.safeParse(input);
+  if (!parsed.success) {
+    throw new Error(firstValidationMessage(parsed.error));
+  }
 
-  const customerId =
-    parsed.customerId ?? resolveCustomerIdForProperty(parsed.propertyId);
+  const data = parsed.data;
+  const customerId = data.customerId ?? resolveCustomerIdForProperty(data.propertyId);
   if (!customerId) {
-    throw new Error("A customer is required to create an incident.");
+    throw new Error("A customer is required to create a report.");
   }
 
   const report = await createReport(
     {
-      issueName: parsed.issueSummary,
-      issueType: parsed.incidentType,
-      priority: parsed.priority,
-      status: mapLegacyIncidentStatus(parsed.status as IncidentStatus),
+      issueName: data.issueSummary,
+      issueType: data.incidentType,
+      priority: data.priority,
+      status: mapLegacyIncidentStatus(data.status as IncidentStatus),
       customerId,
-      propertyId: parsed.propertyId,
-      callerName: parsed.callerName,
-      callerContact: parsed.callerContact,
-      reservationNumber: parsed.reservation,
-      nameOnBooking: parsed.nameOnBooking,
-      callNotes: parsed.callNotes,
-      actionsTaken: parsed.actions,
-      protocolIssueId: parsed.protocolIssueId,
-      source: parsed.protocolIssueId ? "copilot" : "manual",
+      propertyId: data.propertyId,
+      callerName: data.callerName,
+      callerContact: data.callerContact,
+      reservationNumber: data.reservation,
+      nameOnBooking: data.nameOnBooking,
+      callNotes: data.callNotes,
+      actionsTaken: data.actions,
+      protocolIssueId: data.protocolIssueId,
+      source: data.protocolIssueId ? "copilot" : "manual",
     },
-    actor,
+    currentAgent,
   );
 
   return reportToIncidentLog(report);
