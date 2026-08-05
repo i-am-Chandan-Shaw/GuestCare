@@ -88,17 +88,6 @@ export function ServerPaginatedTable<TData>({
     fetchDataRef.current = fetchData;
   }, [fetchData]);
 
-  useEffect(() => {
-    const onVisibilityChange = () => {
-      if (document.visibilityState !== "visible") return;
-      apiRef.current?.purgeInfiniteCache();
-    };
-    document.addEventListener("visibilitychange", onVisibilityChange);
-    return () => {
-      document.removeEventListener("visibilitychange", onVisibilityChange);
-    };
-  }, []);
-
   const datasource = useMemo<IDatasource>(
     () => ({
       getRows: (params: IGetRowsParams) => {
