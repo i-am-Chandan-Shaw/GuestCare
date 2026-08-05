@@ -88,6 +88,17 @@ export function ServerPaginatedTable<TData>({
     fetchDataRef.current = fetchData;
   }, [fetchData]);
 
+  useEffect(() => {
+    const onVisibilityChange = () => {
+      if (document.visibilityState !== "visible") return;
+      apiRef.current?.purgeInfiniteCache();
+    };
+    document.addEventListener("visibilitychange", onVisibilityChange);
+    return () => {
+      document.removeEventListener("visibilitychange", onVisibilityChange);
+    };
+  }, []);
+
   const datasource = useMemo<IDatasource>(
     () => ({
       getRows: (params: IGetRowsParams) => {
@@ -155,7 +166,7 @@ export function ServerPaginatedTable<TData>({
             defaultColDef={defaultColDef}
             rowModelType="infinite"
             cacheBlockSize={SERVER_TABLE_PAGE_SIZE}
-            maxBlocksInCache={10}
+            maxBlocksInCache={3}
             rowHeight={48}
             headerHeight={44}
             alwaysShowHorizontalScroll
