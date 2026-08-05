@@ -1,5 +1,5 @@
 import type { ColDef, ICellRendererParams } from "ag-grid-community";
-import { Building2, Eye, Pencil, Trash2 } from "lucide-react";
+import { Building2, Pencil, Trash2 } from "lucide-react";
 import { Avatar } from "@/shared/components/Avatar";
 import { DirectoryRowActionsMenu } from "@/features/directory/components/DirectoryRowActionsMenu";
 import type { CustomerListItem } from "@/features/directory/lib/map-customer-row";
@@ -16,12 +16,10 @@ function CustomerNameCell({ data }: ICellRendererParams<CustomerListItem>) {
 
 function ActionsCell({
   data,
-  onView,
   onEdit,
   onDelete,
   onShowProperties,
 }: ICellRendererParams<CustomerListItem> & {
-  onView: (customer: CustomerListItem) => void;
   onEdit: (customer: CustomerListItem) => void;
   onDelete: (customer: CustomerListItem) => void;
   onShowProperties: (customer: CustomerListItem) => void;
@@ -31,7 +29,6 @@ function ActionsCell({
     <DirectoryRowActionsMenu
       ariaLabel={`Actions for ${data.name}`}
       actions={[
-        { id: "view", label: "View", icon: Eye, onSelect: () => onView(data) },
         { id: "edit", label: "Edit", icon: Pencil, onSelect: () => onEdit(data) },
         {
           id: "properties",
@@ -52,7 +49,6 @@ function ActionsCell({
 }
 
 export function createCustomersTableColumnDefs(handlers: {
-  onView: (customer: CustomerListItem) => void;
   onEdit: (customer: CustomerListItem) => void;
   onDelete: (customer: CustomerListItem) => void;
   onShowProperties: (customer: CustomerListItem) => void;

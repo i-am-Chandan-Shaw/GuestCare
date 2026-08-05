@@ -36,13 +36,17 @@ export function DirectoryRowActionsMenu({
       <DropdownMenu.Portal>
         <DropdownMenu.Content
           side="bottom"
-          align="center"
+          align="end"
           sideOffset={0}
+          arrowPadding={14}
           avoidCollisions
           collisionPadding={8}
           onCloseAutoFocus={(event) => event.preventDefault()}
           className={cn(
-            "z-[100] min-w-[168px] rounded-lg border border-border-color bg-card-bg p-1 shadow-md",
+            // No CSS border — drop-shadow draws the outline around the arrow tip too,
+            // so the triangle opens into the panel (matches reference).
+            "z-[100] min-w-[168px] rounded-lg bg-card-bg p-1",
+            "[filter:drop-shadow(0_8px_20px_rgba(42,38,34,0.14))_drop-shadow(0_0_0.6px_var(--kn-color-border))]",
             "data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
             "data-[side=bottom]:slide-in-from-top-1 data-[side=top]:slide-in-from-bottom-1",
             "data-[side=left]:slide-in-from-right-1 data-[side=right]:slide-in-from-left-1",
@@ -53,8 +57,7 @@ export function DirectoryRowActionsMenu({
             return (
               <DropdownMenu.Item
                 key={action.id}
-                onSelect={(event) => {
-                  event.preventDefault();
+                onSelect={() => {
                   action.onSelect();
                 }}
                 className={cn(
@@ -70,13 +73,7 @@ export function DirectoryRowActionsMenu({
               </DropdownMenu.Item>
             );
           })}
-          {/* Border layer behind fill so the tip looks continuous with the menu border */}
-          <DropdownMenu.Arrow width={14} height={8} className="fill-border-color" />
-          <DropdownMenu.Arrow
-            width={14}
-            height={8}
-            className="relative top-[-1px] fill-card-bg"
-          />
+          <DropdownMenu.Arrow width={12} height={7} className="fill-card-bg" />
         </DropdownMenu.Content>
       </DropdownMenu.Portal>
     </DropdownMenu.Root>

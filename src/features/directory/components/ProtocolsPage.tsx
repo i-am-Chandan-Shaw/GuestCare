@@ -12,7 +12,6 @@ import {
 import { ConfirmDeleteDialog } from "@/features/directory/components/ConfirmDeleteDialog";
 import { DirectoryListLayout } from "@/features/directory/components/DirectoryListLayout";
 import { ProtocolFormDialog } from "@/features/directory/components/ProtocolFormDialog";
-import { ProtocolViewDialog } from "@/features/directory/components/ProtocolViewDialog";
 import { createProtocolsTableColumnDefs } from "@/features/directory/components/protocols-table-columns";
 import { getClientErrorMessage } from "@/features/directory/lib/client-error";
 import type { ProtocolListItem } from "@/features/directory/lib/map-protocol-row";
@@ -47,7 +46,6 @@ export function ProtocolsPage() {
   const [dialogMode, setDialogMode] = useState<"create" | "edit">("create");
   const [editingProtocolId, setEditingProtocolId] = useState<string | null>(null);
 
-  const [viewProtocolId, setViewProtocolId] = useState<string | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<ProtocolListItem | null>(null);
   const [deleting, setDeleting] = useState(false);
 
@@ -106,18 +104,13 @@ export function ProtocolsPage() {
     setDialogOpen(true);
   }, []);
 
-  const openView = useCallback((protocol: ProtocolListItem) => {
-    setViewProtocolId(protocol.id);
-  }, []);
-
   const columnDefs = useMemo(
     () =>
       createProtocolsTableColumnDefs({
-        onView: openView,
         onEdit: openEdit,
         onDelete: setDeleteTarget,
       }),
-    [openEdit, openView],
+    [openEdit],
   );
 
   const handleFetchData = useCallback(
@@ -160,7 +153,7 @@ export function ProtocolsPage() {
   const handleCellClicked = (event: CellClickedEvent<ProtocolListItem>) => {
     if (!event.data) return;
     if (event.column?.getColId() === "actions") return;
-    openView(event.data);
+    openEdit(event.data);
   };
 
   const handleDelete = async () => {
@@ -224,20 +217,6 @@ export function ProtocolsPage() {
         protocolId={editingProtocolId}
         onOpenChange={setDialogOpen}
         onSaved={handleSaved}
-      />
-
-      <ProtocolViewDialog
-        open={Boolean(viewProtocolId)}
-        protocolId={viewProtocolId}
-        customerId={customerId}
-        onOpenChange={(open) => {
-          if (!open) setViewProtocolId(null);
-        }}
-        onEdit={(id) => {
-          setDialogMode("edit");
-          setEditingProtocolId(id);
-          setDialogOpen(true);
-        }}
       />
 
       <ConfirmDeleteDialog

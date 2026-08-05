@@ -1,15 +1,13 @@
 import type { ColDef, ICellRendererParams } from "ag-grid-community";
-import { Eye, Pencil, Trash2 } from "lucide-react";
+import { Pencil, Trash2 } from "lucide-react";
 import { DirectoryRowActionsMenu } from "@/features/directory/components/DirectoryRowActionsMenu";
 import type { ProtocolListItem } from "@/features/directory/lib/map-protocol-row";
 
 function ActionsCell({
   data,
-  onView,
   onEdit,
   onDelete,
 }: ICellRendererParams<ProtocolListItem> & {
-  onView: (protocol: ProtocolListItem) => void;
   onEdit: (protocol: ProtocolListItem) => void;
   onDelete: (protocol: ProtocolListItem) => void;
 }) {
@@ -18,7 +16,6 @@ function ActionsCell({
     <DirectoryRowActionsMenu
       ariaLabel={`Actions for ${data.name}`}
       actions={[
-        { id: "view", label: "View", icon: Eye, onSelect: () => onView(data) },
         { id: "edit", label: "Edit", icon: Pencil, onSelect: () => onEdit(data) },
         {
           id: "delete",
@@ -33,7 +30,6 @@ function ActionsCell({
 }
 
 export function createProtocolsTableColumnDefs(handlers: {
-  onView: (protocol: ProtocolListItem) => void;
   onEdit: (protocol: ProtocolListItem) => void;
   onDelete: (protocol: ProtocolListItem) => void;
 }): ColDef<ProtocolListItem>[] {

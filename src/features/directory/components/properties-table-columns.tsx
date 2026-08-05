@@ -1,16 +1,14 @@
 import type { ColDef, ICellRendererParams } from "ag-grid-community";
-import { Eye, FileText, Pencil, Trash2 } from "lucide-react";
+import { FileText, Pencil, Trash2 } from "lucide-react";
 import { DirectoryRowActionsMenu } from "@/features/directory/components/DirectoryRowActionsMenu";
 import type { PropertyListItem } from "@/features/directory/lib/map-property-row";
 
 function ActionsCell({
   data,
-  onView,
   onEdit,
   onDelete,
   onShowProtocols,
 }: ICellRendererParams<PropertyListItem> & {
-  onView: (property: PropertyListItem) => void;
   onEdit: (property: PropertyListItem) => void;
   onDelete: (property: PropertyListItem) => void;
   onShowProtocols: (property: PropertyListItem) => void;
@@ -20,7 +18,6 @@ function ActionsCell({
     <DirectoryRowActionsMenu
       ariaLabel={`Actions for ${data.name}`}
       actions={[
-        { id: "view", label: "View", icon: Eye, onSelect: () => onView(data) },
         { id: "edit", label: "Edit", icon: Pencil, onSelect: () => onEdit(data) },
         {
           id: "protocols",
@@ -41,7 +38,6 @@ function ActionsCell({
 }
 
 export function createPropertiesTableColumnDefs(handlers: {
-  onView: (property: PropertyListItem) => void;
   onEdit: (property: PropertyListItem) => void;
   onDelete: (property: PropertyListItem) => void;
   onShowProtocols: (property: PropertyListItem) => void;
