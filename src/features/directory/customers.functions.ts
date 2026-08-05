@@ -128,25 +128,36 @@ export const listCustomersFn = createServerFn({ method: "POST" })
       const ids = customerRows.map((row) => row.id);
 
       let contactsByCustomer = new Map<string, CustomerContactRow[]>();
-      if (ids.length > 0) {
-        const { data: contactRows, error: contactsError } = await supabase
-          .from("customer_contacts")
-          .select("*")
-          .in("customer_id", ids);
+      const propertyCountByCustomer = new Map<string, number>();
 
-        if (contactsError) {
-          throwHttpError(contactsError.message || "Failed to load contacts.", 500);
+      if (ids.length > 0) {
+        const [contactsResult, propertiesResult] = await Promise.all([
+          supabase.from("customer_contacts").select("*").in("customer_id", ids),
+          supabase.from("properties").select("customer_id").in("customer_id", ids),
+        ]);
+
+        if (contactsResult.error) {
+          throwHttpError(contactsResult.error.message || "Failed to load contacts.", 500);
+        }
+        if (propertiesResult.error) {
+          throwHttpError(propertiesResult.error.message || "Failed to load properties.", 500);
         }
 
-        contactsByCustomer = (contactRows as CustomerContactRow[] | null)?.reduce(
-          (map, row) => {
+        contactsByCustomer =
+          (contactsResult.data as CustomerContactRow[] | null)?.reduce((map, row) => {
             const list = map.get(row.customer_id) ?? [];
             list.push(row);
             map.set(row.customer_id, list);
             return map;
-          },
-          new Map<string, CustomerContactRow[]>(),
-        ) ?? new Map();
+          }, new Map<string, CustomerContactRow[]>()) ?? new Map();
+
+        for (const row of propertiesResult.data ?? []) {
+          const customerId = (row as { customer_id: string }).customer_id;
+          propertyCountByCustomer.set(
+            customerId,
+            (propertyCountByCustomer.get(customerId) ?? 0) + 1,
+          );
+        }
       }
 
       const total = count ?? 0;
@@ -154,7 +165,10 @@ export const listCustomersFn = createServerFn({ method: "POST" })
 
       return {
         data: customerRows.map((row) =>
-          toCustomerListItem(mapCustomerRow(row, contactsByCustomer.get(row.id) ?? [])),
+          toCustomerListItem(
+            mapCustomerRow(row, contactsByCustomer.get(row.id) ?? []),
+            propertyCountByCustomer.get(row.id) ?? 0,
+          ),
         ),
         pagination: {
           page: data.page,

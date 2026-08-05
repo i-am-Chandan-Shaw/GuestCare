@@ -46,6 +46,7 @@ export type CustomerListItem = {
   email: string;
   phone: string;
   contactsCount: number;
+  propertyCount: number;
   imageUrl?: string;
   createdAt: string;
 };
@@ -96,13 +97,17 @@ export function mapCustomerRow(
   };
 }
 
-export function toCustomerListItem(customer: DirectoryCustomer): CustomerListItem {
+export function toCustomerListItem(
+  customer: DirectoryCustomer,
+  propertyCount = 0,
+): CustomerListItem {
   return {
     id: customer.id,
     name: customer.name,
     email: customer.email,
     phone: customer.phone,
     contactsCount: customer.contacts.length,
+    propertyCount,
     imageUrl: customer.imageUrl,
     createdAt: customer.createdAt,
   };

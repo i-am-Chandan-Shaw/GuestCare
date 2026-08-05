@@ -169,7 +169,7 @@ export function CustomersPage() {
         title="Delete customer?"
         description={
           deleteTarget
-            ? `Delete ${deleteTarget.name}? This also removes their contacts. Properties and protocols will be removed when those tables exist.`
+            ? `Delete ${deleteTarget.name}? This also removes their contacts and properties.`
             : ""
         }
         loading={deleting}

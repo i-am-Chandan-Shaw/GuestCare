@@ -90,6 +90,14 @@ export function createCustomersTableColumnDefs(handlers: {
       suppressSizeToFit: true,
     },
     {
+      headerName: "PROPERTIES",
+      field: "propertyCount",
+      colId: "propertyCount",
+      width: 120,
+      minWidth: 110,
+      suppressSizeToFit: true,
+    },
+    {
       headerName: "",
       colId: "actions",
       pinned: "right",
