@@ -6,6 +6,7 @@ import {
   getProtocolById,
   updateProtocol,
 } from "@/features/directory/api/protocols.api";
+import { DirectoryFormSkeleton } from "@/features/directory/components/DirectoryFormSkeleton";
 import { DirectoryWizardDialog } from "@/features/directory/components/DirectoryWizardDialog";
 import { DynamicOrderedList } from "@/features/directory/components/DynamicOrderedList";
 import { EscalationField } from "@/features/directory/components/EscalationField";
@@ -26,6 +27,13 @@ const STEPS = [
 ] as const;
 
 type EscalationMode = "contact" | "preset";
+
+type ProtocolFieldErrors = {
+  category?: string;
+  name?: string;
+  customerContactId?: string;
+  escalation?: string;
+};
 
 type FormState = {
   category: string;
@@ -91,6 +99,7 @@ export function ProtocolFormDialog({
 }) {
   const [activeIndex, setActiveIndex] = useState(0);
   const [form, setForm] = useState<FormState>(emptyForm);
+  const [errors, setErrors] = useState<ProtocolFieldErrors>({});
   const [contacts, setContacts] = useState<CustomerContact[]>([]);
   const [loading, setLoading] = useState(false);
   const [hydrating, setHydrating] = useState(false);
@@ -98,6 +107,7 @@ export function ProtocolFormDialog({
   useEffect(() => {
     if (!open) return;
     setActiveIndex(0);
+    setErrors({});
 
     let cancelled = false;
     setHydrating(true);
@@ -152,29 +162,61 @@ export function ProtocolFormDialog({
 
   const patch = (partial: Partial<FormState>) => {
     setForm((prev) => ({ ...prev, ...partial }));
+    setErrors((prev) => {
+      const next = { ...prev };
+      for (const key of Object.keys(partial) as (keyof FormState)[]) {
+        if (key in next) delete next[key as keyof ProtocolFieldErrors];
+      }
+      return next;
+    });
   };
 
   const derivedPriority = priorityFromCategory(form.priorityCategory);
 
-  const canProceed =
-    activeIndex === 0
-      ? form.category.trim().length > 0 && form.name.trim().length > 0
-      : activeIndex === 2
-        ? form.escalationMode === "contact"
-          ? form.customerContactId.length > 0
-          : Boolean(form.escalation)
-        : true;
+  const validateBasics = () => {
+    const nextErrors: ProtocolFieldErrors = {};
+    if (!form.category.trim()) nextErrors.category = "Category is required";
+    if (!form.name.trim()) nextErrors.name = "Name is required";
+    setErrors(nextErrors);
+    if (Object.keys(nextErrors).length > 0) {
+      setActiveIndex(0);
+      return false;
+    }
+    return true;
+  };
+
+  const validateEscalation = () => {
+    const nextErrors: ProtocolFieldErrors = {};
+    if (form.escalationMode === "contact") {
+      if (contacts.length === 0) {
+        nextErrors.customerContactId =
+          "Add a customer contact first, or switch to preset escalation";
+      } else if (!form.customerContactId) {
+        nextErrors.customerContactId = "Select a contact";
+      }
+    } else if (!form.escalation) {
+      nextErrors.escalation = "Choose an escalation option";
+    }
+    if (Object.keys(nextErrors).length > 0) {
+      setErrors((prev) => ({ ...prev, ...nextErrors }));
+      setActiveIndex(2);
+      return false;
+    }
+    return true;
+  };
+
+  const validateStep = () => {
+    if (hydrating) return false;
+    if (activeIndex === 0) return validateBasics();
+    if (activeIndex === 2) {
+      if (!validateBasics()) return false;
+      return validateEscalation();
+    }
+    setErrors({});
+    return true;
+  };
 
   const handleSubmit = async () => {
-    if (!form.category.trim() || !form.name.trim()) {
-      setActiveIndex(0);
-      return;
-    }
-    if (form.escalationMode === "contact" && !form.customerContactId) {
-      setActiveIndex(2);
-      return;
-    }
-
     setLoading(true);
     try {
       const escalationKind =
@@ -242,15 +284,16 @@ export function ProtocolFormDialog({
       mode={mode}
       steps={[...STEPS]}
       activeIndex={activeIndex}
-      onActiveIndexChange={setActiveIndex}
-      canProceed={!hydrating && canProceed}
+      onActiveIndexChange={(index) => {
+        setErrors({});
+        setActiveIndex(index);
+      }}
+      onValidateStep={validateStep}
       onSubmit={() => void handleSubmit()}
       submitLabel={mode === "create" ? "Create protocol" : "Save changes"}
       loading={loading || hydrating}
     >
-      {hydrating ? (
-        <p className="py-10 text-center text-[13px] text-text-muted">Loading protocol…</p>
-      ) : null}
+      {hydrating ? <DirectoryFormSkeleton /> : null}
 
       {!hydrating && activeIndex === 0 ? (
         <div className="space-y-4">
@@ -258,8 +301,14 @@ export function ProtocolFormDialog({
             label="Category"
             value={form.category}
             onChange={(category) => patch({ category })}
+            error={errors.category}
           />
-          <Input label="Name" value={form.name} onChange={(name) => patch({ name })} />
+          <Input
+            label="Name"
+            value={form.name}
+            onChange={(name) => patch({ name })}
+            error={errors.name}
+          />
           <Select
             label="Reservation verification"
             value={form.reservationVerification}
@@ -330,10 +379,17 @@ export function ProtocolFormDialog({
 
           {form.escalationMode === "contact" ? (
             contacts.length === 0 ? (
-              <p className="text-[13px] text-text-muted">
-                This customer has no contacts yet. Switch to preset/custom, or add contacts on the
-                customer.
-              </p>
+              <div className="space-y-1.5">
+                <p className="text-[13px] text-text-secondary">
+                  This customer has no contacts yet. Switch to preset/custom, or add contacts on the
+                  customer.
+                </p>
+                {errors.customerContactId ? (
+                  <p className="text-[11px] leading-snug text-destructive" role="alert">
+                    {errors.customerContactId}
+                  </p>
+                ) : null}
+              </div>
             ) : (
               <Select
                 label="Contact"
@@ -341,12 +397,14 @@ export function ProtocolFormDialog({
                 options={contactOptions}
                 optionLabels={contactLabels}
                 onChange={(customerContactId) => patch({ customerContactId })}
+                error={errors.customerContactId}
               />
             )
           ) : (
             <EscalationField
               value={form.escalation}
               onChange={(escalation) => patch({ escalation })}
+              error={errors.escalation}
             />
           )}
         </div>

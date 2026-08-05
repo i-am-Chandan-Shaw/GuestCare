@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { getCustomerById } from "@/features/directory/api/customers.api";
+import { DirectoryFormSkeleton } from "@/features/directory/components/DirectoryFormSkeleton";
 import { getClientErrorMessage } from "@/features/directory/lib/client-error";
 import type { DirectoryCustomer } from "@/features/directory/lib/map-customer-row";
 import { Button } from "@/components/ui/Button";
@@ -83,7 +84,7 @@ export function CustomerViewDialog({
 
         <div className="max-h-[55vh] space-y-5 overflow-y-auto px-6 py-5">
           {loading || !customer ? (
-            <p className="py-8 text-center text-[13px] text-text-muted">Loading customer…</p>
+            <DirectoryFormSkeleton rows={5} />
           ) : (
             <>
               <section className="grid gap-4 sm:grid-cols-2">

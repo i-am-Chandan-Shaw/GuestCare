@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { getCustomerById } from "@/features/directory/api/customers.api";
+import { DirectoryFormSkeleton } from "@/features/directory/components/DirectoryFormSkeleton";
 import { getProtocolById } from "@/features/directory/api/protocols.api";
 import { getClientErrorMessage } from "@/features/directory/lib/client-error";
 import type { DirectoryProtocol } from "@/features/directory/lib/map-protocol-row";
@@ -102,7 +103,7 @@ export function ProtocolViewDialog({
 
         <div className="max-h-[55vh] space-y-5 overflow-y-auto px-6 py-5">
           {loading || !protocol ? (
-            <p className="py-8 text-center text-[13px] text-text-muted">Loading protocol…</p>
+            <DirectoryFormSkeleton rows={5} />
           ) : (
             <>
               <section className="space-y-1">

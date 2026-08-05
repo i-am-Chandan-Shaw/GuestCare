@@ -5,6 +5,7 @@ import {
   getPropertyById,
   updateProperty,
 } from "@/features/directory/api/properties.api";
+import { DirectoryFormSkeleton } from "@/features/directory/components/DirectoryFormSkeleton";
 import { DirectoryWizardDialog } from "@/features/directory/components/DirectoryWizardDialog";
 import { DynamicOrderedList } from "@/features/directory/components/DynamicOrderedList";
 import { EscalationField } from "@/features/directory/components/EscalationField";
@@ -24,6 +25,12 @@ const STEPS = [
 ] as const;
 
 type HouseRuleItem = { id: string; label: string };
+
+type PropertyFieldErrors = {
+  name?: string;
+  type?: string;
+  maxGuests?: string;
+};
 
 type FormState = {
   name: string;
@@ -121,12 +128,14 @@ export function PropertyFormDialog({
 }) {
   const [activeIndex, setActiveIndex] = useState(0);
   const [form, setForm] = useState<FormState>(emptyForm);
+  const [errors, setErrors] = useState<PropertyFieldErrors>({});
   const [loading, setLoading] = useState(false);
   const [hydrating, setHydrating] = useState(false);
 
   useEffect(() => {
     if (!open) return;
     setActiveIndex(0);
+    setErrors({});
 
     if (mode === "create" || !propertyId) {
       setForm(emptyForm());
@@ -194,15 +203,38 @@ export function PropertyFormDialog({
 
   const patch = (partial: Partial<FormState>) => {
     setForm((prev) => ({ ...prev, ...partial }));
+    setErrors((prev) => {
+      const next = { ...prev };
+      for (const key of Object.keys(partial) as (keyof FormState)[]) {
+        if (key in next) delete next[key as keyof PropertyFieldErrors];
+      }
+      return next;
+    });
   };
 
-  const maxGuestsValid =
-    form.maxGuests.trim() === "" || parseMaxGuests(form.maxGuests) !== undefined;
+  const validateBasics = () => {
+    const nextErrors: PropertyFieldErrors = {};
+    if (!form.name.trim()) nextErrors.name = "Name is required";
+    if (!form.type.trim()) nextErrors.type = "Type is required";
+    if (form.maxGuests.trim() !== "" && parseMaxGuests(form.maxGuests) === undefined) {
+      nextErrors.maxGuests = "Enter a valid guest count";
+    }
+    setErrors(nextErrors);
+    if (Object.keys(nextErrors).length > 0) {
+      setActiveIndex(0);
+      return false;
+    }
+    return true;
+  };
 
-  const canProceed =
-    activeIndex === 0
-      ? form.name.trim().length > 0 && form.type.trim().length > 0 && maxGuestsValid
-      : true;
+  const validateStep = () => {
+    if (hydrating) return false;
+    if (activeIndex === 0 || activeIndex === STEPS.length - 1) {
+      return validateBasics();
+    }
+    setErrors({});
+    return true;
+  };
 
   const toggleSystem = (key: SystemKey, enabled: boolean) => {
     setForm((prev) => {
@@ -231,11 +263,6 @@ export function PropertyFormDialog({
   };
 
   const handleSubmit = async () => {
-    if (!form.name.trim() || !form.type.trim() || !maxGuestsValid) {
-      setActiveIndex(0);
-      return;
-    }
-
     setLoading(true);
     try {
       const systems: Partial<Record<SystemKey, SystemInfo>> = {};
@@ -313,24 +340,36 @@ export function PropertyFormDialog({
       mode={mode}
       steps={[...STEPS]}
       activeIndex={activeIndex}
-      onActiveIndexChange={setActiveIndex}
-      canProceed={!hydrating && canProceed}
+      onActiveIndexChange={(index) => {
+        setErrors({});
+        setActiveIndex(index);
+      }}
+      onValidateStep={validateStep}
       onSubmit={() => void handleSubmit()}
       submitLabel={mode === "create" ? "Create property" : "Save changes"}
       loading={loading || hydrating}
     >
-      {hydrating ? (
-        <p className="py-10 text-center text-[13px] text-text-muted">Loading property…</p>
-      ) : null}
+      {hydrating ? <DirectoryFormSkeleton /> : null}
 
       {!hydrating && activeIndex === 0 ? (
         <div className="space-y-4">
-          <Input label="Name" value={form.name} onChange={(name) => patch({ name })} />
-          <Input label="Type" value={form.type} onChange={(type) => patch({ type })} />
+          <Input
+            label="Name"
+            value={form.name}
+            onChange={(name) => patch({ name })}
+            error={errors.name}
+          />
+          <Input
+            label="Type"
+            value={form.type}
+            onChange={(type) => patch({ type })}
+            error={errors.type}
+          />
           <Input
             label="Max guests"
             value={form.maxGuests}
             onChange={(maxGuests) => patch({ maxGuests })}
+            error={errors.maxGuests}
           />
           <div className="grid gap-4 sm:grid-cols-2">
             <Input

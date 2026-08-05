@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { getPropertyById } from "@/features/directory/api/properties.api";
+import { DirectoryFormSkeleton } from "@/features/directory/components/DirectoryFormSkeleton";
 import { getClientErrorMessage } from "@/features/directory/lib/client-error";
 import type { DirectoryProperty } from "@/features/directory/lib/map-property-row";
 import { Button } from "@/components/ui/Button";
@@ -105,7 +106,7 @@ export function PropertyViewDialog({
 
         <div className="max-h-[55vh] space-y-5 overflow-y-auto px-6 py-5">
           {loading || !property ? (
-            <p className="py-8 text-center text-[13px] text-text-muted">Loading property…</p>
+            <DirectoryFormSkeleton rows={6} />
           ) : (
             <>
               <section className="grid gap-4 sm:grid-cols-2">

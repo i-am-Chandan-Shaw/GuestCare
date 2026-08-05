@@ -24,7 +24,7 @@ export function DirectoryWizardDialog({
   steps,
   activeIndex,
   onActiveIndexChange,
-  canProceed,
+  onValidateStep,
   onSubmit,
   submitLabel,
   loading,
@@ -38,7 +38,8 @@ export function DirectoryWizardDialog({
   steps: DirectoryWizardStep[];
   activeIndex: number;
   onActiveIndexChange: (index: number) => void;
-  canProceed: boolean;
+  /** Return true to advance / submit; return false after surfacing field errors. */
+  onValidateStep: () => boolean;
   onSubmit: () => void;
   submitLabel: string;
   loading?: boolean;
@@ -67,10 +68,17 @@ export function DirectoryWizardDialog({
   };
 
   const goNext = () => {
-    if (!canProceed || isLast) return;
+    if (isLast || loading) return;
+    if (!onValidateStep()) return;
     const next = activeIndex + 1;
     setMaxReached((prev) => Math.max(prev, next));
     onActiveIndexChange(next);
+  };
+
+  const handleSubmit = () => {
+    if (loading) return;
+    if (!onValidateStep()) return;
+    onSubmit();
   };
 
   return (
@@ -104,18 +112,20 @@ export function DirectoryWizardDialog({
                     active
                       ? "bg-brand-primary text-white"
                       : unlocked
-                        ? "text-text-secondary hover:bg-app-bg hover:text-text-primary"
-                        : "cursor-not-allowed text-text-muted opacity-50",
+                        ? "text-text-primary hover:bg-card-bg"
+                        : "cursor-not-allowed text-text-secondary",
                   )}
                 >
                   <span
                     className={cn(
-                      "inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[11px]",
+                      "inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[11px] font-semibold",
                       active
                         ? "bg-white/20 text-white"
                         : completed
                           ? "bg-brand-primary/15 text-brand-primary"
-                          : "bg-border-color/60 text-text-muted",
+                          : unlocked
+                            ? "bg-border-color text-text-secondary"
+                            : "bg-border-color text-text-muted",
                     )}
                   >
                     {completed && !active ? (
@@ -168,9 +178,8 @@ export function DirectoryWizardDialog({
               <Button
                 type="button"
                 size="lg"
-                onClick={onSubmit}
+                onClick={handleSubmit}
                 loading={loading}
-                disabled={!canProceed}
               >
                 {submitLabel}
               </Button>
@@ -179,7 +188,7 @@ export function DirectoryWizardDialog({
                 type="button"
                 size="lg"
                 onClick={goNext}
-                disabled={!canProceed || loading}
+                disabled={loading}
               >
                 Next
               </Button>

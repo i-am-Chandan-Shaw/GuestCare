@@ -26,11 +26,13 @@ export function EscalationField({
   value,
   onChange,
   disabled,
+  error,
 }: {
   label?: string;
   value: EscalationKind | undefined;
   onChange: (value: EscalationKind | undefined) => void;
   disabled?: boolean;
+  error?: string;
 }) {
   const preset = kindToPreset(value);
   const customText = kindToCustomText(value);
@@ -43,6 +45,7 @@ export function EscalationField({
         options={[...PRESETS]}
         optionLabels={PRESET_LABELS}
         disabled={disabled}
+        error={error}
         onChange={(next) => {
           if (next === "custom") {
             onChange({ custom: customText || "" });

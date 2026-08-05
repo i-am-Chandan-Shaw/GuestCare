@@ -6,6 +6,7 @@ import {
   updateCustomer,
 } from "@/features/directory/api/customers.api";
 import { CustomerContactsEditor } from "@/features/directory/components/CustomerContactsEditor";
+import { DirectoryFormSkeleton } from "@/features/directory/components/DirectoryFormSkeleton";
 import { DirectoryWizardDialog } from "@/features/directory/components/DirectoryWizardDialog";
 import { DynamicOrderedList } from "@/features/directory/components/DynamicOrderedList";
 import { getClientErrorMessage } from "@/features/directory/lib/client-error";
@@ -28,6 +29,12 @@ type FormState = {
   pmsPassword: string;
   contacts: CustomerContact[];
   guestVerificationSteps: OrderedStepItem[];
+};
+
+type FieldErrors = {
+  name?: string;
+  email?: string;
+  phone?: string;
 };
 
 const emptyForm = (): FormState => ({
@@ -60,6 +67,8 @@ export function CustomerFormDialog({
 }) {
   const [activeIndex, setActiveIndex] = useState(0);
   const [form, setForm] = useState<FormState>(emptyForm);
+  const [errors, setErrors] = useState<FieldErrors>({});
+  const [phoneValid, setPhoneValid] = useState(true);
   const [loading, setLoading] = useState(false);
   const [hydrating, setHydrating] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -71,6 +80,8 @@ export function CustomerFormDialog({
     if (!open) return;
     setActiveIndex(0);
     setShowPassword(false);
+    setErrors({});
+    setPhoneValid(true);
 
     if (mode === "create" || !customerId) {
       setForm(emptyForm());
@@ -109,23 +120,39 @@ export function CustomerFormDialog({
 
   const patch = (partial: Partial<FormState>) => {
     setForm((prev) => ({ ...prev, ...partial }));
+    setErrors((prev) => {
+      const next = { ...prev };
+      for (const key of Object.keys(partial) as (keyof FormState)[]) {
+        if (key in next) delete next[key as keyof FieldErrors];
+      }
+      return next;
+    });
   };
 
-  const canProceed =
-    activeIndex === 0
-      ? form.name.trim().length > 0 && isValidEmail(form.email.trim())
-      : true;
+  const validateBasics = () => {
+    const nextErrors: FieldErrors = {};
+    if (!form.name.trim()) nextErrors.name = "Name is required";
+    if (!isValidEmail(form.email.trim())) nextErrors.email = "Enter a valid email";
+    if (form.phone.trim() && !phoneValid) nextErrors.phone = "Enter a valid phone number";
+    setErrors(nextErrors);
+    if (Object.keys(nextErrors).length > 0) {
+      setActiveIndex(0);
+      return false;
+    }
+    return true;
+  };
+
+  const validateStep = () => {
+    if (hydrating) return false;
+    // Basics gate for step 0 (Next) and final submit (last step).
+    if (activeIndex === 0 || activeIndex === STEPS.length - 1) {
+      return validateBasics();
+    }
+    setErrors({});
+    return true;
+  };
 
   const handleSubmit = async () => {
-    if (!form.name.trim()) {
-      setActiveIndex(0);
-      return;
-    }
-    if (!isValidEmail(form.email.trim())) {
-      setActiveIndex(0);
-      return;
-    }
-
     setLoading(true);
     try {
       const payload = {
@@ -171,21 +198,38 @@ export function CustomerFormDialog({
       mode={mode}
       steps={[...STEPS]}
       activeIndex={activeIndex}
-      onActiveIndexChange={setActiveIndex}
-      canProceed={!hydrating && canProceed}
+      onActiveIndexChange={(index) => {
+        setErrors({});
+        setActiveIndex(index);
+      }}
+      onValidateStep={validateStep}
       onSubmit={() => void handleSubmit()}
       submitLabel={mode === "create" ? "Create customer" : "Save changes"}
       loading={loading || hydrating}
     >
-      {hydrating ? (
-        <p className="py-10 text-center text-[13px] text-text-muted">Loading customer…</p>
-      ) : null}
+      {hydrating ? <DirectoryFormSkeleton /> : null}
 
       {!hydrating && activeIndex === 0 ? (
         <div className="space-y-4">
-          <Input label="Name" value={form.name} onChange={(name) => patch({ name })} />
-          <Input label="Email" value={form.email} onChange={(email) => patch({ email })} />
-          <Phone label="Phone" value={form.phone} onChange={(phone) => patch({ phone })} />
+          <Input
+            label="Name"
+            value={form.name}
+            onChange={(name) => patch({ name })}
+            error={errors.name}
+          />
+          <Input
+            label="Email"
+            value={form.email}
+            onChange={(email) => patch({ email })}
+            error={errors.email}
+          />
+          <Phone
+            label="Phone"
+            value={form.phone}
+            onChange={(phone) => patch({ phone })}
+            onValidityChange={setPhoneValid}
+            error={errors.phone}
+          />
         </div>
       ) : null}
 
