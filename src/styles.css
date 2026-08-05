@@ -228,26 +228,43 @@
   border-color: transparent !important;
 }
 
-/* Directory form modal skeleton — soft shimmer over input-shaped placeholders */
+/* Directory form modal skeleton — sweeping highlight over muted input shells */
 @keyframes gc-form-skeleton-shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
   100% {
     transform: translateX(100%);
   }
+}
+
+.gc-form-skeleton__field {
+  background: color-mix(in srgb, var(--kn-color-skeleton) 42%, var(--kn-color-surface));
+}
+
+.gc-form-skeleton__bar {
+  background: var(--kn-color-skeleton);
+}
+
+.gc-form-skeleton__bar--value {
+  background: color-mix(in srgb, var(--kn-color-skeleton) 72%, #c9c4bc);
 }
 
 .gc-form-skeleton__shimmer {
   pointer-events: none;
   position: absolute;
   inset: 0;
-  z-index: 0;
+  z-index: 2;
   transform: translateX(-100%);
   background: linear-gradient(
     90deg,
     transparent 0%,
-    rgba(255, 255, 255, 0.55) 45%,
+    rgba(255, 255, 255, 0.15) 35%,
+    rgba(255, 255, 255, 0.85) 50%,
+    rgba(255, 255, 255, 0.15) 65%,
     transparent 100%
   );
-  animation: gc-form-skeleton-shimmer 1.35s ease-in-out infinite;
+  animation: gc-form-skeleton-shimmer 1.5s ease-in-out infinite;
   animation-delay: var(--gc-skeleton-delay, 0ms);
 }
 

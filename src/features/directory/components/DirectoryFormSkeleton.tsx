@@ -12,14 +12,16 @@ function FieldSkeleton({
   valueWidth: string;
 }) {
   return (
-    <div className="gc-form-skeleton__field relative h-12 overflow-hidden rounded-[var(--kn-radius-lg)] border border-input-border bg-card-bg">
+    <div className="gc-form-skeleton__field relative h-12 overflow-hidden rounded-[var(--kn-radius-lg)] border border-input-border">
+      <div className="relative z-[1] px-3 pt-2">
+        <div className={cn("gc-form-skeleton__bar h-1.5 rounded-sm", labelWidth)} />
+      </div>
+      <div className="relative z-[1] px-3 pt-2">
+        <div
+          className={cn("gc-form-skeleton__bar gc-form-skeleton__bar--value h-2.5 rounded-sm", valueWidth)}
+        />
+      </div>
       <div className="gc-form-skeleton__shimmer" aria-hidden />
-      <div className="relative z-[1] px-3 pt-2">
-        <div className={cn("h-1.5 rounded-sm bg-[var(--kn-color-skeleton)]", labelWidth)} />
-      </div>
-      <div className="relative z-[1] px-3 pt-2">
-        <div className={cn("h-2.5 rounded-sm bg-[var(--kn-color-skeleton)]/65", valueWidth)} />
-      </div>
     </div>
   );
 }
