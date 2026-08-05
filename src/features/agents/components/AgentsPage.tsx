@@ -79,11 +79,11 @@ export function AgentsPage() {
       isMounted.current = true;
       return;
     }
-    gridRef.current?.api?.purgeInfiniteCache();
+    gridRef.current?.api?.refreshInfiniteCache();
   }, [debouncedSearch]);
 
   const handleSaved = () => {
-    gridRef.current?.api?.purgeInfiniteCache();
+    gridRef.current?.api?.refreshInfiniteCache();
   };
 
   return (

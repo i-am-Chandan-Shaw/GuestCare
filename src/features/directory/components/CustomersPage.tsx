@@ -96,11 +96,11 @@ export function CustomersPage() {
       isMounted.current = true;
       return;
     }
-    gridRef.current?.api?.purgeInfiniteCache();
+    gridRef.current?.api?.refreshInfiniteCache();
   }, [debouncedSearch]);
 
   const handleSaved = () => {
-    gridRef.current?.api?.purgeInfiniteCache();
+    gridRef.current?.api?.refreshInfiniteCache();
   };
 
   const handleCellClicked = (event: CellClickedEvent<CustomerListItem>) => {
@@ -116,7 +116,7 @@ export function CustomersPage() {
       await deleteCustomer(deleteTarget.id);
       toast.success("Customer deleted.");
       setDeleteTarget(null);
-      gridRef.current?.api?.purgeInfiniteCache();
+      gridRef.current?.api?.refreshInfiniteCache();
     } catch (error) {
       toast.error(getClientErrorMessage(error, "Failed to delete customer."));
     } finally {

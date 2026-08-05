@@ -98,7 +98,7 @@ export function ReportsPage({
       isMounted.current = true;
       return;
     }
-    gridRef.current?.api?.purgeInfiniteCache();
+    gridRef.current?.api?.refreshInfiniteCache();
   }, [appliedFilters, customerId, currentAgent.id]);
 
   if (selectedReportId) {

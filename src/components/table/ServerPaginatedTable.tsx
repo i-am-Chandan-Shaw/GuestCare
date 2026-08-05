@@ -155,7 +155,6 @@ export function ServerPaginatedTable<TData>({
             defaultColDef={defaultColDef}
             rowModelType="infinite"
             cacheBlockSize={SERVER_TABLE_PAGE_SIZE}
-            maxBlocksInCache={3}
             rowHeight={48}
             headerHeight={44}
             alwaysShowHorizontalScroll

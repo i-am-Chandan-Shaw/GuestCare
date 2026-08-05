@@ -143,11 +143,11 @@ export function ProtocolsPage() {
       isMounted.current = true;
       return;
     }
-    gridRef.current?.api?.purgeInfiniteCache();
+    gridRef.current?.api?.refreshInfiniteCache();
   }, [debouncedSearch, propertyId]);
 
   const handleSaved = () => {
-    gridRef.current?.api?.purgeInfiniteCache();
+    gridRef.current?.api?.refreshInfiniteCache();
   };
 
   const handleCellClicked = (event: CellClickedEvent<ProtocolListItem>) => {
@@ -163,7 +163,7 @@ export function ProtocolsPage() {
       await deleteProtocol(deleteTarget.id);
       toast.success("Protocol deleted.");
       setDeleteTarget(null);
-      gridRef.current?.api?.purgeInfiniteCache();
+      gridRef.current?.api?.refreshInfiniteCache();
     } catch (error) {
       toast.error(getClientErrorMessage(error, "Failed to delete protocol."));
     } finally {

@@ -131,11 +131,11 @@ export function PropertiesPage() {
       isMounted.current = true;
       return;
     }
-    gridRef.current?.api?.purgeInfiniteCache();
+    gridRef.current?.api?.refreshInfiniteCache();
   }, [debouncedSearch, customerId]);
 
   const handleSaved = () => {
-    gridRef.current?.api?.purgeInfiniteCache();
+    gridRef.current?.api?.refreshInfiniteCache();
   };
 
   const handleCellClicked = (event: CellClickedEvent<PropertyListItem>) => {
@@ -151,7 +151,7 @@ export function PropertiesPage() {
       await deleteProperty(deleteTarget.id);
       toast.success("Property deleted.");
       setDeleteTarget(null);
-      gridRef.current?.api?.purgeInfiniteCache();
+      gridRef.current?.api?.refreshInfiniteCache();
     } catch (error) {
       toast.error(getClientErrorMessage(error, "Failed to delete property."));
     } finally {
