@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { CellClickedEvent, IGetRowsParams } from "ag-grid-community";
 import type { AgGridReact } from "ag-grid-react";
-import { useNavigate, useParams } from "@tanstack/react-router";
+import { useNavigate, useParams, useSearch } from "@tanstack/react-router";
 import { toast } from "sonner";
 import { getCustomerById } from "@/features/directory/api/customers.api";
 import {
@@ -9,7 +9,6 @@ import {
   getPropertiesPaginated,
 } from "@/features/directory/api/properties.api";
 import { ConfirmDeleteDialog } from "@/features/directory/components/ConfirmDeleteDialog";
-import { DirectoryBreadcrumb } from "@/features/directory/components/DirectoryBreadcrumb";
 import { DirectoryListLayout } from "@/features/directory/components/DirectoryListLayout";
 import { PropertyFormDialog } from "@/features/directory/components/PropertyFormDialog";
 import { PropertyViewDialog } from "@/features/directory/components/PropertyViewDialog";
@@ -26,8 +25,13 @@ import { useDebouncedValue } from "@/shared/hooks/use-debounced-value";
 export function PropertiesPage() {
   const navigate = useNavigate();
   const { customerId } = useParams({ from: "/_authenticated/_shell/directory/$customerId/" });
+  const { customerName: customerNameFromSearch } = useSearch({
+    from: "/_authenticated/_shell/directory/$customerId/",
+  });
 
-  const [customerName, setCustomerName] = useState<string | null>(null);
+  const [customerName, setCustomerName] = useState<string | null>(
+    () => customerNameFromSearch?.trim() || null,
+  );
   const [search, setSearch] = useState("");
   const debouncedSearch = useDebouncedValue(search, 300);
   const gridRef = useRef<AgGridReact<PropertyListItem>>(null);
@@ -42,6 +46,12 @@ export function PropertiesPage() {
   const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
+    const fromSearch = customerNameFromSearch?.trim() || null;
+    if (fromSearch) {
+      setCustomerName(fromSearch);
+      return;
+    }
+
     let cancelled = false;
     void getCustomerById(customerId)
       .then((customer) => {
@@ -55,16 +65,20 @@ export function PropertiesPage() {
     return () => {
       cancelled = true;
     };
-  }, [customerId, navigate]);
+  }, [customerId, customerNameFromSearch, navigate]);
 
   const openProtocols = useCallback(
     (property: PropertyListItem) => {
       void navigate({
         to: "/directory/$customerId/$propertyId",
         params: { customerId, propertyId: property.id },
+        search: {
+          customerName: customerName ?? undefined,
+          propertyName: property.name,
+        },
       });
     },
-    [customerId, navigate],
+    [customerId, customerName, navigate],
   );
 
   const openCreate = () => {
@@ -155,14 +169,12 @@ export function PropertiesPage() {
   return (
     <>
       <DirectoryListLayout
-        breadcrumb={
-          <DirectoryBreadcrumb
-            items={[
-              { label: "Directory", to: "/directory" },
-              { label: customerName ?? "…" },
-            ]}
-          />
-        }
+        title={customerName ?? "…"}
+        subtitle="Properties"
+        backLabel="Back to directory"
+        onBack={() => {
+          void navigate({ to: "/directory" });
+        }}
         addLabel="Add property"
         onAdd={openCreate}
         toolbar={

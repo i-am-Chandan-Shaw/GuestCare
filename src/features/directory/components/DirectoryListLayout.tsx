@@ -1,11 +1,12 @@
 import type { ReactNode } from "react";
 import { Button } from "@/components/ui/Button";
-import { Plus } from "lucide-react";
+import { ChevronLeft, Plus } from "lucide-react";
 
 export function DirectoryListLayout({
   title,
   subtitle,
-  breadcrumb,
+  backLabel,
+  onBack,
   addLabel,
   onAdd,
   toolbar,
@@ -13,7 +14,8 @@ export function DirectoryListLayout({
 }: {
   title?: string;
   subtitle?: string;
-  breadcrumb?: ReactNode;
+  backLabel?: string;
+  onBack?: () => void;
   addLabel?: string;
   onAdd?: () => void;
   toolbar?: ReactNode;
@@ -22,20 +24,31 @@ export function DirectoryListLayout({
   return (
     <div className="flex h-full min-h-0 w-full flex-col overflow-hidden">
       <div className="shrink-0 border-b border-border-color bg-white/80 px-5 py-4 backdrop-blur-xl">
-        <div className="flex items-start justify-between gap-4">
-          <div className="min-w-0">
-            {breadcrumb ?? (
-              <>
-                <h1 className="text-lg font-black uppercase tracking-tight text-text-primary">
+        <div className="flex items-center justify-between gap-4">
+          <div className="flex min-w-0 items-center gap-2">
+            {onBack ? (
+              <button
+                type="button"
+                onClick={onBack}
+                aria-label={backLabel ?? "Go back"}
+                title={backLabel ?? "Go back"}
+                className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-app-bg text-text-secondary transition-colors hover:bg-border-color hover:text-text-primary"
+              >
+                <ChevronLeft className="h-4 w-4" strokeWidth={2} />
+              </button>
+            ) : null}
+            <div className="min-w-0">
+              {title ? (
+                <h1 className="truncate text-lg font-black uppercase tracking-tight text-text-primary">
                   {title}
                 </h1>
-                {subtitle ? (
-                  <p className="mt-1 text-[11px] font-semibold uppercase tracking-wide text-text-secondary">
-                    {subtitle}
-                  </p>
-                ) : null}
-              </>
-            )}
+              ) : null}
+              {subtitle ? (
+                <p className="mt-1 truncate text-[11px] font-semibold uppercase tracking-wide text-text-secondary">
+                  {subtitle}
+                </p>
+              ) : null}
+            </div>
           </div>
           {addLabel && onAdd ? (
             <Button type="button" size="sm" onClick={onAdd} className="shrink-0">

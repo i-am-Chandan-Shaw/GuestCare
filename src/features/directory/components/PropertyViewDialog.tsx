@@ -216,12 +216,19 @@ export function PropertyViewDialog({
           )}
         </div>
 
-        <DialogFooter className="gap-3 border-t border-border-color px-6 py-4 sm:flex-row sm:justify-end">
-          <Button variant="secondary" onClick={() => onOpenChange(false)}>
-            Close
+        <DialogFooter className="shrink-0 gap-3 border-t border-border-color px-6 py-4 sm:flex-row sm:justify-end">
+          <Button
+            type="button"
+            variant="secondary"
+            size="lg"
+            onClick={() => onOpenChange(false)}
+          >
+            Cancel
           </Button>
           {property && onEdit ? (
             <Button
+              type="button"
+              size="lg"
               onClick={() => {
                 onOpenChange(false);
                 onEdit(property.id);

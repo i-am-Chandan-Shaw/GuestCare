@@ -41,6 +41,7 @@ export function CustomersPage() {
       void navigate({
         to: "/directory/$customerId",
         params: { customerId: customer.id },
+        search: { customerName: customer.name },
       });
     },
     [navigate],

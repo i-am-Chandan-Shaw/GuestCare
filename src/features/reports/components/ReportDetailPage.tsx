@@ -230,7 +230,7 @@ export function ReportDetailPage({ reportId, onBack }: { reportId: string; onBac
             type="button"
             onClick={onBack}
             aria-label="Back to reports"
-            className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-text-secondary transition-colors hover:bg-app-bg hover:text-text-primary"
+            className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-app-bg text-text-secondary transition-colors hover:bg-border-color hover:text-text-primary"
           >
             <ChevronLeft className="h-4 w-4" strokeWidth={2} />
           </button>
@@ -284,7 +284,7 @@ export function ReportDetailPage({ reportId, onBack }: { reportId: string; onBac
           type="button"
           onClick={onBack}
           aria-label="Back to reports"
-          className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-text-secondary transition-colors hover:bg-app-bg hover:text-text-primary"
+          className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-app-bg text-text-secondary transition-colors hover:bg-border-color hover:text-text-primary"
         >
           <ChevronLeft className="h-4 w-4" strokeWidth={2} />
         </button>

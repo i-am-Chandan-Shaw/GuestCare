@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { CellClickedEvent, IGetRowsParams } from "ag-grid-community";
 import type { AgGridReact } from "ag-grid-react";
-import { useNavigate, useParams } from "@tanstack/react-router";
+import { useNavigate, useParams, useSearch } from "@tanstack/react-router";
 import { toast } from "sonner";
 import { getCustomerById } from "@/features/directory/api/customers.api";
 import { getPropertyById } from "@/features/directory/api/properties.api";
@@ -10,7 +10,6 @@ import {
   getProtocolsPaginated,
 } from "@/features/directory/api/protocols.api";
 import { ConfirmDeleteDialog } from "@/features/directory/components/ConfirmDeleteDialog";
-import { DirectoryBreadcrumb } from "@/features/directory/components/DirectoryBreadcrumb";
 import { DirectoryListLayout } from "@/features/directory/components/DirectoryListLayout";
 import { ProtocolFormDialog } from "@/features/directory/components/ProtocolFormDialog";
 import { ProtocolViewDialog } from "@/features/directory/components/ProtocolViewDialog";
@@ -29,9 +28,16 @@ export function ProtocolsPage() {
   const { customerId, propertyId } = useParams({
     from: "/_authenticated/_shell/directory/$customerId/$propertyId",
   });
+  const { customerName: customerNameFromSearch, propertyName: propertyNameFromSearch } = useSearch({
+    from: "/_authenticated/_shell/directory/$customerId/$propertyId",
+  });
 
-  const [customerName, setCustomerName] = useState<string | null>(null);
-  const [propertyName, setPropertyName] = useState<string | null>(null);
+  const [customerName, setCustomerName] = useState<string | null>(
+    () => customerNameFromSearch?.trim() || null,
+  );
+  const [propertyName, setPropertyName] = useState<string | null>(
+    () => propertyNameFromSearch?.trim() || null,
+  );
   const [search, setSearch] = useState("");
   const debouncedSearch = useDebouncedValue(search, 300);
   const gridRef = useRef<AgGridReact<ProtocolListItem>>(null);
@@ -46,15 +52,27 @@ export function ProtocolsPage() {
   const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
+    const nextCustomerName = customerNameFromSearch?.trim() || null;
+    const nextPropertyName = propertyNameFromSearch?.trim() || null;
+    if (nextCustomerName) setCustomerName(nextCustomerName);
+    if (nextPropertyName) setPropertyName(nextPropertyName);
+
+    const needsCustomer = !nextCustomerName;
+    const needsProperty = !nextPropertyName;
+    if (!needsCustomer && !needsProperty) return;
+
     let cancelled = false;
-    void Promise.all([getCustomerById(customerId), getPropertyById(propertyId)])
+    void Promise.all([
+      needsCustomer ? getCustomerById(customerId) : Promise.resolve(null),
+      needsProperty ? getPropertyById(propertyId) : Promise.resolve(null),
+    ])
       .then(([customer, property]) => {
         if (cancelled) return;
-        if (property.customerId !== customerId) {
+        if (property && property.customerId !== customerId) {
           throw new Error("Property does not belong to this customer.");
         }
-        setCustomerName(customer.name);
-        setPropertyName(property.name);
+        if (customer) setCustomerName(customer.name);
+        if (property) setPropertyName(property.name);
       })
       .catch((error) => {
         if (cancelled) return;
@@ -62,12 +80,19 @@ export function ProtocolsPage() {
         void navigate({
           to: "/directory/$customerId",
           params: { customerId },
+          search: { customerName: customerNameFromSearch },
         });
       });
     return () => {
       cancelled = true;
     };
-  }, [customerId, propertyId, navigate]);
+  }, [
+    customerId,
+    propertyId,
+    customerNameFromSearch,
+    propertyNameFromSearch,
+    navigate,
+  ]);
 
   const openCreate = () => {
     setDialogMode("create");
@@ -156,19 +181,16 @@ export function ProtocolsPage() {
   return (
     <>
       <DirectoryListLayout
-        breadcrumb={
-          <DirectoryBreadcrumb
-            items={[
-              { label: "Directory", to: "/directory" },
-              {
-                label: customerName ?? "…",
-                to: "/directory/$customerId",
-                params: { customerId },
-              },
-              { label: propertyName ?? "…" },
-            ]}
-          />
-        }
+        title={propertyName ?? "…"}
+        subtitle={customerName ? `${customerName} · Protocols` : "Protocols"}
+        backLabel="Back to properties"
+        onBack={() => {
+          void navigate({
+            to: "/directory/$customerId",
+            params: { customerId },
+            search: { customerName: customerName ?? undefined },
+          });
+        }}
         addLabel="Add protocol"
         onAdd={openCreate}
         toolbar={
