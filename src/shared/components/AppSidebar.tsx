@@ -83,11 +83,11 @@ export function AppSidebar() {
               className={cn(
                 "flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-[13px] font-medium transition-colors duration-150",
                 isActive
-                  ? "btn-primary-gradient text-white"
-                  : "text-sidebar-text hover:bg-white/[0.05] hover:text-white",
+                  ? "bg-brand-primary text-white"
+                  : "bg-transparent text-sidebar-text hover:bg-white/[0.05] hover:text-white",
               )}
             >
-              <Icon className="h-[18px] w-[18px] shrink-0" strokeWidth={isActive ? 2.25 : 1.75} />
+              <Icon className="h-[18px] w-[18px] shrink-0" strokeWidth={1.75} />
               <span className="truncate">{item.label}</span>
             </Link>
           );

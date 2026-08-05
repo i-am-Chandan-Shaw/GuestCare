@@ -9,6 +9,7 @@ import {
 } from "@/features/directory/api/customers.api";
 import { ConfirmDeleteDialog } from "@/features/directory/components/ConfirmDeleteDialog";
 import { CustomerFormDialog } from "@/features/directory/components/CustomerFormDialog";
+import { CustomerViewDialog } from "@/features/directory/components/CustomerViewDialog";
 import { createCustomersTableColumnDefs } from "@/features/directory/components/customers-table-columns";
 import { DirectoryListLayout } from "@/features/directory/components/DirectoryListLayout";
 import { getClientErrorMessage } from "@/features/directory/lib/client-error";
@@ -30,6 +31,7 @@ export function CustomersPage() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [dialogMode, setDialogMode] = useState<"create" | "edit">("create");
   const [editingCustomerId, setEditingCustomerId] = useState<string | null>(null);
+  const [viewCustomerId, setViewCustomerId] = useState<string | null>(null);
 
   const [deleteTarget, setDeleteTarget] = useState<CustomerListItem | null>(null);
   const [deleting, setDeleting] = useState(false);
@@ -56,15 +58,19 @@ export function CustomersPage() {
     setDialogOpen(true);
   }, []);
 
+  const openView = useCallback((customer: CustomerListItem) => {
+    setViewCustomerId(customer.id);
+  }, []);
+
   const columnDefs = useMemo(
     () =>
       createCustomersTableColumnDefs({
-        onView: openProperties,
+        onView: openView,
         onEdit: openEdit,
         onDelete: setDeleteTarget,
         onShowProperties: openProperties,
       }),
-    [openEdit, openProperties],
+    [openEdit, openProperties, openView],
   );
 
   const handleFetchData = useCallback(
@@ -159,6 +165,19 @@ export function CustomersPage() {
         customerId={editingCustomerId}
         onOpenChange={setDialogOpen}
         onSaved={handleSaved}
+      />
+
+      <CustomerViewDialog
+        open={Boolean(viewCustomerId)}
+        customerId={viewCustomerId}
+        onOpenChange={(open) => {
+          if (!open) setViewCustomerId(null);
+        }}
+        onEdit={(id) => {
+          setDialogMode("edit");
+          setEditingCustomerId(id);
+          setDialogOpen(true);
+        }}
       />
 
       <ConfirmDeleteDialog

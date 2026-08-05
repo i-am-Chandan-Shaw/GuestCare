@@ -106,6 +106,7 @@ export function createCustomersTableColumnDefs(handlers: {
       maxWidth: 52,
       sortable: false,
       filter: false,
+      resizable: false,
       suppressSizeToFit: true,
       cellRenderer: ActionsCell,
       cellRendererParams: handlers,

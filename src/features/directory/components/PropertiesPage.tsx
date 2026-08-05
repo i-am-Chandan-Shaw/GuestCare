@@ -12,6 +12,7 @@ import { ConfirmDeleteDialog } from "@/features/directory/components/ConfirmDele
 import { DirectoryBreadcrumb } from "@/features/directory/components/DirectoryBreadcrumb";
 import { DirectoryListLayout } from "@/features/directory/components/DirectoryListLayout";
 import { PropertyFormDialog } from "@/features/directory/components/PropertyFormDialog";
+import { PropertyViewDialog } from "@/features/directory/components/PropertyViewDialog";
 import { createPropertiesTableColumnDefs } from "@/features/directory/components/properties-table-columns";
 import { getClientErrorMessage } from "@/features/directory/lib/client-error";
 import type { PropertyListItem } from "@/features/directory/lib/map-property-row";
@@ -35,6 +36,7 @@ export function PropertiesPage() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [dialogMode, setDialogMode] = useState<"create" | "edit">("create");
   const [editingPropertyId, setEditingPropertyId] = useState<string | null>(null);
+  const [viewPropertyId, setViewPropertyId] = useState<string | null>(null);
 
   const [deleteTarget, setDeleteTarget] = useState<PropertyListItem | null>(null);
   const [deleting, setDeleting] = useState(false);
@@ -77,15 +79,19 @@ export function PropertiesPage() {
     setDialogOpen(true);
   }, []);
 
+  const openView = useCallback((property: PropertyListItem) => {
+    setViewPropertyId(property.id);
+  }, []);
+
   const columnDefs = useMemo(
     () =>
       createPropertiesTableColumnDefs({
-        onView: openProtocols,
+        onView: openView,
         onEdit: openEdit,
         onDelete: setDeleteTarget,
         onShowProtocols: openProtocols,
       }),
-    [openEdit, openProtocols],
+    [openEdit, openProtocols, openView],
   );
 
   const handleFetchData = useCallback(
@@ -190,6 +196,19 @@ export function PropertiesPage() {
         onSaved={handleSaved}
       />
 
+      <PropertyViewDialog
+        open={Boolean(viewPropertyId)}
+        propertyId={viewPropertyId}
+        onOpenChange={(open) => {
+          if (!open) setViewPropertyId(null);
+        }}
+        onEdit={(id) => {
+          setDialogMode("edit");
+          setEditingPropertyId(id);
+          setDialogOpen(true);
+        }}
+      />
+
       <ConfirmDeleteDialog
         open={Boolean(deleteTarget)}
         onOpenChange={(open) => {
@@ -198,7 +217,7 @@ export function PropertiesPage() {
         title="Delete property?"
         description={
           deleteTarget
-            ? `Delete ${deleteTarget.name}? Protocols for this property will be removed when that table exists.`
+            ? `Delete ${deleteTarget.name}? This also removes protocols for this property.`
             : ""
         }
         loading={deleting}
