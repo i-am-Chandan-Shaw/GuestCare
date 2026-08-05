@@ -98,8 +98,8 @@ export function FloatingShell({
             "pointer-events-none absolute left-3 z-[1] origin-left uppercase tracking-wide transition-all duration-150",
             hasError ? "text-destructive" : "text-text-muted",
             floated
-              ? "top-2 translate-y-0 text-[10px] font-semibold"
-              : "top-1/2 -translate-y-1/2 text-[15px] font-medium",
+              ? "top-[6px] translate-y-0 text-[10px] font-[600]"
+              : "top-1/2 -translate-y-1/2 text-[15px] font-[500]",
             labelClassName
           )}
         >
@@ -186,6 +186,7 @@ export function FloatingLabelInput({
           onBlur={onBlur}
           disabled={disabled}
           readOnly={readOnly}
+          tabIndex={readOnly || disabled ? -1 : undefined}
           autoComplete={autoComplete}
           required={required}
           placeholder={label}
@@ -242,6 +243,7 @@ export function FloatingLabelTextarea({
           onBlur={onBlur}
           disabled={disabled}
           readOnly={readOnly}
+          tabIndex={readOnly || disabled ? -1 : undefined}
           rows={rows}
           placeholder={label}
           aria-invalid={ariaInvalid}

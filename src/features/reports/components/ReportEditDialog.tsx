@@ -91,7 +91,18 @@ export function ReportEditDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="flex max-h-[min(92vh,820px)] max-w-2xl flex-col gap-0 overflow-hidden p-0 sm:rounded-xl">
+      <DialogContent
+        className="flex max-h-[min(92vh,820px)] max-w-2xl flex-col gap-0 overflow-hidden p-0 sm:rounded-xl"
+        onOpenAutoFocus={(event) => {
+          // Skip read-only customer/property fields; focus the first editable input.
+          event.preventDefault();
+          const root = event.currentTarget;
+          const editable = root.querySelector<HTMLElement>(
+            'input:not([readonly]):not([disabled]):not([tabindex="-1"]), select:not([disabled]), textarea:not([readonly]):not([disabled])',
+          );
+          editable?.focus();
+        }}
+      >
         <DialogHeader className="shrink-0 space-y-1 border-b border-border-color px-6 py-5 text-left">
           <DialogTitle className="text-[18px] font-bold tracking-tight text-text-primary">
             Edit report

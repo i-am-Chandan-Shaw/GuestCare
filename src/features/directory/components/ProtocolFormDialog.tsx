@@ -293,7 +293,7 @@ export function ProtocolFormDialog({
       submitLabel={mode === "create" ? "Create protocol" : "Save changes"}
       loading={loading || hydrating}
     >
-      {hydrating ? <DirectoryFormSkeleton /> : null}
+      {hydrating ? <DirectoryFormSkeleton rows={4} /> : null}
 
       {!hydrating && activeIndex === 0 ? (
         <div className="space-y-4">

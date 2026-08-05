@@ -207,7 +207,7 @@ export function CustomerFormDialog({
       submitLabel={mode === "create" ? "Create customer" : "Save changes"}
       loading={loading || hydrating}
     >
-      {hydrating ? <DirectoryFormSkeleton /> : null}
+      {hydrating ? <DirectoryFormSkeleton rows={3} /> : null}
 
       {!hydrating && activeIndex === 0 ? (
         <div className="space-y-4">

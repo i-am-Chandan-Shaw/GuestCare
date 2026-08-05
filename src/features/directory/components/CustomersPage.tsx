@@ -156,6 +156,7 @@ export function CustomersPage() {
           getRowId={({ data }) => data.id}
           emptyMessage="No customers match your search."
           height="100%"
+          className="ag-grid-guestcare ag-grid-guestcare--clickable-rows"
           onCellClicked={handleCellClicked}
         />
       </DirectoryListLayout>

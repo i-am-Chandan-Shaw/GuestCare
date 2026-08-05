@@ -227,3 +227,32 @@
   color: var(--kn-color-text-primary) !important;
   border-color: transparent !important;
 }
+
+/* Directory form modal skeleton — soft shimmer over input-shaped placeholders */
+@keyframes gc-form-skeleton-shimmer {
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+.gc-form-skeleton__shimmer {
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.55) 45%,
+    transparent 100%
+  );
+  animation: gc-form-skeleton-shimmer 1.35s ease-in-out infinite;
+  animation-delay: var(--gc-skeleton-delay, 0ms);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gc-form-skeleton__shimmer {
+    animation: none;
+  }
+}

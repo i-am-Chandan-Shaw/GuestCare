@@ -195,6 +195,7 @@ export function PropertiesPage() {
           getRowId={({ data }) => data.id}
           emptyMessage="No properties match your search."
           height="100%"
+          className="ag-grid-guestcare ag-grid-guestcare--clickable-rows"
           onCellClicked={handleCellClicked}
         />
       </DirectoryListLayout>
