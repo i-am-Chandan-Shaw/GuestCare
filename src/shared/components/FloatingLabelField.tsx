@@ -10,12 +10,13 @@ export type FloatingEndAction = {
   disabled?: boolean;
 };
 
-type ShellProps = {
+export type ShellProps = {
   label: string;
   value: string;
   disabled?: boolean;
   readOnly?: boolean;
   className?: string;
+  labelClassName?: string;
   id?: string;
   endAction?: FloatingEndAction;
   alwaysFloat?: boolean;
@@ -57,12 +58,13 @@ function EndActionButton({
   );
 }
 
-function FloatingShell({
+export function FloatingShell({
   label,
   value,
   disabled,
   readOnly,
   className,
+  labelClassName,
   id: idProp,
   endAction,
   alwaysFloat,
@@ -97,7 +99,8 @@ function FloatingShell({
             hasError ? "text-destructive" : "text-text-muted",
             floated
               ? "top-2 translate-y-0 text-[10px] font-semibold"
-              : "top-1/2 -translate-y-1/2 text-[13px] font-medium",
+              : "top-1/2 -translate-y-1/2 text-[15px] font-medium",
+            labelClassName
           )}
         >
           {label}
@@ -111,7 +114,7 @@ function FloatingShell({
           ariaInvalid: hasError || undefined,
           ariaDescribedBy: hasError ? errorId : undefined,
           className: cn(
-            "w-full bg-transparent text-[13px] text-text-primary outline-none",
+            "w-full bg-transparent text-[15px] font-medium text-text-primary outline-none",
             "placeholder:text-transparent",
             floated ? "pb-2.5 pt-5" : "py-3",
             endAction ? "pr-11" : "pr-3",
@@ -188,7 +191,7 @@ export function FloatingLabelInput({
           placeholder={label}
           aria-invalid={ariaInvalid}
           aria-describedby={ariaDescribedBy}
-          className={cn(fieldClassName, "h-[52px]", mono && "font-mono")}
+          className={cn(fieldClassName, "h-12", mono && "font-mono")}
         />
       )}
     </FloatingShell>
@@ -296,7 +299,7 @@ export function FloatingLabelSelect({
           aria-describedby={ariaDescribedBy}
           className={cn(
             fieldClassName,
-            "h-[52px] appearance-none font-medium",
+            "h-12 appearance-none font-medium",
             "bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20width%3D%2220%22%20height%3D%2220%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Cpath%20d%3D%22M5%208l5%205%205-5%22%20stroke%3D%22%23666%22%20stroke-width%3D%221.5%22%20fill%3D%22none%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%2F%3E%3C%2Fsvg%3E')] bg-no-repeat bg-[position:right_0.5rem_center]",
             endAction ? "pr-16" : "pr-9",
             disabled ? "cursor-not-allowed" : "cursor-pointer",
@@ -416,3 +419,6 @@ export {
   FloatingLabelTextarea as Textarea,
   FloatingLabelSelect as Select,
 };
+
+export { FloatingLabelPhone as Phone } from "./FloatingLabelPhone";
+

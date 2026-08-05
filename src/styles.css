@@ -2,6 +2,7 @@
 @source "../src";
 @import "tw-animate-css";
 @import "./styles/keynest-tokens.css";
+@import "./styles/phone-input.css";
 
 @custom-variant dark (&:is(.dark *));
 

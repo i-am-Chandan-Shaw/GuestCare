@@ -1,6 +1,6 @@
 import { ArrowDown, ArrowUp, Plus, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
-import { Input } from "@/shared/components/FloatingLabelField";
+import { Input, Phone } from "@/shared/components/FloatingLabelField";
 import type { CustomerContact } from "@/shared/types";
 
 export function CustomerContactsEditor({
@@ -48,7 +48,7 @@ export function CustomerContactsEditor({
                   value={contact.name}
                   onChange={(value) => updateAt(index, { name: value })}
                 />
-                <Input
+                <Phone
                   label="Phone"
                   value={contact.phone}
                   onChange={(value) => updateAt(index, { phone: value })}

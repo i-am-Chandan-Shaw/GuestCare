@@ -10,7 +10,7 @@ import { DirectoryWizardDialog } from "@/features/directory/components/Directory
 import { DynamicOrderedList } from "@/features/directory/components/DynamicOrderedList";
 import { getClientErrorMessage } from "@/features/directory/lib/client-error";
 import type { CustomerContact, OrderedStepItem } from "@/shared/types";
-import { Input, usePasswordEndAction } from "@/shared/components/FloatingLabelField";
+import { Input, Phone, usePasswordEndAction } from "@/shared/components/FloatingLabelField";
 
 const STEPS = [
   { id: "basics", label: "Basics" },
@@ -185,7 +185,7 @@ export function CustomerFormDialog({
         <div className="space-y-4">
           <Input label="Name" value={form.name} onChange={(name) => patch({ name })} />
           <Input label="Email" value={form.email} onChange={(email) => patch({ email })} />
-          <Input label="Phone" value={form.phone} onChange={(phone) => patch({ phone })} />
+          <Phone label="Phone" value={form.phone} onChange={(phone) => patch({ phone })} />
         </div>
       ) : null}
 

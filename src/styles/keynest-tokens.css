@@ -83,7 +83,7 @@
   --kn-color-sidebar-accent: #00b189;
 
   --kn-font-display: "Poppins", ui-sans-serif, system-ui, sans-serif;
-  --kn-font-body: "Lato", ui-sans-serif, system-ui, sans-serif;
+  --kn-font-body: "Poppins", ui-sans-serif, system-ui, sans-serif;
   --kn-font-mono: "JetBrains Mono", ui-monospace, monospace;
 
   --kn-space-2: 2px;
@@ -107,7 +107,7 @@
   --kn-radius-xs: 4px;
   --kn-radius-sm: 6px;
   --kn-radius-md: 8px;
-  --kn-radius-lg: 12px;
+  --kn-radius-lg: 10px;
   --kn-radius-xl: 14px;
   --kn-radius-button: 16px;
   --kn-radius-2xl: 20px;
