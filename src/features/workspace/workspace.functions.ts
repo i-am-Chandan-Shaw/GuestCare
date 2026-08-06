@@ -449,13 +449,12 @@ export const listWorkspaceIssuesFn = createServerFn({ method: "POST" })
     const customerId = (propertyRow as { customer_id: string }).customer_id;
     assertCustomerAccess(agent, customerId);
 
-    const [{ data: protocolRows, error: protocolError }, { data: customerRow, error: customerError }] =
+    const [{ data: links, error: linkError }, { data: customerRow, error: customerError }] =
       await Promise.all([
         supabase
-          .from("protocols")
-          .select("*")
-          .eq("property_id", data.propertyId)
-          .order("name"),
+          .from("property_protocols")
+          .select("protocol_id")
+          .eq("property_id", data.propertyId),
         supabase
           .from("customers")
           .select("guest_verification_steps")
@@ -463,11 +462,26 @@ export const listWorkspaceIssuesFn = createServerFn({ method: "POST" })
           .maybeSingle(),
       ]);
 
-    if (protocolError) {
-      throwHttpError(protocolError.message || "Failed to load protocols.", 500);
+    if (linkError) {
+      throwHttpError(linkError.message || "Failed to load protocol links.", 500);
     }
     if (customerError) {
       throwHttpError(customerError.message || "Failed to load customer.", 500);
+    }
+
+    const protocolIds = (links ?? []).map((link) => link.protocol_id as string);
+    let protocolRows: ProtocolRow[] = [];
+    if (protocolIds.length > 0) {
+      const { data: rows, error: protocolError } = await supabase
+        .from("protocols")
+        .select("*")
+        .in("id", protocolIds)
+        .order("name");
+
+      if (protocolError) {
+        throwHttpError(protocolError.message || "Failed to load protocols.", 500);
+      }
+      protocolRows = (rows ?? []) as ProtocolRow[];
     }
 
     const verificationSteps = mapCustomerRow(
@@ -489,8 +503,8 @@ export const listWorkspaceIssuesFn = createServerFn({ method: "POST" })
       [],
     ).guestVerificationSteps.map((step) => step.label).filter(Boolean);
 
-    return ((protocolRows ?? []) as ProtocolRow[]).map((row) =>
-      protocolToIssue(mapProtocolRow(row), verificationSteps),
+    return protocolRows.map((row) =>
+      protocolToIssue(mapProtocolRow(row, data.propertyId), verificationSteps),
     );
   });
 
@@ -511,30 +525,17 @@ export const getWorkspaceIssueFn = createServerFn({ method: "POST" })
     if (!row) return null;
 
     const protocol = mapProtocolRow(row as ProtocolRow);
-
-    const { data: propertyRow, error: propertyError } = await supabase
-      .from("properties")
-      .select("customer_id")
-      .eq("id", protocol.propertyId)
-      .maybeSingle();
-
-    if (propertyError) {
-      throwHttpError(propertyError.message || "Failed to load property.", 500);
-    }
-    if (!propertyRow) return null;
-
-    const customerId = (propertyRow as { customer_id: string }).customer_id;
-    assertCustomerAccess(agent, customerId);
+    assertCustomerAccess(agent, protocol.customerId);
 
     const { data: customerRow } = await supabase
       .from("customers")
       .select("guest_verification_steps")
-      .eq("id", customerId)
+      .eq("id", protocol.customerId)
       .maybeSingle();
 
     const verificationSteps = mapCustomerRow(
       {
-        id: customerId,
+        id: protocol.customerId,
         name: "",
         email: null,
         phone: null,

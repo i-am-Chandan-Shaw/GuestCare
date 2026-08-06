@@ -166,8 +166,8 @@ export function ProtocolsPage() {
     if (!deleteTarget) return;
     setDeleting(true);
     try {
-      await deleteProtocol(deleteTarget.id);
-      toast.success("Protocol deleted.");
+      await deleteProtocol({ id: deleteTarget.id, propertyId });
+      toast.success("Protocol removed from this property.");
       setDeleteTarget(null);
       gridRef.current?.api?.refreshInfiniteCache();
     } catch (error) {

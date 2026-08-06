@@ -12,7 +12,7 @@ export type ProtocolEscalationKind =
 
 export type ProtocolRow = {
   id: string;
-  property_id: string;
+  customer_id: string;
   category: string;
   name: string;
   reservation_verification: string;
@@ -28,6 +28,8 @@ export type ProtocolRow = {
 
 export type DirectoryProtocol = {
   id: string;
+  customerId: string;
+  /** Property context when listing/editing under a property; empty when loaded by id only. */
   propertyId: string;
   category: string;
   name: string;
@@ -99,10 +101,11 @@ function mapEscalationKind(value: string | null): ProtocolEscalationKind | undef
   return undefined;
 }
 
-export function mapProtocolRow(row: ProtocolRow): DirectoryProtocol {
+export function mapProtocolRow(row: ProtocolRow, propertyId = ""): DirectoryProtocol {
   return {
     id: row.id,
-    propertyId: row.property_id,
+    customerId: row.customer_id,
+    propertyId,
     category: row.category,
     name: row.name,
     reservationVerification: mapVerification(row.reservation_verification),

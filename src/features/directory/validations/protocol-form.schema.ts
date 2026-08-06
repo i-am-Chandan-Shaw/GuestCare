@@ -64,5 +64,17 @@ export const protocolIdSchema = z.object({
   id: z.string().uuid("Invalid protocol id."),
 });
 
+export const deleteProtocolSchema = z.object({
+  id: z.string().uuid("Invalid protocol id."),
+  propertyId: z.string().uuid("Invalid property id."),
+});
+
+export const linkProtocolToPropertiesSchema = z.object({
+  protocolId: z.string().uuid("Invalid protocol id."),
+  propertyIds: z.array(z.string().uuid("Invalid property id.")).min(1),
+});
+
 export type CreateProtocolInput = z.infer<typeof createProtocolSchema>;
 export type UpdateProtocolInput = z.infer<typeof updateProtocolSchema>;
+export type DeleteProtocolInput = z.infer<typeof deleteProtocolSchema>;
+export type LinkProtocolToPropertiesInput = z.infer<typeof linkProtocolToPropertiesSchema>;

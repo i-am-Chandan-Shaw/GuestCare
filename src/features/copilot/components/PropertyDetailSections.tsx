@@ -2,6 +2,7 @@ import { Copy, Phone, ChevronDown, ChevronRight, type LucideIcon } from "lucide-
 import { useState, type ReactNode } from "react";
 import { cn } from "@/lib/utils";
 import { copyText } from "@/lib/copy-to-clipboard";
+import { LinkifiedText } from "@/shared/components/LinkifiedText";
 
 export type PropertyTab = "access" | "ops";
 
@@ -183,8 +184,8 @@ export function ExpandableNote({
         )}
       </button>
       {open && (
-        <p className="whitespace-pre-wrap pb-3 text-[12.5px] leading-relaxed text-text-primary">
-          {text}
+        <p className="pb-3 text-[12.5px] leading-relaxed text-text-primary">
+          <LinkifiedText text={text} />
         </p>
       )}
     </div>

@@ -1,10 +1,11 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { getRouteApi, useNavigate } from "@tanstack/react-router";
 import { LockedHeader } from "@/features/workspace/components/LockedHeader";
 import { CustomerBrowsePhase } from "@/features/workspace/components/CustomerBrowsePhase";
 import { CustomerLockedPhase } from "@/features/workspace/components/CustomerLockedPhase";
 import { ProtocolPhase } from "@/features/workspace/components/ProtocolPhase";
 import { useWorkspaceSelection } from "@/features/workspace/hooks/useWorkspace";
+import { LoadingState } from "@/shared/components/LoadingState";
 import type { WorkspaceSearch } from "@/features/workspace/lib/workspace-url";
 import type { Customer, Issue, Property } from "@/shared/types";
 
@@ -27,10 +28,23 @@ export function CallWorkspace() {
     hydrateFromSearch,
   } = useWorkspaceSelection();
 
+  const isInitialMount = useRef(true);
+  const [hydrating, setHydrating] = useState(
+    () => phase === "browse" && Boolean(urlSearch.customerId),
+  );
   const hydrateFromSearchRef = useRef(hydrateFromSearch);
   hydrateFromSearchRef.current = hydrateFromSearch;
 
   useEffect(() => {
+    if (isInitialMount.current) {
+      isInitialMount.current = false;
+      if (hydrating) {
+        void hydrateFromSearchRef.current(urlSearch).finally(() => setHydrating(false));
+      } else {
+        void hydrateFromSearchRef.current(urlSearch);
+      }
+      return;
+    }
     void hydrateFromSearchRef.current(urlSearch);
   }, [urlSearch]);
 
@@ -84,6 +98,14 @@ export function CallWorkspace() {
   };
 
   const showProtocolLayout = (phase === "property" || phase === "protocol") && customer && property;
+
+  if (hydrating) {
+    return (
+      <div className="flex min-h-0 flex-1 flex-col items-center justify-center overflow-hidden">
+        <LoadingState label="Restoring workspace…" />
+      </div>
+    );
+  }
 
   return (
     <div className="flex min-h-0 flex-1 flex-col overflow-hidden">

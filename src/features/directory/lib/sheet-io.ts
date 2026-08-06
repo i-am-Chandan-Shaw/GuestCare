@@ -61,11 +61,13 @@ export function getFirstSheetMatrix(workbook: XLSX.WorkBook): SheetMatrix {
   return sheetToMatrix(sheet);
 }
 
+/** Normalize sheet headers for lookup (trim, collapse spaces, case-insensitive). */
 export function normalizeHeader(value: unknown): string {
   return String(value ?? "")
     .replace(/\u00a0/g, " ")
     .replace(/\s+/g, " ")
-    .trim();
+    .trim()
+    .toLowerCase();
 }
 
 export function cellText(value: unknown): string {
@@ -100,7 +102,11 @@ export function getCell(
   headerIndex: Map<string, number>,
   header: string,
 ): unknown {
-  const i = headerIndex.get(header);
+  const i = headerIndex.get(normalizeHeader(header));
   if (i == null) return undefined;
   return row[i];
+}
+
+export function hasHeader(headerIndex: Map<string, number>, header: string): boolean {
+  return headerIndex.has(normalizeHeader(header));
 }

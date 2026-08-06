@@ -11,6 +11,8 @@ import {
 } from "@/features/directory/lib/map-protocol-row";
 import {
   createProtocolSchema,
+  deleteProtocolSchema,
+  linkProtocolToPropertiesSchema,
   listProtocolsQuerySchema,
   protocolIdSchema,
   updateProtocolSchema,
@@ -28,7 +30,7 @@ async function requireDirectoryManager() {
   return session;
 }
 
-function protocolWritePayload(data: CreateProtocolInput) {
+function protocolContentPayload(data: CreateProtocolInput) {
   const steps = data.steps
     .map((step, index) => ({
       id: step.id,
@@ -44,7 +46,6 @@ function protocolWritePayload(data: CreateProtocolInput) {
     escalationKind === "custom" ? data.escalationDetails?.trim() || null : null;
 
   return {
-    property_id: data.propertyId,
     category: data.category.trim(),
     name: data.name.trim(),
     reservation_verification: data.reservationVerification,
@@ -56,6 +57,35 @@ function protocolWritePayload(data: CreateProtocolInput) {
     escalation_details: escalationDetails,
     updated_at: new Date().toISOString(),
   };
+}
+
+async function verifyPropertyAndContact(
+  supabase: ReturnType<typeof createSupabaseAdmin>,
+  propertyId: string,
+  customerContactId?: string | null,
+) {
+  const { data: property, error: propertyError } = await supabase
+    .from("properties")
+    .select("id, customer_id")
+    .eq("id", propertyId)
+    .maybeSingle();
+
+  if (propertyError) throwHttpError(propertyError.message || "Failed to verify property.", 500);
+  if (!property) throwHttpError("Property not found.", 404);
+
+  if (customerContactId) {
+    const { data: contact, error: contactError } = await supabase
+      .from("customer_contacts")
+      .select("id")
+      .eq("id", customerContactId)
+      .eq("customer_id", property.customer_id)
+      .maybeSingle();
+
+    if (contactError) throwHttpError(contactError.message || "Failed to verify contact.", 500);
+    if (!contact) throwHttpError("Contact not found for this customer.", 400);
+  }
+
+  return property as { id: string; customer_id: string };
 }
 
 export const listProtocolsFn = createServerFn({ method: "POST" })
@@ -71,10 +101,22 @@ export const listProtocolsFn = createServerFn({ method: "POST" })
       const supabase = createSupabaseAdmin();
       const search = (data.search?.trim() ?? "").replace(/[,()]/g, "");
 
-      let query = supabase
-        .from("protocols")
-        .select("*", { count: "exact" })
+      const { data: links, error: linkError } = await supabase
+        .from("property_protocols")
+        .select("protocol_id")
         .eq("property_id", data.propertyId);
+
+      if (linkError) throwHttpError(linkError.message || "Failed to load protocol links.", 500);
+
+      const protocolIds = (links ?? []).map((link) => link.protocol_id as string);
+      if (protocolIds.length === 0) {
+        return {
+          data: [],
+          pagination: { page: data.page, limit: data.limit, total: 0, totalPages: 1 },
+        };
+      }
+
+      let query = supabase.from("protocols").select("*", { count: "exact" }).in("id", protocolIds);
 
       if (search) {
         query = query.or(
@@ -93,7 +135,7 @@ export const listProtocolsFn = createServerFn({ method: "POST" })
 
       return {
         data: ((rows ?? []) as ProtocolRow[]).map((row) =>
-          toProtocolListItem(mapProtocolRow(row)),
+          toProtocolListItem(mapProtocolRow(row, data.propertyId)),
         ),
         pagination: {
           page: data.page,
@@ -129,32 +171,18 @@ export const createProtocolFn = createServerFn({ method: "POST" })
     await requireDirectoryManager();
     const supabase = createSupabaseAdmin();
 
-    const { data: property, error: propertyError } = await supabase
-      .from("properties")
-      .select("id, customer_id")
-      .eq("id", data.propertyId)
-      .maybeSingle();
+    const property = await verifyPropertyAndContact(
+      supabase,
+      data.propertyId,
+      data.customerContactId,
+    );
 
-    if (propertyError) throwHttpError(propertyError.message || "Failed to verify property.", 500);
-    if (!property) throwHttpError("Property not found.", 404);
-
-    if (data.customerContactId) {
-      const { data: contact, error: contactError } = await supabase
-        .from("customer_contacts")
-        .select("id")
-        .eq("id", data.customerContactId)
-        .eq("customer_id", property.customer_id)
-        .maybeSingle();
-
-      if (contactError) throwHttpError(contactError.message || "Failed to verify contact.", 500);
-      if (!contact) throwHttpError("Contact not found for this customer.", 400);
-    }
-
-    const payload = protocolWritePayload(data);
+    const content = protocolContentPayload(data);
     const { data: row, error } = await supabase
       .from("protocols")
       .insert({
-        ...payload,
+        ...content,
+        customer_id: property.customer_id,
         created_at: new Date().toISOString(),
       })
       .select("*")
@@ -164,7 +192,64 @@ export const createProtocolFn = createServerFn({ method: "POST" })
       throwHttpError(error?.message ?? "Failed to create protocol.", 500);
     }
 
-    return mapProtocolRow(row as ProtocolRow);
+    const { error: linkError } = await supabase.from("property_protocols").insert({
+      property_id: data.propertyId,
+      protocol_id: (row as ProtocolRow).id,
+    });
+
+    if (linkError) {
+      await supabase.from("protocols").delete().eq("id", (row as ProtocolRow).id);
+      throwHttpError(linkError.message || "Failed to link protocol to property.", 500);
+    }
+
+    return mapProtocolRow(row as ProtocolRow, data.propertyId);
+  });
+
+export const linkProtocolToPropertiesFn = createServerFn({ method: "POST" })
+  .validator(linkProtocolToPropertiesSchema)
+  .handler(async ({ data }): Promise<{ linked: number }> => {
+    await requireDirectoryManager();
+    const supabase = createSupabaseAdmin();
+
+    const { data: protocol, error: protocolError } = await supabase
+      .from("protocols")
+      .select("id, customer_id")
+      .eq("id", data.protocolId)
+      .maybeSingle();
+
+    if (protocolError) throwHttpError(protocolError.message || "Failed to load protocol.", 500);
+    if (!protocol) throwHttpError("Protocol not found.", 404);
+
+    const { data: properties, error: propertiesError } = await supabase
+      .from("properties")
+      .select("id, customer_id")
+      .in("id", data.propertyIds);
+
+    if (propertiesError) {
+      throwHttpError(propertiesError.message || "Failed to verify properties.", 500);
+    }
+
+    const rows = properties ?? [];
+    if (rows.length !== data.propertyIds.length) {
+      throwHttpError("One or more properties were not found.", 404);
+    }
+
+    const customerId = (protocol as { customer_id: string }).customer_id;
+    if (rows.some((property) => property.customer_id !== customerId)) {
+      throwHttpError("All properties must belong to the same customer as the protocol.", 400);
+    }
+
+    const { error: linkError } = await supabase.from("property_protocols").upsert(
+      data.propertyIds.map((propertyId) => ({
+        property_id: propertyId,
+        protocol_id: data.protocolId,
+      })),
+      { onConflict: "property_id,protocol_id", ignoreDuplicates: true },
+    );
+
+    if (linkError) throwHttpError(linkError.message || "Failed to link protocols.", 500);
+
+    return { linked: data.propertyIds.length };
   });
 
 export const updateProtocolFn = createServerFn({ method: "POST" })
@@ -173,33 +258,82 @@ export const updateProtocolFn = createServerFn({ method: "POST" })
     await requireDirectoryManager();
     const supabase = createSupabaseAdmin();
 
-    const { data: property, error: propertyError } = await supabase
-      .from("properties")
-      .select("id, customer_id")
-      .eq("id", data.propertyId)
+    const property = await verifyPropertyAndContact(
+      supabase,
+      data.propertyId,
+      data.customerContactId,
+    );
+
+    const { data: link, error: linkError } = await supabase
+      .from("property_protocols")
+      .select("protocol_id")
+      .eq("property_id", data.propertyId)
+      .eq("protocol_id", data.id)
       .maybeSingle();
 
-    if (propertyError) throwHttpError(propertyError.message || "Failed to verify property.", 500);
-    if (!property) throwHttpError("Property not found.", 404);
+    if (linkError) throwHttpError(linkError.message || "Failed to verify protocol link.", 500);
+    if (!link) throwHttpError("Protocol is not linked to this property.", 404);
 
-    if (data.customerContactId) {
-      const { data: contact, error: contactError } = await supabase
-        .from("customer_contacts")
-        .select("id")
-        .eq("id", data.customerContactId)
-        .eq("customer_id", property.customer_id)
-        .maybeSingle();
+    const { count, error: countError } = await supabase
+      .from("property_protocols")
+      .select("protocol_id", { count: "exact", head: true })
+      .eq("protocol_id", data.id);
 
-      if (contactError) throwHttpError(contactError.message || "Failed to verify contact.", 500);
-      if (!contact) throwHttpError("Contact not found for this customer.", 400);
+    if (countError) throwHttpError(countError.message || "Failed to check protocol sharing.", 500);
+
+    const content = protocolContentPayload(data);
+    const linkCount = count ?? 0;
+
+    // Shared across properties → copy-on-write for this property only.
+    if (linkCount > 1) {
+      const { data: cloned, error: cloneError } = await supabase
+        .from("protocols")
+        .insert({
+          ...content,
+          customer_id: property.customer_id,
+          created_at: new Date().toISOString(),
+        })
+        .select("*")
+        .single();
+
+      if (cloneError || !cloned) {
+        throwHttpError(cloneError?.message ?? "Failed to clone protocol.", 500);
+      }
+
+      const { error: unlinkError } = await supabase
+        .from("property_protocols")
+        .delete()
+        .eq("property_id", data.propertyId)
+        .eq("protocol_id", data.id);
+
+      if (unlinkError) {
+        await supabase.from("protocols").delete().eq("id", (cloned as ProtocolRow).id);
+        throwHttpError(unlinkError.message || "Failed to unlink shared protocol.", 500);
+      }
+
+      const { error: relinkError } = await supabase.from("property_protocols").insert({
+        property_id: data.propertyId,
+        protocol_id: (cloned as ProtocolRow).id,
+      });
+
+      if (relinkError) {
+        // Best-effort restore of original link if re-link fails.
+        await supabase.from("property_protocols").insert({
+          property_id: data.propertyId,
+          protocol_id: data.id,
+        });
+        await supabase.from("protocols").delete().eq("id", (cloned as ProtocolRow).id);
+        throwHttpError(relinkError.message || "Failed to link cloned protocol.", 500);
+      }
+
+      return mapProtocolRow(cloned as ProtocolRow, data.propertyId);
     }
 
-    const payload = protocolWritePayload(data);
     const { data: row, error } = await supabase
       .from("protocols")
-      .update(payload)
+      .update(content)
       .eq("id", data.id)
-      .eq("property_id", data.propertyId)
+      .eq("customer_id", property.customer_id)
       .select("*")
       .single();
 
@@ -207,17 +341,34 @@ export const updateProtocolFn = createServerFn({ method: "POST" })
       throwHttpError(error?.message ?? "Failed to update protocol.", 500);
     }
 
-    return mapProtocolRow(row as ProtocolRow);
+    return mapProtocolRow(row as ProtocolRow, data.propertyId);
   });
 
 export const deleteProtocolFn = createServerFn({ method: "POST" })
-  .validator(protocolIdSchema)
+  .validator(deleteProtocolSchema)
   .handler(async ({ data }): Promise<{ id: string }> => {
     await requireDirectoryManager();
     const supabase = createSupabaseAdmin();
 
-    const { error } = await supabase.from("protocols").delete().eq("id", data.id);
-    if (error) throwHttpError(error.message || "Failed to delete protocol.", 500);
+    const { error: unlinkError } = await supabase
+      .from("property_protocols")
+      .delete()
+      .eq("property_id", data.propertyId)
+      .eq("protocol_id", data.id);
+
+    if (unlinkError) throwHttpError(unlinkError.message || "Failed to unlink protocol.", 500);
+
+    const { count, error: countError } = await supabase
+      .from("property_protocols")
+      .select("protocol_id", { count: "exact", head: true })
+      .eq("protocol_id", data.id);
+
+    if (countError) throwHttpError(countError.message || "Failed to check remaining links.", 500);
+
+    if ((count ?? 0) === 0) {
+      const { error: deleteError } = await supabase.from("protocols").delete().eq("id", data.id);
+      if (deleteError) throwHttpError(deleteError.message || "Failed to delete protocol.", 500);
+    }
 
     return { id: data.id };
   });

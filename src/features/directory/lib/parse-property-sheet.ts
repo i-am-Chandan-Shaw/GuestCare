@@ -3,6 +3,7 @@ import {
   buildHeaderIndex,
   getCell,
   getFirstSheetMatrix,
+  hasHeader,
   optionalText,
   readWorkbook,
   type SheetMatrix,
@@ -17,6 +18,7 @@ const HEADERS = {
   name: "PROPERTY NAME",
   type: "Type",
   maxGuests: "Max. guest capacity",
+  maxGuestsAlt: "MAX GUEST CAP",
   buildingNumber: "Building/house number",
   unit: "Apartment / Unit / Suite number",
   address: "Full Address",
@@ -87,7 +89,9 @@ function rowToPayload(
   return {
     name,
     type,
-    maxGuests: optionalMaxGuests(getCell(row, headerIndex, HEADERS.maxGuests)),
+    maxGuests:
+      optionalMaxGuests(getCell(row, headerIndex, HEADERS.maxGuests)) ??
+      optionalMaxGuests(getCell(row, headerIndex, HEADERS.maxGuestsAlt)),
     buildingNumber: optionalText(getCell(row, headerIndex, HEADERS.buildingNumber)),
     unit: optionalText(getCell(row, headerIndex, HEADERS.unit)),
     address: optionalText(getCell(row, headerIndex, HEADERS.address)),
@@ -122,7 +126,7 @@ export function parsePropertyMatrix(matrix: SheetMatrix): ParsePropertySheetResu
   }
 
   const headerIndex = buildHeaderIndex(matrix[0] ?? []);
-  if (!headerIndex.has(HEADERS.name)) {
+  if (!hasHeader(headerIndex, HEADERS.name)) {
     throw new Error('Missing required column "PROPERTY NAME".');
   }
 

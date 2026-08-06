@@ -84,3 +84,44 @@ export function parseWifiCell(value: string | undefined | null): ParsedWifiCell 
     ...(password ? { password } : {}),
   };
 }
+
+const URL_IN_TEXT =
+  /https?:\/\/[^\s<>"')\]]+/gi;
+
+export type TextSegment = { type: "text" | "url"; value: string };
+
+/** Split text into plain segments and URL segments for link rendering. */
+export function linkifyTextSegments(text: string): TextSegment[] {
+  if (!text) return [];
+
+  const segments: TextSegment[] = [];
+  let lastIndex = 0;
+  const re = new RegExp(URL_IN_TEXT.source, URL_IN_TEXT.flags);
+  let match: RegExpExecArray | null;
+
+  while ((match = re.exec(text)) != null) {
+    const start = match.index;
+    if (start > lastIndex) {
+      segments.push({ type: "text", value: text.slice(lastIndex, start) });
+    }
+    // Trim trailing punctuation commonly stuck to URLs
+    let url = match[0] ?? "";
+    while (/[.,;:!?)]$/.test(url)) {
+      url = url.slice(0, -1);
+    }
+    if (url) {
+      segments.push({ type: "url", value: url });
+      lastIndex = start + url.length;
+      re.lastIndex = lastIndex;
+    } else {
+      lastIndex = start + (match[0]?.length ?? 0);
+    }
+  }
+
+  if (lastIndex < text.length) {
+    segments.push({ type: "text", value: text.slice(lastIndex) });
+  }
+
+  return segments.length > 0 ? segments : [{ type: "text", value: text }];
+}
+

@@ -6,6 +6,7 @@ import {
   buildHeaderIndex,
   getCell,
   getFirstSheetMatrix,
+  hasHeader,
   optionalText,
   readWorkbook,
   type SheetMatrix,
@@ -129,7 +130,7 @@ export function parseProtocolMatrix(matrix: SheetMatrix): ParseProtocolSheetResu
   }
 
   const headerIndex = buildHeaderIndex(matrix[0] ?? []);
-  if (!headerIndex.has(HEADERS.issue)) {
+  if (!hasHeader(headerIndex, HEADERS.issue)) {
     throw new Error('Missing required column "Issue".');
   }
 

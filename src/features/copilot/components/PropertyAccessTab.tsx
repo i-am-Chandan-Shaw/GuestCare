@@ -13,6 +13,7 @@ import {
   Wifi,
 } from "lucide-react";
 import { SectionCard } from "@/components/ui/UiKit";
+import { LinkifiedText } from "@/shared/components/LinkifiedText";
 import type { Property } from "@/shared/types";
 import {
   CopyRow,
@@ -128,8 +129,8 @@ export function PropertyAccessTab({ property }: { property: Property }) {
                 ) : null}
               </>
             ) : (
-              <p className="whitespace-pre-wrap break-words px-4 py-3 text-[12.5px] leading-relaxed text-foreground">
-                {property.wifi.raw || property.wifi.location}
+              <p className="px-4 py-3 text-[12.5px] leading-relaxed text-foreground">
+                <LinkifiedText text={property.wifi.raw || property.wifi.location || ""} />
               </p>
             )}
           </div>

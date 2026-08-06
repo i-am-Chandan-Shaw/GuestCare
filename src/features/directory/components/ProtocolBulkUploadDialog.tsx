@@ -11,7 +11,7 @@ import {
   DialogTitle,
 } from "@/components/ui/Dialog";
 import { getPropertiesPaginated } from "@/features/directory/api/properties.api";
-import { createProtocol } from "@/features/directory/api/protocols.api";
+import { createProtocol, linkProtocolToProperties } from "@/features/directory/api/protocols.api";
 import { getClientErrorMessage } from "@/features/directory/lib/client-error";
 import {
   parseProtocolSheet,
@@ -125,7 +125,7 @@ export function ProtocolBulkUploadDialog({
   })();
 
   const targetPropertyCount = targetPropertyIds.length;
-  const createTotal = selectedProtocolCount * targetPropertyCount;
+  const createTotal = selectedProtocolCount;
 
   const handleFile = async (file: File | undefined) => {
     if (!file) return;
@@ -183,27 +183,32 @@ export function ProtocolBulkUploadDialog({
       return;
     }
 
-    const total = protocols.length * targetPropertyIds.length;
+    const total = protocols.length;
     setSaving(true);
     setProgress({ done: 0, total });
     let created = 0;
     let failed = 0;
 
-    for (const targetId of targetPropertyIds) {
-      for (const row of protocols) {
-        try {
-          await createProtocol({
-            ...row.payload,
-            propertyId: targetId,
+    for (const row of protocols) {
+      try {
+        const [firstPropertyId, ...otherPropertyIds] = targetPropertyIds;
+        const createdProtocol = await createProtocol({
+          ...row.payload,
+          propertyId: firstPropertyId!,
+        });
+        if (otherPropertyIds.length > 0) {
+          await linkProtocolToProperties({
+            protocolId: createdProtocol.id,
+            propertyIds: otherPropertyIds,
           });
-          created += 1;
-        } catch {
-          failed += 1;
-        } finally {
-          setProgress((prev) =>
-            prev ? { ...prev, done: Math.min(prev.done + 1, prev.total) } : prev,
-          );
         }
+        created += 1;
+      } catch {
+        failed += 1;
+      } finally {
+        setProgress((prev) =>
+          prev ? { ...prev, done: Math.min(prev.done + 1, prev.total) } : prev,
+        );
       }
     }
 
@@ -214,8 +219,8 @@ export function ProtocolBulkUploadDialog({
       onSaved();
       toast.success(
         failed > 0
-          ? `Created ${created} of ${total} protocols.`
-          : `Created ${created} ${created === 1 ? "protocol" : "protocols"}.`,
+          ? `Created ${created} of ${total} protocols (shared across ${targetPropertyIds.length} properties).`
+          : `Created ${created} ${created === 1 ? "protocol" : "protocols"} shared across ${targetPropertyIds.length} ${targetPropertyIds.length === 1 ? "property" : "properties"}.`,
       );
       onOpenChange(false);
       return;
@@ -497,7 +502,7 @@ export function ProtocolBulkUploadDialog({
                 <p className="text-[12px] text-text-secondary">
                   {loadingProperties
                     ? "Loading properties…"
-                    : `Will create ${createTotal} protocol${createTotal === 1 ? "" : "s"} (${selectedProtocolCount} × ${targetPropertyCount} ${targetPropertyCount === 1 ? "property" : "properties"}).`}
+                    : `Will create ${createTotal} protocol${createTotal === 1 ? "" : "s"} shared across ${targetPropertyCount} ${targetPropertyCount === 1 ? "property" : "properties"}.`}
                 </p>
               </div>
 

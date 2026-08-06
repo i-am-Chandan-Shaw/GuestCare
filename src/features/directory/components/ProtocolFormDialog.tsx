@@ -244,8 +244,12 @@ export function ProtocolFormDialog({
       };
 
       if (mode === "edit" && protocolId) {
-        await updateProtocol({ id: protocolId, ...payload });
-        toast.success("Protocol updated.");
+        const saved = await updateProtocol({ id: protocolId, ...payload });
+        if (saved.id !== protocolId) {
+          toast.success("Saved as a property-specific copy.");
+        } else {
+          toast.success("Protocol updated.");
+        }
       } else {
         await createProtocol(payload);
         toast.success("Protocol created.");
@@ -335,14 +339,11 @@ export function ProtocolFormDialog({
               steps: items.map((item, position) => ({
                 id: item.id,
                 label: item.label,
-                hint: item.hint,
                 position,
               })),
             })
           }
           labelPlaceholder="Troubleshooting step"
-          showHint
-          hintPlaceholder="Details (optional)"
           addLabel="Add step"
           emptyMessage="No troubleshooting steps yet."
         />

@@ -4,6 +4,8 @@ import type { FormState } from "@/features/incidents/components/incident-form.ty
 import type { WorkspaceChecklistState } from "@/features/workspace/context/workspace.types";
 import type { WorkspacePhase } from "@/features/workspace/lib/workspace-state";
 import type { WorkspaceSearch } from "@/features/workspace/lib/workspace-url";
+import { getQueryClientRef } from "@/shared/lib/query-client-ref";
+import { queryKeys } from "@/shared/lib/query-keys";
 import type { Customer, Issue, Property } from "@/shared/types";
 
 const emptyChecklistPatch: WorkspaceChecklistState = {
@@ -38,11 +40,39 @@ export type WorkspaceEntityDeps = {
   getIssuesForProperty?: (propertyId: string) => Promise<Issue[]>;
 };
 
+function cachedGetCustomerById(id: string): Promise<Customer | null> {
+  return getQueryClientRef().fetchQuery({
+    queryKey: queryKeys.customers.detail(id),
+    queryFn: () => getCustomerById(id),
+  });
+}
+
+function cachedGetPropertyById(id: string): Promise<Property | null> {
+  return getQueryClientRef().fetchQuery({
+    queryKey: [...queryKeys.properties.all, "detail", id],
+    queryFn: () => getPropertyById(id),
+  });
+}
+
+function cachedGetIssuesForProperty(propertyId: string): Promise<Issue[]> {
+  return getQueryClientRef().fetchQuery({
+    queryKey: [...queryKeys.issues.all, "byProperty", propertyId],
+    queryFn: () => getIssues(propertyId),
+  });
+}
+
+function cachedGetIssueById(issueId: string): Promise<Issue | null> {
+  return getQueryClientRef().fetchQuery({
+    queryKey: [...queryKeys.issues.all, "detail", issueId],
+    queryFn: () => getIssueById(issueId),
+  });
+}
+
 export const defaultWorkspaceEntityDeps: WorkspaceEntityDeps = {
-  getCustomerById,
-  getPropertyById,
-  getIssueById,
-  getIssuesForProperty: getIssues,
+  getCustomerById: cachedGetCustomerById,
+  getPropertyById: cachedGetPropertyById,
+  getIssueById: cachedGetIssueById,
+  getIssuesForProperty: cachedGetIssuesForProperty,
 };
 
 function browseResolution(): WorkspaceResolution {

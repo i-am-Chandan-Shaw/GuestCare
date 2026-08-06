@@ -35,11 +35,12 @@ export function AppSidebar() {
   const router = useRouter();
   const { agent } = useAuth();
   const active = useActiveNav();
-  // Avoid reading localStorage during render (SSR/client mismatch).
+  // Re-read persisted workspace search whenever active nav changes so
+  // cleared state doesn't linger in the sidebar link.
   const [incidentsSearch, setIncidentsSearch] = useState<WorkspaceSearch>({});
   useEffect(() => {
     setIncidentsSearch(readIncidentsNavSearch());
-  }, []);
+  }, [active]);
   const nav = useMemo(
     () =>
       canManageAgents(agent)

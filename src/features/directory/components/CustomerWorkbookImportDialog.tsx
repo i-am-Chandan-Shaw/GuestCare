@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/Dialog";
 import { createCustomer } from "@/features/directory/api/customers.api";
 import { createProperty } from "@/features/directory/api/properties.api";
-import { createProtocol } from "@/features/directory/api/protocols.api";
+import { createProtocol, linkProtocolToProperties } from "@/features/directory/api/protocols.api";
 import { getClientErrorMessage } from "@/features/directory/lib/client-error";
 import {
   parseCustomerWorkbook,
@@ -142,25 +142,34 @@ export function CustomerWorkbookImportDialog({
         }
       }
 
-      const totalProtocols = propertyIds.length * parsed.protocols.length;
+      const totalProtocols = parsed.protocols.length;
       let done = 0;
-      for (const propertyId of propertyIds) {
-        for (const protocol of parsed.protocols) {
-          done += 1;
-          setProgress(
-            totalProtocols > 0
-              ? `Creating protocols… ${done}/${totalProtocols}`
-              : "Creating protocols…",
-          );
-          try {
-            await createProtocol({
-              ...protocol.payload,
-              propertyId,
+      for (const protocol of parsed.protocols) {
+        done += 1;
+        setProgress(
+          totalProtocols > 0
+            ? `Creating protocols… ${done}/${totalProtocols}`
+            : "Creating protocols…",
+        );
+        if (propertyIds.length === 0) {
+          protocolFailures += 1;
+          continue;
+        }
+        try {
+          const [firstPropertyId, ...otherPropertyIds] = propertyIds;
+          const created = await createProtocol({
+            ...protocol.payload,
+            propertyId: firstPropertyId!,
+          });
+          if (otherPropertyIds.length > 0) {
+            await linkProtocolToProperties({
+              protocolId: created.id,
+              propertyIds: otherPropertyIds,
             });
-            protocolsCreated += 1;
-          } catch {
-            protocolFailures += 1;
           }
+          protocolsCreated += 1;
+        } catch {
+          protocolFailures += 1;
         }
       }
 
@@ -288,7 +297,8 @@ export function CustomerWorkbookImportDialog({
                   </p>
                   {parsed.properties.length > 0 && parsed.protocols.length > 0 ? (
                     <p className="mt-0.5 text-[11px] text-text-muted">
-                      → {parsed.properties.length * parsed.protocols.length} copies
+                      → shared across {parsed.properties.length}{" "}
+                      {parsed.properties.length === 1 ? "property" : "properties"}
                     </p>
                   ) : null}
                 </li>

@@ -41,9 +41,9 @@ export type ParsedCustomerWorkbook = {
 };
 
 function findHeaderRowIndex(matrix: SheetMatrix, requiredHeaders: string[]): number {
-  const required = requiredHeaders.map((h) => normalizeHeader(h).toLowerCase());
+  const required = requiredHeaders.map((h) => normalizeHeader(h));
   for (let i = 0; i < matrix.length; i += 1) {
-    const keys = (matrix[i] ?? []).map((cell) => normalizeHeader(cell).toLowerCase());
+    const keys = (matrix[i] ?? []).map((cell) => normalizeHeader(cell));
     if (required.every((header) => keys.includes(header))) return i;
   }
   return -1;
