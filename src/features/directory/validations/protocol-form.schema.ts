@@ -35,25 +35,12 @@ function refineEscalation(
 ) {
   const hasContact = Boolean(data.customerContactId);
   const hasKind = Boolean(data.escalationKind);
-  if (!hasContact && !hasKind) {
-    ctx.addIssue({
-      code: z.ZodIssueCode.custom,
-      message: "Choose a contact or an escalation preset.",
-      path: ["escalationKind"],
-    });
-  }
+  // Escalation is optional — agents can fill it later via edit.
   if (hasContact && hasKind) {
     ctx.addIssue({
       code: z.ZodIssueCode.custom,
       message: "Use either a contact or a preset, not both.",
       path: ["customerContactId"],
-    });
-  }
-  if (data.escalationKind === "custom" && !data.escalationDetails?.trim()) {
-    ctx.addIssue({
-      code: z.ZodIssueCode.custom,
-      message: "Custom escalation details are required.",
-      path: ["escalationDetails"],
     });
   }
 }

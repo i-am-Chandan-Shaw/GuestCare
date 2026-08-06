@@ -140,8 +140,8 @@ export function ProtocolFormDialog({
         escalationMode: hasContact ? "contact" : "preset",
         customerContactId: protocol.customerContactId ?? customer.contacts[0]?.id ?? "",
         escalation: hasContact
-          ? "host"
-          : (kindFromStored(protocol.escalationKind, protocol.escalationDetails) ?? "host"),
+          ? undefined
+          : kindFromStored(protocol.escalationKind, protocol.escalationDetails),
       });
     };
 
@@ -186,22 +186,13 @@ export function ProtocolFormDialog({
   };
 
   const validateEscalation = () => {
-    const nextErrors: ProtocolFieldErrors = {};
-    if (form.escalationMode === "contact") {
-      if (contacts.length === 0) {
-        nextErrors.customerContactId =
-          "Add a customer contact first, or switch to preset escalation";
-      } else if (!form.customerContactId) {
-        nextErrors.customerContactId = "Select a contact";
-      }
-    } else if (!form.escalation) {
-      nextErrors.escalation = "Choose an escalation option";
-    }
-    if (Object.keys(nextErrors).length > 0) {
-      setErrors((prev) => ({ ...prev, ...nextErrors }));
-      setActiveIndex(2);
-      return false;
-    }
+    // Escalation is optional — incomplete protocols can be saved and filled later.
+    setErrors((prev) => {
+      const next = { ...prev };
+      delete next.customerContactId;
+      delete next.escalation;
+      return next;
+    });
     return true;
   };
 
@@ -245,7 +236,9 @@ export function ProtocolFormDialog({
           position,
         })),
         customerContactId:
-          form.escalationMode === "contact" ? form.customerContactId : null,
+          form.escalationMode === "contact" && form.customerContactId
+            ? form.customerContactId
+            : null,
         escalationKind,
         escalationDetails,
       };

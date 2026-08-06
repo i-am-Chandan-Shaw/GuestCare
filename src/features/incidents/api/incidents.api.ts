@@ -1,6 +1,5 @@
 import { z } from "zod";
-import { CUSTOMERS } from "@/mock-data/mocks/customers.mock";
-import { __getReportStoreSnapshot, createReport } from "@/features/reports/api/reports.api";
+import { createReport, getIncidentLogsFromReports } from "@/features/reports/api/reports.api";
 import { reportToIncidentLog } from "@/features/reports/lib/report-legacy";
 import { mapLegacyIncidentStatus } from "@/features/reports/lib/report-status";
 import type {
@@ -10,6 +9,8 @@ import type {
   IncidentStatus,
 } from "@/shared/types";
 import type { AgentAccess } from "@/shared/types/agent";
+
+export type { CreateIncidentInput };
 
 const createIncidentSchema = z.object({
   callerName: z.string(),
@@ -36,49 +37,13 @@ function firstValidationMessage(error: z.ZodError): string {
   return error.issues[0]?.message ?? "Please complete the required fields.";
 }
 
-function resolveCustomerIdForProperty(propertyId?: string): string | undefined {
-  if (!propertyId) return undefined;
-  return CUSTOMERS.find((c) => c.propertyIds.includes(propertyId))?.id;
-}
-
-function getIncidentLogsFromStore(filters: IncidentLogFilters = {}): IncidentLog[] {
-  let reports = __getReportStoreSnapshot();
-
-  if (filters.customerId) {
-    const propertyIds = new Set(
-      CUSTOMERS.find((c) => c.id === filters.customerId)?.propertyIds ?? [],
-    );
-    reports = reports.filter(
-      (r) => r.customerId === filters.customerId || (r.propertyId && propertyIds.has(r.propertyId)),
-    );
-  }
-
-  if (filters.propertyId) {
-    reports = reports.filter((r) => r.propertyId === filters.propertyId);
-  }
-
-  if (filters.protocolIssueId) {
-    reports = reports.filter((r) => r.protocolIssueId === filters.protocolIssueId);
-  }
-
-  reports.sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1));
-
-  let logs = reports.map(reportToIncidentLog);
-
-  if (filters.limit) {
-    logs = logs.slice(0, filters.limit);
-  }
-
-  return logs;
-}
-
 export async function getIncidentLogs(filters: IncidentLogFilters = {}): Promise<IncidentLog[]> {
-  return getIncidentLogsFromStore(filters);
+  return getIncidentLogsFromReports(filters);
 }
 
 export async function createIncident(
   input: CreateIncidentInput,
-  currentAgent: AgentAccess,
+  _currentAgent?: AgentAccess,
 ): Promise<IncidentLog> {
   const parsed = createIncidentSchema.safeParse(input);
   if (!parsed.success) {
@@ -86,30 +51,30 @@ export async function createIncident(
   }
 
   const data = parsed.data;
-  const customerId = data.customerId ?? resolveCustomerIdForProperty(data.propertyId);
+  const customerId = data.customerId;
   if (!customerId) {
     throw new Error("A customer is required to create a report.");
   }
 
-  const report = await createReport(
-    {
-      issueName: data.issueSummary,
-      issueType: data.incidentType,
-      priority: data.priority,
-      status: mapLegacyIncidentStatus(data.status as IncidentStatus),
-      customerId,
-      propertyId: data.propertyId,
-      callerName: data.callerName,
-      callerContact: data.callerContact,
-      reservationNumber: data.reservation,
-      nameOnBooking: data.nameOnBooking,
-      callNotes: data.callNotes,
-      actionsTaken: data.actions,
-      protocolIssueId: data.protocolIssueId,
-      source: data.protocolIssueId ? "copilot" : "manual",
-    },
-    currentAgent,
-  );
+  const propertyId = data.propertyId?.trim() || undefined;
+  const protocolIssueId = data.protocolIssueId?.trim() || undefined;
+
+  const report = await createReport({
+    issueName: data.issueSummary,
+    issueType: data.incidentType,
+    priority: data.priority,
+    status: mapLegacyIncidentStatus(data.status as IncidentStatus),
+    customerId,
+    propertyId,
+    callerName: data.callerName,
+    callerContact: data.callerContact,
+    reservationNumber: data.reservation,
+    nameOnBooking: data.nameOnBooking,
+    callNotes: data.callNotes,
+    actionsTaken: data.actions,
+    protocolIssueId,
+    source: protocolIssueId ? "copilot" : "manual",
+  });
 
   return reportToIncidentLog(report);
 }

@@ -1,5 +1,5 @@
 import { getCustomerById, getPropertyById } from "@/features/customers/api/customers.api";
-import { getIssueById } from "@/features/copilot/api/protocols.api";
+import { getIssueById, getIssues } from "@/features/copilot/api/protocols.api";
 import type { FormState } from "@/features/incidents/components/incident-form.types";
 import type { WorkspaceChecklistState } from "@/features/workspace/context/workspace.types";
 import type { WorkspacePhase } from "@/features/workspace/lib/workspace-state";
@@ -35,12 +35,14 @@ export type WorkspaceEntityDeps = {
   getCustomerById: (id: string) => Promise<Customer | null>;
   getPropertyById: (id: string) => Promise<Property | null>;
   getIssueById: (id: string) => Promise<Issue | null>;
+  getIssuesForProperty?: (propertyId: string) => Promise<Issue[]>;
 };
 
 export const defaultWorkspaceEntityDeps: WorkspaceEntityDeps = {
   getCustomerById,
   getPropertyById,
   getIssueById,
+  getIssuesForProperty: getIssues,
 };
 
 function browseResolution(): WorkspaceResolution {
@@ -121,7 +123,12 @@ export async function resolveWorkspaceFromUrl(
     };
   }
 
-  const [nextIssue] = await Promise.all([deps.getIssueById(search.issueId)]);
+  const propertyIssues = deps.getIssuesForProperty
+    ? await deps.getIssuesForProperty(nextProperty.id)
+    : null;
+  const nextIssue = propertyIssues
+    ? (propertyIssues.find((issue) => issue.id === search.issueId) ?? null)
+    : await deps.getIssueById(search.issueId);
 
   if (!nextIssue) {
     return {

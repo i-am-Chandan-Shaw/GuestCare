@@ -92,7 +92,7 @@ export function IncidentForm({
   compact?: boolean;
   isSubmitting?: boolean;
 }) {
-  const { data: issues = [] } = useIssues();
+  const { data: issues = [] } = useIssues(property?.id);
   const [confirmClear, setConfirmClear] = useState(false);
   const update = <K extends keyof FormState>(k: K, v: FormState[K]) => setForm({ ...form, [k]: v });
   const pMeta = priorityMeta[form.priority];

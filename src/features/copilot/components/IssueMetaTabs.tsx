@@ -187,7 +187,7 @@ export function IssuePickerSection({
   layout?: "page" | "stacked" | "fill";
 }) {
   const [search, setSearch] = useState("");
-  const allIssuesQuery = useIssues();
+  const allIssuesQuery = useIssues(property.id);
   const trimmedSearch = search.trim();
   const allIssues = allIssuesQuery.data ?? [];
 

@@ -41,13 +41,7 @@ export function IssueProtocolTab({
 
   return (
     <>
-      {issue.reservationVerification === "Not Required" ? (
-        <SectionCard title="Verification" className="shadow-sm border border-border rounded-sm">
-          <p className="text-[13px] text-muted-foreground py-1">
-            Verification not required for this issue type.
-          </p>
-        </SectionCard>
-      ) : (
+      {issue.verification.length > 0 ? (
         <CollapsibleCard
           title="Verification"
           badge={
@@ -90,7 +84,7 @@ export function IssueProtocolTab({
             })}
           </ul>
         </CollapsibleCard>
-      )}
+      ) : null}
 
       <CollapsibleCard
         title="Troubleshooting Steps"

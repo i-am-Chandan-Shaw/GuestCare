@@ -9,6 +9,7 @@ export function DirectoryListLayout({
   onBack,
   addLabel,
   onAdd,
+  headerActions,
   toolbar,
   children,
 }: {
@@ -18,6 +19,8 @@ export function DirectoryListLayout({
   onBack?: () => void;
   addLabel?: string;
   onAdd?: () => void;
+  /** When set, replaces the default Add button (e.g. dropdown with multiple create options). */
+  headerActions?: ReactNode;
   toolbar?: ReactNode;
   children: ReactNode;
 }) {
@@ -50,7 +53,9 @@ export function DirectoryListLayout({
               ) : null}
             </div>
           </div>
-          {addLabel && onAdd ? (
+          {headerActions ? (
+            <div className="shrink-0">{headerActions}</div>
+          ) : addLabel && onAdd ? (
             <Button type="button" size="sm" onClick={onAdd} className="shrink-0">
               <Plus className="h-4 w-4" strokeWidth={2} />
               {addLabel}

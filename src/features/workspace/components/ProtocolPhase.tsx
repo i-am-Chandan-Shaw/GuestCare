@@ -12,7 +12,7 @@ export function ProtocolPhase({
   onPickIssue?: (issue: Issue) => void;
   onBack?: () => void;
 }) {
-  const { property, issue, selectIssue } = useWorkspaceSelection();
+  const { customer, property, issue, selectIssue } = useWorkspaceSelection();
   const { checked, verificationChecked, outcome, setOutcome, toggleStep, toggleVerification } =
     useProtocolChecklist();
 
@@ -27,6 +27,7 @@ export function ProtocolPhase({
         <IssuePanel
           issue={issue}
           property={property}
+          customerId={customer?.id}
           onPick={(next) => (onPickIssue ?? selectIssue)(next)}
           onBack={onBack}
           checked={checked}
