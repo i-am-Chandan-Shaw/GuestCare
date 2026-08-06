@@ -3,7 +3,7 @@ import { useAuth } from "@/features/auth/hooks/useAuth";
 import { useCustomerSummaries } from "@/features/customers/hooks/useCustomers";
 import { toAgentAccess } from "@/features/reports/lib/report-scope";
 import { CustomerPortfolioCard } from "@/shared/components/CustomerPortfolioCard";
-import { LoadingState } from "@/shared/components/LoadingState";
+import { CustomerListSkeleton } from "@/shared/components/ListSkeletons";
 import { QueryErrorState } from "@/shared/components/QueryErrorState";
 import { SearchToolbar, filterBySearch } from "@/shared/components/SearchToolbar";
 import type { CustomerSummary } from "@/shared/types";
@@ -28,7 +28,6 @@ export function CustomerBrowsePhase({
     [customers, search],
   );
 
-  if (isLoading) return <LoadingState label="Loading customers…" />;
   if (isError) return <QueryErrorState onRetry={() => refetch()} />;
 
   return (
@@ -36,7 +35,7 @@ export function CustomerBrowsePhase({
       <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-md border border-border-color bg-card-bg">
         <div className="flex shrink-0 items-center justify-between gap-3 border-b border-border-color px-4 py-3">
           <h2 className="text-[14px] font-bold text-text-primary">
-            Customers ({customers.length})
+            Customers{isLoading ? "" : ` (${customers.length})`}
           </h2>
           <SearchToolbar
             layout="inline"
@@ -45,11 +44,14 @@ export function CustomerBrowsePhase({
             onChange={setSearch}
             placeholder="Search customers…"
             onClear={() => setSearch("")}
+            disabled={isLoading}
           />
         </div>
 
         <div className="min-h-0 flex-1 overflow-y-auto">
-          {filtered.length === 0 ? (
+          {isLoading ? (
+            <CustomerListSkeleton />
+          ) : filtered.length === 0 ? (
             <p className="m-4 rounded-md border border-dashed border-border bg-card p-8 text-center text-[13px] text-card-subtext">
               No customers match your search.
             </p>

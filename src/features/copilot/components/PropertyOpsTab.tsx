@@ -20,6 +20,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { SectionCard } from "@/components/ui/UiKit";
+import { LinkifiedText } from "@/shared/components/LinkifiedText";
 import { SYSTEM_LABELS } from "@/shared/constants/system-labels";
 import type { Property, SystemKey } from "@/shared/types";
 import { ExpandableNote, FieldLabel, PhoneRow, propertyCardClass } from "./PropertyDetailSections";
@@ -142,8 +143,8 @@ export function PropertyOpsTab({ property }: { property: Property }) {
       )}
 
       <SectionCard title="Property Notes" className={propertyCardClass}>
-        <p className="whitespace-pre-wrap py-1 text-[12.5px] leading-relaxed text-foreground">
-          {property.specificInfo}
+        <p className="py-1 text-[12.5px] leading-relaxed text-foreground">
+          <LinkifiedText text={property.specificInfo} />
         </p>
         {property.mediaFolderUrl && (
           <a

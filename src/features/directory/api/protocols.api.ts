@@ -2,6 +2,7 @@ import {
   createProtocolFn,
   deleteProtocolFn,
   getProtocolFn,
+  linkProtocolToPropertiesFn,
   listProtocolsFn,
   updateProtocolFn,
 } from "@/features/directory/protocols.functions";
@@ -11,6 +12,8 @@ import type {
 } from "@/features/directory/lib/map-protocol-row";
 import type {
   CreateProtocolInput,
+  DeleteProtocolInput,
+  LinkProtocolToPropertiesInput,
   UpdateProtocolInput,
 } from "@/features/directory/validations/protocol-form.schema";
 
@@ -47,6 +50,12 @@ export async function updateProtocol(input: UpdateProtocolInput): Promise<Direct
   return updateProtocolFn({ data: input });
 }
 
-export async function deleteProtocol(id: string): Promise<{ id: string }> {
-  return deleteProtocolFn({ data: { id } });
+export async function deleteProtocol(input: DeleteProtocolInput): Promise<{ id: string }> {
+  return deleteProtocolFn({ data: input });
+}
+
+export async function linkProtocolToProperties(
+  input: LinkProtocolToPropertiesInput,
+): Promise<{ linked: number }> {
+  return linkProtocolToPropertiesFn({ data: input });
 }

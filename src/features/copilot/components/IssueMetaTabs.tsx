@@ -13,6 +13,7 @@ import { Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { useIssues } from "@/features/copilot/hooks/useProtocolData";
 import { Chip, SectionCard } from "@/components/ui/UiKit";
+import { IssueListSkeleton } from "@/shared/components/ListSkeletons";
 import { SearchToolbar, filterBySearch } from "@/shared/components/SearchToolbar";
 import { priorityMeta } from "@/shared/constants/agent";
 import type { GlobalContact, IncidentLog, Issue, Property } from "@/shared/types";
@@ -187,7 +188,7 @@ export function IssuePickerSection({
   layout?: "page" | "stacked" | "fill";
 }) {
   const [search, setSearch] = useState("");
-  const allIssuesQuery = useIssues();
+  const allIssuesQuery = useIssues(property.id);
   const trimmedSearch = search.trim();
   const allIssues = allIssuesQuery.data ?? [];
 
@@ -246,9 +247,7 @@ export function IssuePickerSection({
         </div>
         <div className="min-h-0 flex-1 overflow-y-auto scrollbar-thin pr-0.5">
           {allIssuesQuery.isLoading ? (
-            <p className="rounded-md border border-dashed border-border bg-card p-8 text-center text-[13px] text-card-subtext">
-              Loading issues…
-            </p>
+            <IssueListSkeleton />
           ) : displayIssues.length === 0 ? (
             <p className="rounded-md border border-dashed border-border bg-card p-8 text-center text-[13px] text-card-subtext">
               {trimmedSearch ? "No issues match your search." : "No issues available."}

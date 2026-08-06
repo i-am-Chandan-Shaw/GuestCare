@@ -48,6 +48,7 @@ function QuickActionPill({
 export function IssuePanel({
   issue,
   property,
+  customerId,
   onPick,
   onBack,
   checked,
@@ -59,6 +60,7 @@ export function IssuePanel({
 }: {
   issue: Issue | null;
   property: Property | null;
+  customerId?: string | null;
   onPick: (i: Issue) => void;
   onBack?: () => void;
   checked: Record<string, boolean>;
@@ -76,7 +78,10 @@ export function IssuePanel({
   const [accessCopied, setAccessCopied] = useState(false);
 
   const { openIncidentPanel } = useIncidentComposeActions();
-  const { data: globalContact } = useGlobalContact(issue?.escalationContactId);
+  const { data: globalContact } = useGlobalContact(
+    issue?.escalationContactId,
+    customerId,
+  );
   const { data: incidentLogs = [] } = useIncidentLogs(
     { propertyId: property?.id, limit: 20 },
     { enabled: Boolean(property && issue) },

@@ -2,7 +2,7 @@ import { useMemo, useState } from "react";
 import { usePropertySummaries } from "@/features/customers/hooks/useCustomers";
 import { IssueHistoryPanel } from "@/features/workspace/components/IssueHistoryPanel";
 import { PropertyListRow } from "@/features/workspace/components/PropertyListRow";
-import { LoadingState } from "@/shared/components/LoadingState";
+import { PropertyListSkeleton } from "@/shared/components/ListSkeletons";
 import { QueryErrorState } from "@/shared/components/QueryErrorState";
 import { SearchToolbar, filterBySearch } from "@/shared/components/SearchToolbar";
 import type { Customer, PropertySummary } from "@/shared/types";
@@ -34,13 +34,11 @@ export function CustomerLockedPhase({
     [sortedProperties, search],
   );
 
-  if (propertiesQuery.isLoading) {
-    return <LoadingState label="Loading properties…" />;
-  }
-
   if (propertiesQuery.isError) {
     return <QueryErrorState onRetry={() => propertiesQuery.refetch()} />;
   }
+
+  const isLoading = propertiesQuery.isLoading;
 
   return (
     <div className="flex min-h-0 flex-1 gap-4 overflow-hidden bg-app-bg p-4">
@@ -57,7 +55,7 @@ export function CustomerLockedPhase({
                 <ChevronLeft className="h-4 w-4" strokeWidth={2} />
               </button>
               <h2 className="text-[14px] font-bold text-text-primary">
-                Properties ({sortedProperties.length})
+                Properties{isLoading ? "" : ` (${sortedProperties.length})`}
               </h2>
             </div>
             <SearchToolbar
@@ -67,11 +65,14 @@ export function CustomerLockedPhase({
               onChange={setSearch}
               placeholder="Search properties…"
               onClear={() => setSearch("")}
+              disabled={isLoading}
             />
           </div>
 
           <div className="min-h-0 flex-1 overflow-y-auto">
-            {filtered.length === 0 ? (
+            {isLoading ? (
+              <PropertyListSkeleton />
+            ) : filtered.length === 0 ? (
               <p className="m-4 rounded-md border border-dashed border-border bg-card p-8 text-center text-[13px] text-card-subtext">
                 No properties match your search.
               </p>

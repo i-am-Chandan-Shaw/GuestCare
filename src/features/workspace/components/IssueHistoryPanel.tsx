@@ -1,6 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import { useIncidentLogs } from "@/features/incidents/hooks/useIncidents";
-import { LoadingState } from "@/shared/components/LoadingState";
+import { HistoryListSkeleton } from "@/shared/components/ListSkeletons";
 import { QueryErrorState } from "@/shared/components/QueryErrorState";
 import { formatTimelineTimestamp } from "@/shared/lib/format-relative-time";
 import { isOpenIncident } from "@/shared/lib/incident-status";
@@ -89,7 +89,7 @@ function HistoryBody({
   showPropertyLabel: boolean;
   customerId?: string;
 }) {
-  if (isLoading) return <LoadingState label="Loading history…" />;
+  if (isLoading) return <HistoryListSkeleton />;
   if (isError) return <QueryErrorState onRetry={onRetry} />;
   if (!data?.length) {
     return <p className="py-6 text-center text-[13px] text-card-subtext">{emptyLabel}</p>;

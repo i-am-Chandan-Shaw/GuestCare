@@ -1,15 +1,22 @@
-import { ISSUES } from "@/mock-data/protocols";
-import { getGlobalContact } from "@/mock-data/contacts";
-import type { EscalationContactId, Issue } from "@/shared/types";
+import {
+  getWorkspaceContactFn,
+  getWorkspaceIssueFn,
+  listWorkspaceIssuesFn,
+} from "@/features/workspace/workspace.functions";
+import type { EscalationContactId, GlobalContact, Issue } from "@/shared/types";
 
-export async function getIssues(): Promise<Issue[]> {
-  return ISSUES;
+export async function getIssues(propertyId?: string): Promise<Issue[]> {
+  if (!propertyId) return [];
+  return listWorkspaceIssuesFn({ data: { propertyId } });
 }
 
 export async function getIssueById(issueId: string): Promise<Issue | null> {
-  return ISSUES.find((i) => i.id === issueId) ?? null;
+  return getWorkspaceIssueFn({ data: { id: issueId } });
 }
 
-export async function fetchGlobalContact(id: EscalationContactId | string) {
-  return getGlobalContact(id);
+export async function fetchGlobalContact(
+  id: EscalationContactId | string,
+  customerId?: string,
+): Promise<GlobalContact | null> {
+  return getWorkspaceContactFn({ data: { id, customerId } });
 }

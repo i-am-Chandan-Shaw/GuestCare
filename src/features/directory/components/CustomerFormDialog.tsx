@@ -266,14 +266,11 @@ export function CustomerFormDialog({
               guestVerificationSteps: items.map((item, position) => ({
                 id: item.id,
                 label: item.label,
-                hint: item.hint,
                 position,
               })),
             })
           }
           labelPlaceholder="Verification step"
-          showHint
-          hintPlaceholder="Details (optional)"
           addLabel="Add step"
           emptyMessage="No verification steps yet."
         />

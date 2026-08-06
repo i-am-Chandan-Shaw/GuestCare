@@ -13,6 +13,7 @@ import {
   Wifi,
 } from "lucide-react";
 import { SectionCard } from "@/components/ui/UiKit";
+import { LinkifiedText } from "@/shared/components/LinkifiedText";
 import type { Property } from "@/shared/types";
 import {
   CopyRow,
@@ -30,22 +31,26 @@ export function PropertyAccessTab({ property }: { property: Property }) {
     <>
       <SectionCard title="Property Overview" className={propertyCardClass}>
         <div className="grid grid-cols-2 gap-y-4 gap-x-2 pb-1 pt-1">
-          <div className="flex flex-col gap-1">
-            <FieldLabel icon={LogIn} className="text-[11.5px] font-semibold text-muted-foreground">
-              Check-in
-            </FieldLabel>
-            <span className="text-[13px] font-semibold text-foreground">
-              {property.checkIn.time}
-            </span>
-          </div>
-          <div className="flex flex-col gap-1">
-            <FieldLabel icon={LogOut} className="text-[11.5px] font-semibold text-muted-foreground">
-              Check-out
-            </FieldLabel>
-            <span className="text-[13px] font-semibold text-foreground">
-              {property.checkOut.time}
-            </span>
-          </div>
+          {property.checkIn.time ? (
+            <div className="flex flex-col gap-1">
+              <FieldLabel icon={LogIn} className="text-[11.5px] font-semibold text-muted-foreground">
+                Check-in
+              </FieldLabel>
+              <span className="text-[13px] font-semibold text-foreground">
+                {property.checkIn.time}
+              </span>
+            </div>
+          ) : null}
+          {property.checkOut.time ? (
+            <div className="flex flex-col gap-1">
+              <FieldLabel icon={LogOut} className="text-[11.5px] font-semibold text-muted-foreground">
+                Check-out
+              </FieldLabel>
+              <span className="text-[13px] font-semibold text-foreground">
+                {property.checkOut.time}
+              </span>
+            </div>
+          ) : null}
           <div className="flex flex-col gap-1">
             <FieldLabel icon={Users} className="text-[11.5px] font-semibold text-muted-foreground">
               Max Guests
@@ -81,7 +86,7 @@ export function PropertyAccessTab({ property }: { property: Property }) {
             />
           ) : null}
           {property.parking ? (
-            <CopyRow label="Parking" value={property.parking} icon={Car} />
+            <ExpandableNote title="Parking" text={property.parking} icon={Car} />
           ) : null}
           {property.checkIn.instructions ? (
             <ExpandableNote
@@ -100,23 +105,34 @@ export function PropertyAccessTab({ property }: { property: Property }) {
         </div>
       </SectionCard>
 
-      {(property.wifi.network || property.wifi.password || property.wifi.raw) && (
+      {(property.wifi.network ||
+        property.wifi.password ||
+        property.wifi.location ||
+        property.wifi.raw) && (
         <SectionCard title="WiFi" className={propertyCardClass} padded={false}>
           <div className="divide-y divide-border/60">
-            {property.wifi.network ? (
-              <StackedCopyField label="Network" value={property.wifi.network} icon={Wifi} />
-            ) : null}
-            {property.wifi.location ? (
-              <StackedField label="Place" value={property.wifi.location} icon={MapPin} />
-            ) : null}
-            {property.wifi.password ? (
-              <StackedCopyField label="Password" value={property.wifi.password} mono icon={Lock} />
-            ) : null}
-            {!property.wifi.network && !property.wifi.password && property.wifi.raw ? (
-              <p className="break-words px-4 py-3 text-[12.5px] leading-relaxed text-foreground">
-                {property.wifi.raw}
+            {property.wifi.network || property.wifi.password ? (
+              <>
+                {property.wifi.location ? (
+                  <StackedField label="Place" value={property.wifi.location} icon={MapPin} />
+                ) : null}
+                {property.wifi.network ? (
+                  <StackedCopyField label="Network" value={property.wifi.network} icon={Wifi} />
+                ) : null}
+                {property.wifi.password ? (
+                  <StackedCopyField
+                    label="Password"
+                    value={property.wifi.password}
+                    mono
+                    icon={Lock}
+                  />
+                ) : null}
+              </>
+            ) : (
+              <p className="px-4 py-3 text-[12.5px] leading-relaxed text-foreground">
+                <LinkifiedText text={property.wifi.raw || property.wifi.location || ""} />
               </p>
-            ) : null}
+            )}
           </div>
         </SectionCard>
       )}

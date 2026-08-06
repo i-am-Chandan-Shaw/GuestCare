@@ -140,8 +140,8 @@ export function ProtocolFormDialog({
         escalationMode: hasContact ? "contact" : "preset",
         customerContactId: protocol.customerContactId ?? customer.contacts[0]?.id ?? "",
         escalation: hasContact
-          ? "host"
-          : (kindFromStored(protocol.escalationKind, protocol.escalationDetails) ?? "host"),
+          ? undefined
+          : kindFromStored(protocol.escalationKind, protocol.escalationDetails),
       });
     };
 
@@ -186,22 +186,13 @@ export function ProtocolFormDialog({
   };
 
   const validateEscalation = () => {
-    const nextErrors: ProtocolFieldErrors = {};
-    if (form.escalationMode === "contact") {
-      if (contacts.length === 0) {
-        nextErrors.customerContactId =
-          "Add a customer contact first, or switch to preset escalation";
-      } else if (!form.customerContactId) {
-        nextErrors.customerContactId = "Select a contact";
-      }
-    } else if (!form.escalation) {
-      nextErrors.escalation = "Choose an escalation option";
-    }
-    if (Object.keys(nextErrors).length > 0) {
-      setErrors((prev) => ({ ...prev, ...nextErrors }));
-      setActiveIndex(2);
-      return false;
-    }
+    // Escalation is optional — incomplete protocols can be saved and filled later.
+    setErrors((prev) => {
+      const next = { ...prev };
+      delete next.customerContactId;
+      delete next.escalation;
+      return next;
+    });
     return true;
   };
 
@@ -245,14 +236,20 @@ export function ProtocolFormDialog({
           position,
         })),
         customerContactId:
-          form.escalationMode === "contact" ? form.customerContactId : null,
+          form.escalationMode === "contact" && form.customerContactId
+            ? form.customerContactId
+            : null,
         escalationKind,
         escalationDetails,
       };
 
       if (mode === "edit" && protocolId) {
-        await updateProtocol({ id: protocolId, ...payload });
-        toast.success("Protocol updated.");
+        const saved = await updateProtocol({ id: protocolId, ...payload });
+        if (saved.id !== protocolId) {
+          toast.success("Saved as a property-specific copy.");
+        } else {
+          toast.success("Protocol updated.");
+        }
       } else {
         await createProtocol(payload);
         toast.success("Protocol created.");
@@ -342,14 +339,11 @@ export function ProtocolFormDialog({
               steps: items.map((item, position) => ({
                 id: item.id,
                 label: item.label,
-                hint: item.hint,
                 position,
               })),
             })
           }
           labelPlaceholder="Troubleshooting step"
-          showHint
-          hintPlaceholder="Details (optional)"
           addLabel="Add step"
           emptyMessage="No troubleshooting steps yet."
         />

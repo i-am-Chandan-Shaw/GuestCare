@@ -65,7 +65,7 @@ export function ReportEditDialog({
   onSave: (input: UpdateReportInput) => void;
 }) {
   const [form, setForm] = useState<ReportFormState>(() => toFormState(report));
-  const { data: issues = [] } = useIssues();
+  const { data: issues = [] } = useIssues(report.propertyId);
   const pMeta = priorityMeta[form.priority];
   const propertyLabel = report.propertyName || "";
   const propertyCopy = useCopyEndAction(propertyLabel, "property");

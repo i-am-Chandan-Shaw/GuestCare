@@ -11,6 +11,7 @@ export function SearchToolbar({
   className,
   layout = "stacked",
   inputRef,
+  disabled = false,
 }: {
   value: string;
   onChange: (value: string) => void;
@@ -20,9 +21,10 @@ export function SearchToolbar({
   className?: string;
   layout?: "stacked" | "inline";
   inputRef?: Ref<HTMLInputElement>;
+  disabled?: boolean;
 }) {
   const hasSearch = Boolean(value.trim());
-  const showClear = hasSearch && Boolean(onClear);
+  const showClear = hasSearch && Boolean(onClear) && !disabled;
 
   const searchInput = (
     <div className="relative min-w-0">
@@ -32,8 +34,9 @@ export function SearchToolbar({
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
+        disabled={disabled}
         className={cn(
-          "h-9 w-full rounded-lg border border-input-border bg-card-bg pl-10 text-xs text-text-primary outline-none transition-colors placeholder:text-text-muted focus:border-input-border-focus focus:outline-none focus:ring-0",
+          "h-9 w-full rounded-lg border border-input-border bg-card-bg pl-10 text-xs text-text-primary outline-none transition-colors placeholder:text-text-muted focus:border-input-border-focus focus:outline-none focus:ring-0 disabled:cursor-not-allowed disabled:opacity-60",
           showClear ? "pr-10" : "pr-4",
         )}
       />
