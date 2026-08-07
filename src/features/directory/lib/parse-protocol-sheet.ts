@@ -87,13 +87,11 @@ function rowToPayload(
   const resolved = resolvePriorityFromSheet(priorityCategoryRaw, sheetPriority);
   if (!resolved) {
     const reason =
-      !priorityCategoryRaw && !sheetPriority
-        ? "Priority Category and Priority are required."
-        : !priorityCategoryRaw
-          ? "Priority Category is required."
-          : !sheetPriority
-            ? "Priority is required (High, Medium-High, Medium, or Low)."
-            : `Unknown or mismatched Priority Category / Priority ("${priorityCategoryRaw}" / "${sheetPriority}").`;
+      priorityCategoryRaw && sheetPriority
+        ? `Unknown or mismatched Priority Category / Priority ("${priorityCategoryRaw}" / "${sheetPriority}").`
+        : priorityCategoryRaw
+          ? `Unknown Priority Category ("${priorityCategoryRaw}").`
+          : `Unknown Priority ("${sheetPriority}"). Use High, Medium-High, Medium, or Low.`;
     return {
       ok: false,
       skip: { sheetRow: 0, name, reason },

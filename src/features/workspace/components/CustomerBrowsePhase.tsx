@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { Link } from "@tanstack/react-router";
+import { useNavigate } from "@tanstack/react-router";
 import { FolderOpen, Plus, SearchX } from "lucide-react";
 import { useCustomerSummaries } from "@/features/customers/hooks/useCustomers";
 import { Button } from "@/components/ui/Button";
@@ -16,6 +16,11 @@ function CustomersEmptyState({
   hasCustomers: boolean;
   onClearSearch: () => void;
 }) {
+  const navigate = useNavigate();
+  const goToDirectory = () => {
+    void navigate({ to: "/directory" });
+  };
+
   if (!hasCustomers) {
     return (
       <div className="m-4 flex flex-col items-center gap-4 rounded-md border border-dashed border-border bg-card px-6 py-10 text-center">
@@ -28,11 +33,9 @@ function CustomersEmptyState({
             Add customers in the directory before you can start a call workspace.
           </p>
         </div>
-        <Button asChild size="sm">
-          <Link to="/directory">
-            <Plus className="size-3.5" aria-hidden />
-            Go to Directory
-          </Link>
+        <Button type="button" size="sm" onClick={goToDirectory}>
+          <Plus className="size-3.5" aria-hidden />
+          Go to Directory
         </Button>
       </div>
     );
@@ -55,11 +58,9 @@ function CustomersEmptyState({
         <Button type="button" variant="secondary" size="sm" onClick={onClearSearch}>
           Clear search
         </Button>
-        <Button asChild size="sm">
-          <Link to="/directory">
-            <Plus className="size-3.5" aria-hidden />
-            Go to Directory
-          </Link>
+        <Button type="button" size="sm" onClick={goToDirectory}>
+          <Plus className="size-3.5" aria-hidden />
+          Go to Directory
         </Button>
       </div>
     </div>

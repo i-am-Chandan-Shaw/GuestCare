@@ -25,6 +25,20 @@ export function priorityFromCategory(category: PriorityCategory): Priority {
   }
 }
 
+/** Priority → paired Priority Category (1:1). */
+export function categoryFromPriority(priority: Priority): PriorityCategory {
+  switch (priority) {
+    case "High":
+      return "Urgent - Safety / No Habitability";
+    case "Medium-High":
+      return "Service Impacting";
+    case "Medium":
+      return "Inconvenient but Not Critical";
+    case "Low":
+      return "Admin / Informational";
+  }
+}
+
 function normalizeKey(value: string): string {
   return value
     .replace(/\u00a0/g, " ")
@@ -44,18 +58,36 @@ const PRIORITY_BY_KEY = new Map(PRIORITIES.map((p) => [normalizeKey(p), p] as co
 
 /**
  * Map workbook Priority Category + Priority cells to app values.
- * Both columns are required and must be known sheet values (no invented defaults).
+ * Missing Priority defaults to Low; missing Priority Category is inferred from Priority.
+ * When only Priority Category is set, Priority is derived from it.
+ * When both are set, they must be known and match.
  */
 export function resolvePriorityFromSheet(
   categoryRaw?: string | null,
   sheetPriorityRaw?: string | null,
 ): { category: PriorityCategory; priority: Priority } | null {
-  if (!categoryRaw || !sheetPriorityRaw) return null;
+  const hasCategory = Boolean(categoryRaw?.trim());
+  const hasPriority = Boolean(sheetPriorityRaw?.trim());
 
-  const category = CATEGORY_BY_KEY.get(normalizeKey(categoryRaw));
-  const priority = PRIORITY_BY_KEY.get(normalizeKey(sheetPriorityRaw));
+  if (!hasCategory && !hasPriority) {
+    return { category: "Admin / Informational", priority: "Low" };
+  }
+
+  if (hasCategory && !hasPriority) {
+    const category = CATEGORY_BY_KEY.get(normalizeKey(categoryRaw!));
+    if (!category) return null;
+    return { category, priority: priorityFromCategory(category) };
+  }
+
+  if (!hasCategory && hasPriority) {
+    const priority = PRIORITY_BY_KEY.get(normalizeKey(sheetPriorityRaw!));
+    if (!priority) return null;
+    return { category: categoryFromPriority(priority), priority };
+  }
+
+  const category = CATEGORY_BY_KEY.get(normalizeKey(categoryRaw!));
+  const priority = PRIORITY_BY_KEY.get(normalizeKey(sheetPriorityRaw!));
   if (!category || !priority) return null;
-
   if (priorityFromCategory(category) !== priority) return null;
 
   return { category, priority };
