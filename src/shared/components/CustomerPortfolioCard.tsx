@@ -63,9 +63,11 @@ export function CustomerPortfolioCard({
           <h3 className={cn(PORTFOLIO_CARD_TITLE_CLASS, "min-w-0 truncate text-[14px]")}>
             {customer.name}
           </h3>
-          <p className="mt-0.5 truncate text-[12px] font-medium text-card-subtext">
-            {customer.email}
-          </p>
+          {customer.email ? (
+            <p className="mt-0.5 truncate text-[12px] font-medium text-card-subtext">
+              {customer.email}
+            </p>
+          ) : null}
         </div>
       </div>
 

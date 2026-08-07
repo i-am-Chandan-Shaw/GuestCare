@@ -13,6 +13,7 @@ export type CustomerRow = {
   pms_url: string | null;
   pms_username: string | null;
   pms_password: string | null;
+  slack_webhook_url?: string | null;
   guest_verification_steps: unknown;
   created_at: string;
   updated_at: string;
@@ -35,6 +36,8 @@ export type DirectoryCustomer = {
   imageUrl?: string;
   contacts: CustomerContact[];
   pms: CustomerPms;
+  /** Directory managers only — never expose to workspace agents. */
+  slackWebhookUrl?: string;
   guestVerificationSteps: OrderedStepItem[];
   createdAt: string;
   updatedAt: string;
@@ -91,6 +94,7 @@ export function mapCustomerRow(
       username: row.pms_username ?? undefined,
       password: row.pms_password ?? undefined,
     },
+    slackWebhookUrl: row.slack_webhook_url?.trim() || undefined,
     guestVerificationSteps: mapSteps(row.guest_verification_steps),
     createdAt: row.created_at,
     updatedAt: row.updated_at,

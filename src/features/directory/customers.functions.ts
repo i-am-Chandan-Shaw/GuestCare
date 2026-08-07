@@ -79,6 +79,7 @@ function customerWritePayload(data: CreateCustomerInput) {
     pms_url: data.pmsUrl?.trim() || null,
     pms_username: data.pmsUsername?.trim() || null,
     pms_password: data.pmsPassword?.trim() || null,
+    slack_webhook_url: data.slackWebhookUrl?.trim() || null,
     guest_verification_steps: steps,
     updated_at: new Date().toISOString(),
   };

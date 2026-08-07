@@ -24,6 +24,7 @@ type FormState = {
   name: string;
   email: string;
   phone: string;
+  slackWebhookUrl: string;
   pmsUrl: string;
   pmsUsername: string;
   pmsPassword: string;
@@ -35,18 +36,24 @@ type FieldErrors = {
   name?: string;
   email?: string;
   phone?: string;
+  slackWebhookUrl?: string;
 };
 
 const emptyForm = (): FormState => ({
   name: "",
   email: "",
   phone: "",
+  slackWebhookUrl: "",
   pmsUrl: "",
   pmsUsername: "",
   pmsPassword: "",
   contacts: [],
   guestVerificationSteps: [],
 });
+
+function isValidSlackWebhook(value: string) {
+  return value === "" || value.startsWith("https://hooks.slack.com/");
+}
 
 function isValidEmail(value: string) {
   return value === "" || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
@@ -72,14 +79,19 @@ export function CustomerFormDialog({
   const [loading, setLoading] = useState(false);
   const [hydrating, setHydrating] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [showSlackWebhook, setShowSlackWebhook] = useState(false);
   const passwordEndAction = usePasswordEndAction(showPassword, () =>
     setShowPassword((prev) => !prev),
+  );
+  const slackWebhookEndAction = usePasswordEndAction(showSlackWebhook, () =>
+    setShowSlackWebhook((prev) => !prev),
   );
 
   useEffect(() => {
     if (!open) return;
     setActiveIndex(0);
     setShowPassword(false);
+    setShowSlackWebhook(false);
     setErrors({});
     setPhoneValid(true);
 
@@ -97,6 +109,7 @@ export function CustomerFormDialog({
           name: customer.name,
           email: customer.email,
           phone: customer.phone,
+          slackWebhookUrl: customer.slackWebhookUrl ?? "",
           pmsUrl: customer.pms.url ?? "",
           pmsUsername: customer.pms.username ?? "",
           pmsPassword: customer.pms.password ?? "",
@@ -134,6 +147,9 @@ export function CustomerFormDialog({
     if (!form.name.trim()) nextErrors.name = "Name is required";
     if (!isValidEmail(form.email.trim())) nextErrors.email = "Enter a valid email";
     if (form.phone.trim() && !phoneValid) nextErrors.phone = "Enter a valid phone number";
+    if (!isValidSlackWebhook(form.slackWebhookUrl.trim())) {
+      nextErrors.slackWebhookUrl = "Enter a valid Slack incoming webhook URL";
+    }
     setErrors(nextErrors);
     if (Object.keys(nextErrors).length > 0) {
       setActiveIndex(0);
@@ -159,6 +175,7 @@ export function CustomerFormDialog({
         name: form.name,
         email: form.email,
         phone: form.phone,
+        slackWebhookUrl: form.slackWebhookUrl,
         pmsUrl: form.pmsUrl,
         pmsUsername: form.pmsUsername,
         pmsPassword: form.pmsPassword,
@@ -230,6 +247,17 @@ export function CustomerFormDialog({
             onValidityChange={setPhoneValid}
             error={errors.phone}
           />
+          <Input
+            label="Slack webhook URL"
+            type={showSlackWebhook ? "text" : "password"}
+            value={form.slackWebhookUrl}
+            onChange={(slackWebhookUrl) => patch({ slackWebhookUrl })}
+            endAction={slackWebhookEndAction}
+            error={errors.slackWebhookUrl}
+          />
+          <p className="text-[12px] text-text-muted">
+            Optional. Required to use “Report & Send to Slack” for this customer.
+          </p>
         </div>
       ) : null}
 

@@ -1,10 +1,7 @@
-import { Check, ChevronDown, ChevronUp, Copy, Hash, Loader2, MessageSquare, Send } from "lucide-react";
-import { useMemo, useState, useTransition } from "react";
+import { Check, ChevronDown, ChevronUp, Copy, Hash, MessageSquare } from "lucide-react";
+import { useMemo, useState } from "react";
 import { toast } from "sonner";
-import { Button } from "@/components/ui/Button";
-import { sendIncidentSlackFn } from "@/features/incidents/incidents.functions";
 import { buildSlackIncidentMessage } from "@/features/incidents/lib/build-slack-message";
-import { getClientErrorMessage } from "@/shared/lib/client-error";
 import { cn } from "@/lib/utils";
 import type { Customer, Issue, Property } from "@/shared/types";
 import type { FormState } from "./incident-form.types";
@@ -22,7 +19,6 @@ export function IncidentPreview({
 }) {
   const [expanded, setExpanded] = useState(false);
   const [copied, setCopied] = useState(false);
-  const [isSending, startSend] = useTransition();
 
   const message = useMemo(
     () => buildSlackIncidentMessage({ form, customer, property, issue }),
@@ -42,17 +38,6 @@ export function IncidentPreview({
     } catch {
       toast.error("Could not copy to clipboard.");
     }
-  };
-
-  const sendToSlack = () => {
-    startSend(async () => {
-      try {
-        await sendIncidentSlackFn({ data: { message } });
-        toast.success("Sent to Slack");
-      } catch (error) {
-        toast.error(getClientErrorMessage(error, "Could not send to Slack."));
-      }
-    });
   };
 
   return (
@@ -145,22 +130,6 @@ export function IncidentPreview({
               </div>
               <div className="text-text-primary/90">{form.callNotes.trim() || "—"}</div>
             </div>
-          </div>
-
-          <div className="flex justify-end border-t border-border-color pt-3">
-            <Button
-              type="button"
-              onClick={sendToSlack}
-              disabled={isSending}
-              className="!h-9 !gap-1.5 !px-3"
-            >
-              {isSending ? (
-                <Loader2 className="h-3.5 w-3.5 animate-spin" strokeWidth={2} />
-              ) : (
-                <Send className="h-3.5 w-3.5" strokeWidth={2} />
-              )}
-              {isSending ? "Sending…" : "Send to Slack"}
-            </Button>
           </div>
         </div>
       ) : null}

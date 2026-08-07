@@ -16,7 +16,7 @@ export interface IncidentComposeActions {
   expandIncidentPanel: () => void;
   detachIncidentPanel: () => void;
   attachIncidentPanel: () => void;
-  submitIncident: () => void;
+  submitIncident: (options?: { sendToSlack?: boolean }) => void;
 }
 
 export interface IncidentComposeMeta {

@@ -78,13 +78,50 @@ function ProtocolConnector({ tone }: { tone: "success" | "warning" }) {
   );
 }
 
-function ProtocolProgressRow({
-  verificationStatus,
-  troubleshootingStatus,
-}: {
-  verificationStatus: StepStatus;
-  troubleshootingStatus: StepStatus;
-}) {
+export function ProtocolProgressCard({ issue }: { issue: Issue | null }) {
+  const { state } = useWorkspaceContext();
+  const { checked, verificationChecked } = state.checklist;
+
+  if (!issue) return null;
+
+  const showVerification =
+    issue.reservationVerification !== "Not Required" && issue.verification.length > 0;
+  const showTroubleshooting = issue.steps.length > 0;
+
+  if (!showVerification && !showTroubleshooting) return null;
+
+  const verificationComplete =
+    issue.verification.length > 0 &&
+    issue.verification.every(
+      (text, i) => verificationChecked[verificationId(issue.id, i, text)],
+    );
+
+  const troubleshootingComplete =
+    showTroubleshooting && issue.steps.every((step) => checked[step.id]);
+
+  const verificationStatus: StepStatus = verificationComplete ? "completed" : "in_progress";
+  const troubleshootingStatus: StepStatus = troubleshootingComplete ? "completed" : "in_progress";
+
+  if (!showVerification) {
+    return (
+      <ProtocolStepChip
+        className="w-full min-w-0"
+        label="Troubleshooting steps"
+        status={troubleshootingStatus}
+      />
+    );
+  }
+
+  if (!showTroubleshooting) {
+    return (
+      <ProtocolStepChip
+        className="w-full min-w-0"
+        label="Verification"
+        status={verificationStatus}
+      />
+    );
+  }
+
   const connectorTone = verificationStatus === "completed" ? "success" : "warning";
 
   return (
@@ -101,42 +138,5 @@ function ProtocolProgressRow({
         status={troubleshootingStatus}
       />
     </div>
-  );
-}
-
-export function ProtocolProgressCard({ issue }: { issue: Issue | null }) {
-  const { state } = useWorkspaceContext();
-  const { checked, verificationChecked } = state.checklist;
-
-  if (!issue) {
-    return (
-      <ProtocolProgressRow verificationStatus="in_progress" troubleshootingStatus="in_progress" />
-    );
-  }
-
-  const verificationRequired = issue.reservationVerification !== "Not Required";
-  const verificationComplete =
-    !verificationRequired ||
-    (issue.verification.length > 0 &&
-      issue.verification.every(
-        (text, i) => verificationChecked[verificationId(issue.id, i, text)],
-      ));
-
-  const troubleshootingComplete =
-    issue.steps.length > 0 && issue.steps.every((step) => checked[step.id]);
-
-  const verificationStatus: StepStatus = !verificationRequired
-    ? "not_required"
-    : verificationComplete
-      ? "completed"
-      : "in_progress";
-
-  const troubleshootingStatus: StepStatus = troubleshootingComplete ? "completed" : "in_progress";
-
-  return (
-    <ProtocolProgressRow
-      verificationStatus={verificationStatus}
-      troubleshootingStatus={troubleshootingStatus}
-    />
   );
 }

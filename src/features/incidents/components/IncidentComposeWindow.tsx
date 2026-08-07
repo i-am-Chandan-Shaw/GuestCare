@@ -33,7 +33,7 @@ export function IncidentComposeWindow({
   form: FormState;
   setForm: (f: FormState) => void;
   onClear: () => void;
-  onSubmit: () => void;
+  onSubmit: (options?: { sendToSlack?: boolean }) => void;
   isIncidentFormDirty: boolean;
   isSubmitting: boolean;
   onMinimize: () => void;
