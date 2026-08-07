@@ -29,6 +29,7 @@ import {
 } from "@/features/reports/components/ReportThread";
 import { ReportActivityTimeline } from "@/features/reports/components/ReportActivityTimeline";
 import { ReportMembers } from "@/features/reports/components/ReportMembers";
+import { ReportDetailSkeleton } from "@/features/reports/components/ReportDetailSkeleton";
 import { ReportEditDialog } from "@/features/reports/components/ReportEditDialog";
 import { agentCanAssignReport, agentCanEditReport } from "@/features/reports/lib/report-scope";
 import { priorityMeta } from "@/shared/constants/agent";
@@ -211,11 +212,7 @@ export function ReportDetailPage({ reportId, onBack }: { reportId: string; onBac
   const [editOpen, setEditOpen] = useState(false);
 
   if (isLoading) {
-    return (
-      <div className="flex h-full min-h-0 flex-1 items-center justify-center text-[13px] text-text-secondary">
-        Loading report…
-      </div>
-    );
+    return <ReportDetailSkeleton />;
   }
 
   if (!data?.report) {

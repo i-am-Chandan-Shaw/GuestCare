@@ -11,6 +11,7 @@ import {
   type ReportRow,
   type ReportThreadRow,
 } from "@/features/reports/lib/map-report-row";
+import { syncDerivedAssigneeFields } from "@/features/reports/lib/report-assignees";
 import { reportToIncidentLog } from "@/features/reports/lib/report-legacy";
 import { agentCanAccessCustomer } from "@/shared/lib/access";
 import {
@@ -84,6 +85,55 @@ const REPORT_DETAIL_SELECT = [
   "actions_taken",
 ].join(",");
 
+/** Live `agents.name` by id — authoritative when the agent still exists. */
+async function loadAgentNamesById(
+  supabase: SupabaseAdmin,
+  agentIds: string[],
+): Promise<Map<string, string>> {
+  const names = new Map<string, string>();
+  const unique = [...new Set(agentIds.filter(Boolean))];
+  if (unique.length === 0) return names;
+
+  const { data, error } = await supabase.from("agents").select("id, name").in("id", unique);
+  if (error) throwHttpError(error.message || "Failed to load agent names.", 500);
+
+  for (const row of (data ?? []) as { id: string; name: string }[]) {
+    names.set(row.id, row.name);
+  }
+  return names;
+}
+
+function resolveAssigneeName(
+  assignee: ReportAssignee,
+  names: Map<string, string>,
+): ReportAssignee {
+  return {
+    ...assignee,
+    agentName: names.get(assignee.agentId) ?? assignee.agentName,
+  };
+}
+
+function resolveThreadAuthorName(
+  entry: ReportThreadEntry,
+  names: Map<string, string>,
+): ReportThreadEntry {
+  return {
+    ...entry,
+    authorAgentName: names.get(entry.authorAgentId) ?? entry.authorAgentName,
+  };
+}
+
+function resolveReportAgentNames(report: Report, names: Map<string, string>): Report {
+  const assignees = report.assignees.map((assignee) => resolveAssigneeName(assignee, names));
+  const next: Report = {
+    ...report,
+    assignees,
+    createdByAgentName: names.get(report.createdByAgentId) ?? report.createdByAgentName,
+  };
+  syncDerivedAssigneeFields(next);
+  return next;
+}
+
 async function loadAssignees(
   supabase: SupabaseAdmin,
   reportId: string,
@@ -95,7 +145,12 @@ async function loadAssignees(
     .order("assigned_at");
 
   if (error) throwHttpError(error.message || "Failed to load assignees.", 500);
-  return ((data ?? []) as ReportAssigneeRow[]).map(mapAssigneeRow);
+  const assignees = ((data ?? []) as ReportAssigneeRow[]).map(mapAssigneeRow);
+  const names = await loadAgentNamesById(
+    supabase,
+    assignees.map((assignee) => assignee.agentId),
+  );
+  return assignees.map((assignee) => resolveAssigneeName(assignee, names));
 }
 
 async function loadAssigneesForReports(
@@ -113,9 +168,15 @@ async function loadAssigneesForReports(
 
   if (error) throwHttpError(error.message || "Failed to load assignees.", 500);
 
-  for (const row of (data ?? []) as ReportAssigneeRow[]) {
+  const rows = (data ?? []) as ReportAssigneeRow[];
+  const names = await loadAgentNamesById(
+    supabase,
+    rows.map((row) => row.agent_id),
+  );
+
+  for (const row of rows) {
     const list = map.get(row.report_id) ?? [];
-    list.push(mapAssigneeRow(row));
+    list.push(resolveAssigneeName(mapAssigneeRow(row), names));
     map.set(row.report_id, list);
   }
   return map;
@@ -151,7 +212,12 @@ async function loadThread(
     .order("created_at");
 
   if (error) throwHttpError(error.message || "Failed to load thread.", 500);
-  return ((data ?? []) as ReportThreadRow[]).map(mapThreadRow);
+  const entries = ((data ?? []) as ReportThreadRow[]).map(mapThreadRow);
+  const names = await loadAgentNamesById(
+    supabase,
+    entries.map((entry) => entry.authorAgentId),
+  );
+  return entries.map((entry) => resolveThreadAuthorName(entry, names));
 }
 
 async function loadReportRow(
@@ -175,7 +241,9 @@ async function loadReport(
   const row = await loadReportRow(supabase, reportId);
   if (!row) return null;
   const assignees = await loadAssignees(supabase, reportId);
-  return mapReportRow(row, assignees);
+  const report = mapReportRow(row, assignees);
+  const names = await loadAgentNamesById(supabase, [report.createdByAgentId]);
+  return resolveReportAgentNames(report, names);
 }
 
 async function loadReportDetail(
@@ -188,7 +256,9 @@ async function loadReportDetail(
     loadAssignees(supabase, reportId),
     loadThread(supabase, reportId),
   ]);
-  return { report: mapReportRow(row, assignees), thread };
+  const report = mapReportRow(row, assignees);
+  const names = await loadAgentNamesById(supabase, [report.createdByAgentId]);
+  return { report: resolveReportAgentNames(report, names), thread };
 }
 
 async function insertThreadEntry(
@@ -441,9 +511,13 @@ export const listReportsFn = createServerFn({ method: "POST" })
 
     const reportRows = asReportRows(rows);
     const ids = reportRows.map((row) => row.id);
-    const [assigneesByReport, threadCounts] = await Promise.all([
+    const [assigneesByReport, threadCounts, creatorNames] = await Promise.all([
       loadAssigneesForReports(supabase, ids),
       loadThreadCounts(supabase, ids),
+      loadAgentNamesById(
+        supabase,
+        reportRows.map((row) => row.created_by_agent_id),
+      ),
     ]);
 
     const total = count ?? 0;
@@ -452,7 +526,10 @@ export const listReportsFn = createServerFn({ method: "POST" })
     return {
       data: reportRows.map((row) =>
         toReportListItem(
-          mapReportRow(row, assigneesByReport.get(row.id) ?? []),
+          resolveReportAgentNames(
+            mapReportRow(row, assigneesByReport.get(row.id) ?? []),
+            creatorNames,
+          ),
           threadCounts.get(row.id) ?? 0,
         ),
       ),

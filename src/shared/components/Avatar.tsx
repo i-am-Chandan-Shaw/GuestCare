@@ -45,6 +45,7 @@ export function Avatar({
   seed,
   size = "md",
   className,
+  title,
 }: {
   name: string;
   /** Profile image URL when available; falls back to initials. */
@@ -53,6 +54,8 @@ export function Avatar({
   seed?: string;
   size?: AvatarSize;
   className?: string;
+  /** Native tooltip; pass `null` to disable (e.g. when a custom tooltip is used). Defaults to `name`. */
+  title?: string | null;
 }) {
   const [imageFailed, setImageFailed] = useState(false);
   const showImage = Boolean(src) && !imageFailed;
@@ -67,7 +70,7 @@ export function Avatar({
         !showImage && tone,
         className,
       )}
-      title={name}
+      title={title === undefined ? name : (title ?? undefined)}
       aria-hidden
     >
       {showImage ? (

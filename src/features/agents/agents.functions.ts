@@ -248,5 +248,39 @@ export const updateAgentFn = createServerFn({ method: "POST" })
       throwHttpError(updateError?.message ?? "Failed to update agent.", 500);
     }
 
+    // Keep denormalized report name snapshots aligned with agents.name
+    if (name !== target.name) {
+      const [assigneesResult, reportsResult, threadResult] = await Promise.all([
+        supabase.from("report_assignees").update({ agent_name: name }).eq("agent_id", data.id),
+        supabase
+          .from("reports")
+          .update({ created_by_agent_name: name })
+          .eq("created_by_agent_id", data.id),
+        supabase
+          .from("report_thread_entries")
+          .update({ author_agent_name: name })
+          .eq("author_agent_id", data.id),
+      ]);
+
+      if (assigneesResult.error) {
+        throwHttpError(
+          assigneesResult.error.message || "Failed to sync assignee names.",
+          500,
+        );
+      }
+      if (reportsResult.error) {
+        throwHttpError(
+          reportsResult.error.message || "Failed to sync report creator names.",
+          500,
+        );
+      }
+      if (threadResult.error) {
+        throwHttpError(
+          threadResult.error.message || "Failed to sync thread author names.",
+          500,
+        );
+      }
+    }
+
     return mapAgentRow(row as AgentRow);
   });
