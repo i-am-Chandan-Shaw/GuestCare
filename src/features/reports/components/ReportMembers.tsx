@@ -22,7 +22,7 @@ export function ReportMembers({
   agents: Agent[];
   canAssign: boolean;
   pending?: boolean;
-  onAdd: (agentId: string) => void;
+  onAdd: (agentId: string, agentName: string) => void;
   onRemove: (agentId: string) => void;
   /** `header` hides the Members label for placement beside tag pills. */
   variant?: "default" | "header";
@@ -329,7 +329,7 @@ export function ReportMembers({
                   <button
                     key={agent.id}
                     type="button"
-                    onClick={() => onAdd(agent.id)}
+                    onClick={() => onAdd(agent.id, agent.name)}
                     disabled={pending}
                     className="flex w-full items-center gap-2 rounded-md px-1.5 py-1.5 text-left hover:bg-app-bg disabled:opacity-50"
                   >

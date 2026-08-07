@@ -250,11 +250,7 @@ export function ReportDetailPage({ reportId, onBack }: { reportId: string; onBac
   const displayId = formatReportId(report.id);
 
   const isBusy =
-    updateReport.isPending ||
-    addAssignee.isPending ||
-    removeAssignee.isPending ||
-    addComment.isPending ||
-    updateComment.isPending;
+    updateReport.isPending || addComment.isPending || updateComment.isPending;
 
   const handleRootComment = () => {
     const body = comment.trim();
@@ -361,8 +357,7 @@ export function ReportDetailPage({ reportId, onBack }: { reportId: string; onBac
                   assignees={report.assignees ?? []}
                   agents={agents}
                   canAssign={canAssign}
-                  pending={addAssignee.isPending || removeAssignee.isPending}
-                  onAdd={(agentId) => addAssignee.mutate({ agentId })}
+                  onAdd={(agentId, agentName) => addAssignee.mutate({ agentId, agentName })}
                   onRemove={(agentId) => removeAssignee.mutate({ agentId })}
                 />
                 <span className="inline-flex rounded-full bg-violet-500/10 px-2.5 py-1 text-[11px] font-semibold text-violet-700">
