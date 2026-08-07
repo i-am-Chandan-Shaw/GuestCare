@@ -1,5 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
-import { throwHttpError } from "@/features/agents/lib/server-fn-error";
+import { throwHttpError } from "@/shared/lib/server-fn-error";
 import { loginSchema } from "@/features/auth/lib/login-schema";
 import {
   clearAuthCookies,

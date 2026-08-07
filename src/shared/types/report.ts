@@ -14,7 +14,10 @@ export interface ReportAssignee {
 }
 
 export interface ReportListItem {
+  /** Internal UUID PK (routing / FKs). */
   id: string;
+  /** Public compact id, e.g. GCR0423. */
+  displayId: string;
   issueName: string;
   issueType: string;
   priority: Priority;
@@ -23,6 +26,8 @@ export interface ReportListItem {
   customerName: string;
   /** Derived display label from assignees (e.g. "Ada, Bob +1"). */
   assignedAgentName: string;
+  /** Members for avatar stack in list views. */
+  assignees: ReportAssignee[];
   callerName: string;
   createdAt: IsoDateTime;
   lastActivityAt: IsoDateTime;
@@ -30,7 +35,10 @@ export interface ReportListItem {
 }
 
 export interface Report {
+  /** Internal UUID PK (routing / FKs). */
   id: string;
+  /** Public compact id, e.g. GCR0423. */
+  displayId: string;
   issueName: string;
   issueType: string;
   priority: Priority;
@@ -39,7 +47,6 @@ export interface Report {
 
   customerId: string;
   propertyId?: string;
-  /** @deprecated Prefer assignees[]; kept in sync for legacy adapters. */
   assignedAgentId: string;
   createdByAgentId: string;
 
@@ -55,7 +62,6 @@ export interface Report {
 
   customerName: string;
   propertyName: string;
-  /** @deprecated Prefer assignees[]; kept in sync as formatted label. */
   assignedAgentName: string;
   createdByAgentName: string;
 
@@ -148,11 +154,6 @@ export interface UpdateReportInput extends Partial<CreateReportInput> {
   status?: ReportStatus;
   assignedAgentId?: string;
   version: number;
-}
-
-export interface AssignReportInput {
-  toAgentId: string;
-  note?: string;
 }
 
 export interface AddReportAssigneeInput {

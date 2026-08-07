@@ -2,7 +2,7 @@ import { FilePlus2 } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/Button";
-import { priorityMeta } from "@/shared/constants/agent";
+import { getPriorityMeta, priorityMeta } from "@/shared/constants/agent";
 import { INCIDENT_STATUSES, INCIDENT_TYPES } from "@/shared/constants/incident";
 import { useIssues } from "@/features/copilot/hooks/useProtocolData";
 import type {
@@ -95,7 +95,7 @@ export function IncidentForm({
   const { data: issues = [] } = useIssues(property?.id);
   const [confirmClear, setConfirmClear] = useState(false);
   const update = <K extends keyof FormState>(k: K, v: FormState[K]) => setForm({ ...form, [k]: v });
-  const pMeta = priorityMeta[form.priority];
+  const pMeta = getPriorityMeta(form.priority);
   const propertyLabel = property ? `${property.name} — ${property.address}` : "—";
   const issueOptions = issues.map((i) => i.name);
   const propertyCopy = useCopyEndAction(property ? propertyLabel : "", "property");
@@ -174,12 +174,12 @@ export function IncidentForm({
             className="[&_select]:pl-8"
             value={form.priority}
             onChange={(v) => update("priority", v as Priority)}
-            options={["P1", "P2", "P3", "P4"]}
+            options={["High", "Medium-High", "Medium", "Low"]}
             optionLabels={{
-              P1: priorityMeta.P1.name,
-              P2: priorityMeta.P2.name,
-              P3: priorityMeta.P3.name,
-              P4: priorityMeta.P4.name,
+              High: priorityMeta.High.name,
+              "Medium-High": priorityMeta["Medium-High"].name,
+              Medium: priorityMeta.Medium.name,
+              Low: priorityMeta.Low.name,
             }}
           />
           <span

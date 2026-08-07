@@ -10,9 +10,7 @@ import type {
   Property,
   PropertySummary,
 } from "@/shared/types";
-import type { AgentAccess } from "@/shared/types/agent";
 
-/** Optional agent args ignored — auth/scope come from the server session. */
 
 export async function getCustomerById(customerId: string): Promise<Customer | null> {
   return getWorkspaceCustomerFn({ data: { id: customerId } });
@@ -22,9 +20,7 @@ export async function getPropertyById(propertyId: string): Promise<Property | nu
   return getWorkspacePropertyFn({ data: { id: propertyId } });
 }
 
-export async function getCustomerSummaries(
-  _currentAgent?: AgentAccess,
-): Promise<CustomerSummary[]> {
+export async function getCustomerSummaries(): Promise<CustomerSummary[]> {
   return listWorkspaceCustomerSummariesFn();
 }
 

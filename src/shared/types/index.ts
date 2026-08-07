@@ -1,4 +1,4 @@
-export type Priority = "P1" | "P2" | "P3" | "P4";
+export type Priority = "High" | "Medium-High" | "Medium" | "Low";
 
 export type EscalationKind =
   "host" | "emergency-then-host" | "next-day-followup" | "cleaning" | { custom: string };
@@ -69,11 +69,6 @@ export interface Customer {
   guestVerificationSteps?: OrderedStepItem[];
 }
 
-export interface HostContact {
-  name: string;
-  phone: string;
-}
-
 export interface Property {
   id: string;
   name: string;
@@ -103,7 +98,6 @@ export interface Property {
   laundryEscalation?: EscalationKind;
   waste?: string;
   systems: Partial<Record<SystemKey, SystemInfo>>;
-  hosts: HostContact[];
   mediaFolderUrl?: string;
   accessSummary?: {
     lockboxCode?: string;
@@ -203,10 +197,6 @@ export interface CreateIncidentInput {
   propertyId?: string;
   propertyLabel?: string;
   protocolIssueId?: string;
-  /** @deprecated Ignored — identity comes from session currentAgent. */
-  agentName?: string;
-  /** @deprecated Ignored — identity comes from session currentAgent. */
-  submittedBy?: string;
 }
 
 export interface IncidentLogFilters {
@@ -260,7 +250,6 @@ export type {
 
 export type {
   AddReportCommentInput,
-  AssignReportInput,
   CreateReportInput,
   PaginatedReports,
   Report,

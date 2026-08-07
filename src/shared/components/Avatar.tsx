@@ -26,7 +26,8 @@ export function initialsFromName(name: string): string {
   return `${parts[0]![0] ?? ""}${parts[1]![0] ?? ""}`.toUpperCase();
 }
 
-function toneForSeed(seed: string): string {
+/** Stable color class from an id/name — shared by Avatar and portfolio thumbs. */
+export function avatarToneClass(seed: string): string {
   let hash = 0;
   for (let i = 0; i < seed.length; i += 1) {
     hash = (hash + seed.charCodeAt(i) * (i + 1)) % AVATAR_TONES.length;
@@ -44,6 +45,7 @@ export function Avatar({
   seed,
   size = "md",
   className,
+  title,
 }: {
   name: string;
   /** Profile image URL when available; falls back to initials. */
@@ -52,11 +54,13 @@ export function Avatar({
   seed?: string;
   size?: AvatarSize;
   className?: string;
+  /** Native tooltip; pass `null` to disable (e.g. when a custom tooltip is used). Defaults to `name`. */
+  title?: string | null;
 }) {
   const [imageFailed, setImageFailed] = useState(false);
   const showImage = Boolean(src) && !imageFailed;
   const initials = initialsFromName(name);
-  const tone = toneForSeed(seed ?? name);
+  const tone = avatarToneClass(seed ?? name);
 
   return (
     <span
@@ -66,7 +70,7 @@ export function Avatar({
         !showImage && tone,
         className,
       )}
-      title={name}
+      title={title === undefined ? name : (title ?? undefined)}
       aria-hidden
     >
       {showImage ? (

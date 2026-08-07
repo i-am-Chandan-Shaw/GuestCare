@@ -22,7 +22,7 @@ export function emptyForm(): FormState {
     incidentType: "Technical Issues",
     issueSummary: "",
     actions: [],
-    priority: "P2",
+    priority: "Medium-High",
     status: "In Progress",
     callNotes: "",
   };

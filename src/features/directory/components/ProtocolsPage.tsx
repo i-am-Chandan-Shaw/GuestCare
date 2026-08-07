@@ -17,7 +17,7 @@ import { DirectoryListLayout } from "@/features/directory/components/DirectoryLi
 import { ProtocolBulkUploadDialog } from "@/features/directory/components/ProtocolBulkUploadDialog";
 import { ProtocolFormDialog } from "@/features/directory/components/ProtocolFormDialog";
 import { createProtocolsTableColumnDefs } from "@/features/directory/components/protocols-table-columns";
-import { getClientErrorMessage } from "@/features/directory/lib/client-error";
+import { getClientErrorMessage } from "@/shared/lib/client-error";
 import type { ProtocolListItem } from "@/features/directory/lib/map-protocol-row";
 import {
   ServerPaginatedTable,

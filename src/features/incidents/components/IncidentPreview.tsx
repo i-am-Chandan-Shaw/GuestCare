@@ -1,41 +1,13 @@
-import { Check, ChevronDown, ChevronUp, Copy, Hash, MessageSquare } from "lucide-react";
-import { useMemo, useState } from "react";
-import { getAgentHandle } from "@/shared/lib/agent-display";
-import { useAuth } from "@/features/auth/hooks/useAuth";
+import { Check, ChevronDown, ChevronUp, Copy, Hash, Loader2, MessageSquare, Send } from "lucide-react";
+import { useMemo, useState, useTransition } from "react";
+import { toast } from "sonner";
+import { Button } from "@/components/ui/Button";
+import { sendIncidentSlackFn } from "@/features/incidents/incidents.functions";
+import { buildSlackIncidentMessage } from "@/features/incidents/lib/build-slack-message";
+import { getClientErrorMessage } from "@/shared/lib/client-error";
 import { cn } from "@/lib/utils";
 import type { Customer, Issue, Property } from "@/shared/types";
 import type { FormState } from "./incident-form.types";
-
-function buildSlackMessage({
-  form,
-  customer,
-  property,
-  issue,
-  agentLabel,
-  timestamp,
-}: {
-  form: FormState;
-  customer: Customer | null;
-  property: Property | null;
-  issue: Issue | null;
-  agentLabel: string;
-  timestamp: string;
-}): string {
-  const issueLine = `${form.issueSummary || issue?.name || "—"} (${form.priority})`;
-  return [
-    "#guest-reports",
-    `Customer: ${customer?.name || "—"}`,
-    `Guest: ${form.callerName || "—"} (${form.callerContact || "—"})`,
-    `Booking name: ${form.nameOnBooking || "—"}`,
-    `Reservation: ${form.reservation || "N/A"}`,
-    `Property: ${property?.name ?? "—"}`,
-    `Type: ${form.incidentType}`,
-    `Issue: ${issueLine}`,
-    `Status: ${form.status}`,
-    `Notes: ${form.callNotes || "—"}`,
-    `${timestamp} · ${agentLabel}`,
-  ].join("\n");
-}
 
 export function IncidentPreview({
   form,
@@ -48,31 +20,19 @@ export function IncidentPreview({
   property: Property | null;
   issue: Issue | null;
 }) {
-  const { agent } = useAuth();
   const [expanded, setExpanded] = useState(false);
   const [copied, setCopied] = useState(false);
-  const timestamp = useMemo(
-    () =>
-      new Date().toLocaleString("en-GB", {
-        day: "2-digit",
-        month: "short",
-        year: "numeric",
-        hour: "2-digit",
-        minute: "2-digit",
-        second: "2-digit",
-      }),
-    [],
+  const [isSending, startSend] = useTransition();
+
+  const message = useMemo(
+    () => buildSlackIncidentMessage({ form, customer, property, issue }),
+    [form, customer, property, issue],
   );
 
-  const agentLabel = `${agent.name} (${getAgentHandle(agent)})`;
-  const message = buildSlackMessage({
-    form,
-    customer,
-    property,
-    issue,
-    agentLabel,
-    timestamp,
-  });
+  const propertyLine = property
+    ? [property.name, property.address].filter(Boolean).join(", ")
+    : "—";
+  const issueSummary = form.issueSummary.trim() || issue?.name?.trim() || "—";
 
   const copyMessage = async () => {
     try {
@@ -80,8 +40,19 @@ export function IncidentPreview({
       setCopied(true);
       window.setTimeout(() => setCopied(false), 1200);
     } catch {
-      /* clipboard unavailable */
+      toast.error("Could not copy to clipboard.");
     }
+  };
+
+  const sendToSlack = () => {
+    startSend(async () => {
+      try {
+        await sendIncidentSlackFn({ data: { message } });
+        toast.success("Sent to Slack");
+      } catch (error) {
+        toast.error(getClientErrorMessage(error, "Could not send to Slack."));
+      }
+    });
   };
 
   return (
@@ -129,59 +100,67 @@ export function IncidentPreview({
       </div>
 
       {expanded ? (
-        <div className="bg-card-bg p-4">
-          <div className="flex items-start gap-3">
-            <img
-              src="https://i.pravatar.cc/150?u=a042581f4e29026704d"
-              alt="Agent"
-              className="mt-1 h-8 w-8 rounded-md object-cover"
-            />
-            <div className="min-w-0 flex-1 space-y-1">
-              <div className="mb-2 flex items-center gap-1.5 font-semibold text-[13.5px] text-text-primary">
-                <Hash className="h-4 w-4 text-text-muted" />
-                guest-reports
-              </div>
-              <div className="space-y-0.5 text-[13px] leading-relaxed text-text-primary">
-                <div>
-                  <span className="font-semibold">Customer:</span> {customer?.name || "—"}
-                </div>
-                <div>
-                  <span className="font-semibold">Guest:</span> {form.callerName || "—"} (
-                  {form.callerContact || "—"})
-                </div>
-                <div>
-                  <span className="font-semibold">Booking name:</span> {form.nameOnBooking || "—"}
-                </div>
-                <div>
-                  <span className="font-semibold">Reservation:</span> {form.reservation || "N/A"}
-                </div>
-                <div>
-                  <span className="font-semibold">Property:</span> {property?.name ?? "—"}
-                </div>
-                <div>
-                  <span className="font-semibold">Type:</span> {form.incidentType}
-                </div>
-                <div>
-                  <span className="font-semibold">Issue:</span>{" "}
-                  {form.issueSummary || issue?.name || "—"}{" "}
-                  <span className="font-medium text-warning">({form.priority})</span>
-                </div>
-                <div>
-                  <span className="font-semibold">Status:</span> {form.status}
-                </div>
-                <div>
-                  <span className="font-semibold">Notes:</span> {form.callNotes || "—"}
-                </div>
-              </div>
-              <div className="mt-3 flex items-center gap-1.5 text-[11.5px] font-medium text-text-secondary">
-                <img
-                  src="https://i.pravatar.cc/150?u=a042581f4e29026704d"
-                  alt=""
-                  className="h-4 w-4 rounded-full"
-                />
-                {timestamp} · {agentLabel}
-              </div>
+        <div className="space-y-4 bg-card-bg p-4">
+          <div className="min-w-0 flex-1 space-y-1">
+            <div className="mb-2 flex items-center gap-1.5 font-semibold text-[13.5px] text-text-primary">
+              <Hash className="h-4 w-4 text-text-muted" />
+              guest-reports
             </div>
+            <div className="space-y-0.5 whitespace-pre-wrap text-[13px] leading-relaxed text-text-primary">
+              <div>
+                <span className="font-semibold">Line Called:</span> {customer?.name || "—"}
+              </div>
+              <div>
+                <span className="font-semibold">Inbound for</span> {propertyLine}
+              </div>
+              <div className="h-2" />
+              <div>
+                <span className="font-semibold">Incident Type:</span> {form.incidentType || "—"}
+              </div>
+              <div>
+                <span className="font-semibold">What is the Issue?:</span> {issueSummary}
+              </div>
+              <div>
+                <span className="font-semibold">Status:</span> {form.status || "—"}
+              </div>
+              <div>
+                <span className="font-semibold">Priority:</span> {form.priority || "—"}
+              </div>
+              <div className="h-2" />
+              <div>
+                <span className="font-semibold">Caller Full Name:</span>{" "}
+                {form.callerName || "—"}
+              </div>
+              <div>
+                <span className="font-semibold">Caller Contact:</span>{" "}
+                {form.callerContact || "—"}
+              </div>
+              <div>
+                <span className="font-semibold">Reservation #:</span>{" "}
+                {form.reservation || "N/A"}
+              </div>
+              <div className="h-2" />
+              <div>
+                <span className="font-semibold">Call Notes:</span>
+              </div>
+              <div className="text-text-primary/90">{form.callNotes.trim() || "—"}</div>
+            </div>
+          </div>
+
+          <div className="flex justify-end border-t border-border-color pt-3">
+            <Button
+              type="button"
+              onClick={sendToSlack}
+              disabled={isSending}
+              className="!h-9 !gap-1.5 !px-3"
+            >
+              {isSending ? (
+                <Loader2 className="h-3.5 w-3.5 animate-spin" strokeWidth={2} />
+              ) : (
+                <Send className="h-3.5 w-3.5" strokeWidth={2} />
+              )}
+              {isSending ? "Sending…" : "Send to Slack"}
+            </Button>
           </div>
         </div>
       ) : null}

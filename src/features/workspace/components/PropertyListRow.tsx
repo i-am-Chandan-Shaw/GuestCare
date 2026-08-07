@@ -51,6 +51,7 @@ export function PropertyListRow({
       <PortfolioCardThumbnail
         name={property.name}
         imageUrl={property.imageUrl}
+        seed={property.id}
         className="h-[56px] w-[84px]"
       />
 

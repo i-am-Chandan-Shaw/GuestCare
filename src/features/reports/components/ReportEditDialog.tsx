@@ -15,7 +15,7 @@ import {
   mapLegacyIncidentStatus,
   mapReportStatusToLegacyIncidentStatus,
 } from "@/features/reports/lib/report-status";
-import { priorityMeta } from "@/shared/constants/agent";
+import { getPriorityMeta, priorityMeta } from "@/shared/constants/agent";
 import { INCIDENT_STATUSES, INCIDENT_TYPES } from "@/shared/constants/incident";
 import type { IncidentStatus, IncidentType, Priority } from "@/shared/types";
 import type { Report, UpdateReportInput } from "@/shared/types/report";
@@ -66,7 +66,7 @@ export function ReportEditDialog({
 }) {
   const [form, setForm] = useState<ReportFormState>(() => toFormState(report));
   const { data: issues = [] } = useIssues(report.propertyId);
-  const pMeta = priorityMeta[form.priority];
+  const pMeta = getPriorityMeta(form.priority);
   const propertyLabel = report.propertyName || "";
   const propertyCopy = useCopyEndAction(propertyLabel, "property");
   const reservationCopy = useCopyEndAction(form.reservationNumber, "reservation");
@@ -169,12 +169,12 @@ export function ReportEditDialog({
                 className="[&_select]:pl-8"
                 value={form.priority}
                 onChange={(v) => update("priority", v as Priority)}
-                options={["P1", "P2", "P3", "P4"]}
+                options={["High", "Medium-High", "Medium", "Low"]}
                 optionLabels={{
-                  P1: priorityMeta.P1.name,
-                  P2: priorityMeta.P2.name,
-                  P3: priorityMeta.P3.name,
-                  P4: priorityMeta.P4.name,
+                  High: priorityMeta.High.name,
+                  "Medium-High": priorityMeta["Medium-High"].name,
+                  Medium: priorityMeta.Medium.name,
+                  Low: priorityMeta.Low.name,
                 }}
               />
               <span

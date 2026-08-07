@@ -14,7 +14,7 @@ import { CustomerFormDialog } from "@/features/directory/components/CustomerForm
 import { CustomerWorkbookImportDialog } from "@/features/directory/components/CustomerWorkbookImportDialog";
 import { createCustomersTableColumnDefs } from "@/features/directory/components/customers-table-columns";
 import { DirectoryListLayout } from "@/features/directory/components/DirectoryListLayout";
-import { getClientErrorMessage } from "@/features/directory/lib/client-error";
+import { getClientErrorMessage } from "@/shared/lib/client-error";
 import type { CustomerListItem } from "@/features/directory/lib/map-customer-row";
 import {
   ServerPaginatedTable,

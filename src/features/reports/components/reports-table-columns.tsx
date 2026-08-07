@@ -1,8 +1,9 @@
-import type { ICellRendererParams, ValueFormatterParams } from "ag-grid-community";
+import type { ICellRendererParams } from "ag-grid-community";
 import type { ColDef } from "ag-grid-community";
 import { Eye } from "lucide-react";
 import { StatusChip } from "@/components/ui/StatusChip";
-import { priorityMeta } from "@/shared/constants/agent";
+import { AssigneeAvatarStack } from "@/features/reports/components/AssigneeAvatarStack";
+import { getPriorityMeta } from "@/shared/constants/agent";
 import { REPORT_STATUS_LABELS, REPORT_STATUS_TONES } from "@/features/reports/lib/report-status";
 import { formatActivityTimestamp } from "@/shared/lib/datetime";
 import type { ReportListItem } from "@/shared/types/report";
@@ -28,7 +29,7 @@ function IssueCell({ data }: ICellRendererParams<ReportListItem>) {
 
 function PriorityCell({ data }: ICellRendererParams<ReportListItem>) {
   if (!data?.priority) return null;
-  const meta = priorityMeta[data.priority];
+  const meta = getPriorityMeta(data.priority);
   return <StatusChip tone={meta.chipTone}>{meta.name}</StatusChip>;
 }
 
@@ -41,8 +42,9 @@ function LoggedCell({ data }: ICellRendererParams<ReportListItem>) {
   );
 }
 
-function formatReportId(value: string | null | undefined) {
-  return value?.replaceAll("-", "") ?? "";
+function MembersCell({ data }: ICellRendererParams<ReportListItem>) {
+  if (!data) return null;
+  return <AssigneeAvatarStack assignees={data.assignees ?? []} size="sm" />;
 }
 
 function ActionsCell({
@@ -74,14 +76,12 @@ export function createReportsTableColumnDefs(options: {
   return [
     {
       headerName: "REPORT ID",
-      field: "id",
+      field: "displayId",
       colId: "reportId",
-      width: 130,
-      minWidth: 110,
-      cellClass: "tabular-nums text-text-secondary",
-      valueFormatter: (params: ValueFormatterParams<ReportListItem, string>) =>
-        formatReportId(params.value),
-      tooltipValueGetter: (params) => params.data?.id,
+      width: 120,
+      minWidth: 100,
+      cellClass: "font-mono tabular-nums text-text-secondary",
+      tooltipValueGetter: (params) => params.data?.displayId,
       suppressSizeToFit: true,
     },
     {
@@ -120,7 +120,9 @@ export function createReportsTableColumnDefs(options: {
       field: "assignedAgentName",
       colId: "agent",
       flex: 1,
-      minWidth: 140,
+      minWidth: 120,
+      cellRenderer: MembersCell,
+      tooltipValueGetter: (params) => params.data?.assignedAgentName,
     },
     {
       headerName: "CALLER",

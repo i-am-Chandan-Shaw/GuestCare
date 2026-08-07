@@ -1,4 +1,4 @@
-import { Copy, Phone, ChevronDown, ChevronRight, type LucideIcon } from "lucide-react";
+import { Copy, ChevronDown, ChevronRight, type LucideIcon } from "lucide-react";
 import { useState, type ReactNode } from "react";
 import { cn } from "@/lib/utils";
 import { copyText } from "@/lib/copy-to-clipboard";
@@ -131,22 +131,35 @@ export function PhoneRow({
   red?: boolean;
   icon?: LucideIcon;
 }) {
+  const [copied, setCopied] = useState(false);
+  const copy = async () => {
+    const ok = await copyText(value, `${label} copied`);
+    if (!ok) return;
+    setCopied(true);
+    setTimeout(() => setCopied(false), 1200);
+  };
+
   return (
     <div className="px-4 py-3">
       <div className="flex items-center justify-between gap-3">
         <FieldLabel icon={icon} className="text-[11.5px] font-semibold text-text-secondary">
           {label}
         </FieldLabel>
-        <a
-          href={`tel:${value.replace(/\s/g, "")}`}
+        <button
+          type="button"
+          onClick={copy}
           className={cn(
             "shrink-0 cursor-pointer transition-colors",
-            red ? "text-danger hover:opacity-80" : "text-text-secondary hover:text-text-primary",
+            copied
+              ? "text-success"
+              : red
+                ? "text-danger hover:opacity-80"
+                : "text-text-secondary hover:text-text-primary",
           )}
-          aria-label={`Call ${label}`}
+          aria-label={`Copy ${label}`}
         >
-          <Phone className="h-3.5 w-3.5" />
-        </a>
+          <Copy className="h-3.5 w-3.5" />
+        </button>
       </div>
       <p
         className={cn(

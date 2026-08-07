@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-const prioritySchema = z.enum(["P1", "P2", "P3", "P4"]);
+const prioritySchema = z.enum(["High", "Medium-High", "Medium", "Low"]);
 const reportStatusSchema = z.enum(["OPEN", "ESCALATED", "HANDEDOVER", "RESOLVED"]);
 const reportSourceSchema = z.enum(["copilot", "manual"]);
 
@@ -69,12 +69,6 @@ export const addReportAssigneeSchema = z.object({
 export const removeReportAssigneeSchema = z.object({
   id: z.string().uuid("Invalid report id."),
   agentId: z.string().uuid("Invalid agent id."),
-});
-
-export const assignReportSchema = z.object({
-  id: z.string().uuid("Invalid report id."),
-  toAgentId: z.string().uuid("Invalid agent id."),
-  note: z.string().optional(),
 });
 
 export const addReportCommentSchema = z.object({

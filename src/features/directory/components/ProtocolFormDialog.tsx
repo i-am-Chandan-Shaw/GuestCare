@@ -10,7 +10,7 @@ import { DirectoryFormSkeleton } from "@/features/directory/components/Directory
 import { DirectoryWizardDialog } from "@/features/directory/components/DirectoryWizardDialog";
 import { DynamicOrderedList } from "@/features/directory/components/DynamicOrderedList";
 import { EscalationField } from "@/features/directory/components/EscalationField";
-import { getClientErrorMessage } from "@/features/directory/lib/client-error";
+import { getClientErrorMessage } from "@/shared/lib/client-error";
 import {
   PRIORITY_CATEGORIES,
   priorityFromCategory,

@@ -11,7 +11,7 @@ import {
   DialogTitle,
 } from "@/components/ui/Dialog";
 import { createProperty } from "@/features/directory/api/properties.api";
-import { getClientErrorMessage } from "@/features/directory/lib/client-error";
+import { getClientErrorMessage } from "@/shared/lib/client-error";
 import {
   parsePropertySheet,
   type ParsedPropertyRow,

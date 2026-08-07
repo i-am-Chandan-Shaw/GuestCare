@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/Dialog";
 import { getPropertiesPaginated } from "@/features/directory/api/properties.api";
 import { createProtocol, linkProtocolToProperties } from "@/features/directory/api/protocols.api";
-import { getClientErrorMessage } from "@/features/directory/lib/client-error";
+import { getClientErrorMessage } from "@/shared/lib/client-error";
 import {
   parseProtocolSheet,
   type ParsedProtocolRow,

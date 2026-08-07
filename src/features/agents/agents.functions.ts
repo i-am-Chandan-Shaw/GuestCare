@@ -6,12 +6,18 @@ import {
   validateCustomerScope,
 } from "@/features/agents/lib/agent-permissions";
 import { mapAgentRow, type AgentRow } from "@/features/agents/lib/map-agent-row";
-import { throwHttpError } from "@/features/agents/lib/server-fn-error";
+import { throwHttpError } from "@/shared/lib/server-fn-error";
 import { createAgentSchema, updateAgentSchema } from "@/features/agents/create-agent.schema";
 import { isPasswordStrong } from "@/features/agents/validations/agent-form.schema";
 import { getAuthSession } from "@/features/auth/server/session";
 import { createSupabaseAdmin } from "@/shared/lib/supabase/admin";
 import type { Agent } from "@/shared/types/agent";
+
+async function fetchAllCustomerIds(): Promise<string[]> {
+  const supabase = createSupabaseAdmin();
+  const { data } = await supabase.from("customers").select("id");
+  return (data ?? []).map((row) => row.id);
+}
 
 const WEAK_PASSWORD_ERROR =
   "Password must be 8+ characters with uppercase, number, and special character.";
@@ -73,7 +79,8 @@ export const createAgentFn = createServerFn({ method: "POST" })
       throwHttpError(WEAK_PASSWORD_ERROR, 400);
     }
 
-    const scopeError = validateCustomerScope(currentAgent, data.customerScope);
+    const allCustomerIds = await fetchAllCustomerIds();
+    const scopeError = validateCustomerScope(currentAgent, data.customerScope, allCustomerIds);
     if (scopeError) throwHttpError(scopeError, 400);
 
     const supabase = createSupabaseAdmin();
@@ -178,7 +185,8 @@ export const updateAgentFn = createServerFn({ method: "POST" })
       }
     }
 
-    const scopeError = validateCustomerScope(currentAgent, data.customerScope);
+    const allCustomerIds = await fetchAllCustomerIds();
+    const scopeError = validateCustomerScope(currentAgent, data.customerScope, allCustomerIds);
     if (scopeError) throwHttpError(scopeError, 400);
 
     if (password && !isPasswordStrong(password)) {
@@ -238,6 +246,40 @@ export const updateAgentFn = createServerFn({ method: "POST" })
         throwHttpError(DUPLICATE_EMAIL_ERROR, 409);
       }
       throwHttpError(updateError?.message ?? "Failed to update agent.", 500);
+    }
+
+    // Keep denormalized report name snapshots aligned with agents.name
+    if (name !== target.name) {
+      const [assigneesResult, reportsResult, threadResult] = await Promise.all([
+        supabase.from("report_assignees").update({ agent_name: name }).eq("agent_id", data.id),
+        supabase
+          .from("reports")
+          .update({ created_by_agent_name: name })
+          .eq("created_by_agent_id", data.id),
+        supabase
+          .from("report_thread_entries")
+          .update({ author_agent_name: name })
+          .eq("author_agent_id", data.id),
+      ]);
+
+      if (assigneesResult.error) {
+        throwHttpError(
+          assigneesResult.error.message || "Failed to sync assignee names.",
+          500,
+        );
+      }
+      if (reportsResult.error) {
+        throwHttpError(
+          reportsResult.error.message || "Failed to sync report creator names.",
+          500,
+        );
+      }
+      if (threadResult.error) {
+        throwHttpError(
+          threadResult.error.message || "Failed to sync thread author names.",
+          500,
+        );
+      }
     }
 
     return mapAgentRow(row as AgentRow);

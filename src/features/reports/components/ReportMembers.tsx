@@ -1,11 +1,10 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Plus, Search, X } from "lucide-react";
 import { Avatar } from "@/shared/components/Avatar";
+import { ASSIGNEE_STACK_VISIBLE_LIMIT } from "@/features/reports/components/AssigneeAvatarStack";
 import { cn } from "@/lib/utils";
 import type { Agent } from "@/shared/types/agent";
 import type { ReportAssignee } from "@/shared/types/report";
-
-const STACK_VISIBLE_LIMIT = 3;
 
 type MembersPanel =
   null | { type: "manage" } | { type: "member"; agentId: string } | { type: "overflow" };
@@ -23,7 +22,7 @@ export function ReportMembers({
   agents: Agent[];
   canAssign: boolean;
   pending?: boolean;
-  onAdd: (agentId: string) => void;
+  onAdd: (agentId: string, agentName: string) => void;
   onRemove: (agentId: string) => void;
   /** `header` hides the Members label for placement beside tag pills. */
   variant?: "default" | "header";
@@ -32,9 +31,9 @@ export function ReportMembers({
   const [query, setQuery] = useState("");
   const rootRef = useRef<HTMLDivElement>(null);
 
-  const overlaps = assignees.length > STACK_VISIBLE_LIMIT;
-  const visible = overlaps ? assignees.slice(0, STACK_VISIBLE_LIMIT) : assignees;
-  const hidden = overlaps ? assignees.slice(STACK_VISIBLE_LIMIT) : [];
+  const overlaps = assignees.length > ASSIGNEE_STACK_VISIBLE_LIMIT;
+  const visible = overlaps ? assignees.slice(0, ASSIGNEE_STACK_VISIBLE_LIMIT) : assignees;
+  const hidden = overlaps ? assignees.slice(ASSIGNEE_STACK_VISIBLE_LIMIT) : [];
 
   useEffect(() => {
     if (!panel) return;
@@ -62,14 +61,18 @@ export function ReportMembers({
 
   const agentsById = useMemo(() => new Map(agents.map((a) => [a.id, a])), [agents]);
 
+  const displayName = (member: ReportAssignee) =>
+    agentsById.get(member.agentId)?.name ?? member.agentName;
+
   const q = query.trim().toLowerCase();
 
   const members = useMemo(() => {
     if (!q) return assignees;
-    return assignees.filter(
-      (a) => a.agentName.toLowerCase().includes(q) || a.agentId.toLowerCase().includes(q),
-    );
-  }, [assignees, q]);
+    return assignees.filter((a) => {
+      const name = (agentsById.get(a.agentId)?.name ?? a.agentName).toLowerCase();
+      return name.includes(q) || a.agentId.toLowerCase().includes(q);
+    });
+  }, [assignees, agentsById, q]);
 
   const available = useMemo(() => {
     return agents
@@ -109,26 +112,29 @@ export function ReportMembers({
       ) : null}
       <div className="flex flex-wrap items-center gap-1.5">
         <div className={cn("flex items-center", overlaps ? "-space-x-2" : "gap-1.5")}>
-          {visible.map((member) => (
-            <button
-              key={member.agentId}
-              type="button"
-              onClick={() => toggleMember(member.agentId)}
-              aria-label={member.agentName}
-              aria-expanded={panel?.type === "member" && panel.agentId === member.agentId}
-              className={cn(
-                "rounded-full transition-opacity hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary/40",
-                overlaps && "ring-2 ring-card-bg",
-              )}
-            >
-              <Avatar
-                name={member.agentName}
-                seed={member.agentId}
-                src={agentsById.get(member.agentId)?.imageUrl}
-                size="md"
-              />
-            </button>
-          ))}
+          {visible.map((member) => {
+            const name = displayName(member);
+            return (
+              <button
+                key={member.agentId}
+                type="button"
+                onClick={() => toggleMember(member.agentId)}
+                aria-label={name}
+                aria-expanded={panel?.type === "member" && panel.agentId === member.agentId}
+                className={cn(
+                  "rounded-full transition-opacity hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary/40",
+                  overlaps && "ring-2 ring-card-bg",
+                )}
+              >
+                <Avatar
+                  name={name}
+                  seed={member.agentId}
+                  src={agentsById.get(member.agentId)?.imageUrl}
+                  size="md"
+                />
+              </button>
+            );
+          })}
           {hidden.length > 0 ? (
             <button
               type="button"
@@ -174,14 +180,14 @@ export function ReportMembers({
         <div className="absolute left-0 top-full z-30 mt-2 w-72 overflow-hidden rounded-md border border-border-color bg-card-bg shadow-lg">
           <div className="flex items-start gap-2.5 px-3 py-3">
             <Avatar
-              name={selectedMember.agentName}
+              name={displayName(selectedMember)}
               seed={selectedMember.agentId}
               src={selectedAgent?.imageUrl}
               size="md"
             />
             <div className="min-w-0 flex-1">
               <p className="truncate text-[13px] font-semibold text-text-primary">
-                {selectedMember.agentName}
+                {displayName(selectedMember)}
               </p>
               {selectedAgent?.email ? (
                 <p className="truncate text-[12px] text-text-muted">{selectedAgent.email}</p>
@@ -228,21 +234,20 @@ export function ReportMembers({
           <ul className="max-h-64 space-y-0.5 overflow-y-auto p-2">
             {hidden.map((member) => {
               const agent = agentsById.get(member.agentId);
+              const name = displayName(member);
               return (
                 <li
                   key={member.agentId}
                   className="flex items-center gap-2 rounded-md px-1.5 py-1.5"
                 >
                   <Avatar
-                    name={member.agentName}
+                    name={name}
                     seed={member.agentId}
                     src={agent?.imageUrl}
                     size="sm"
                   />
                   <div className="min-w-0 flex-1">
-                    <p className="truncate text-[13px] font-medium text-text-primary">
-                      {member.agentName}
-                    </p>
+                    <p className="truncate text-[13px] font-medium text-text-primary">{name}</p>
                     {agent?.email ? (
                       <p className="truncate text-[11px] text-text-muted">{agent.email}</p>
                     ) : null}
@@ -289,31 +294,34 @@ export function ReportMembers({
               {members.length === 0 ? (
                 <p className="px-1 py-2 text-[12px] text-text-muted">No members yet</p>
               ) : (
-                members.map((member) => (
-                  <div
-                    key={member.agentId}
-                    className="flex items-center gap-2 rounded-md px-1.5 py-1.5 hover:bg-app-bg"
-                  >
-                    <Avatar
-                      name={member.agentName}
-                      seed={member.agentId}
-                      src={agentsById.get(member.agentId)?.imageUrl}
-                      size="sm"
-                    />
-                    <span className="min-w-0 flex-1 truncate text-[13px] font-medium text-text-primary">
-                      {member.agentName}
-                    </span>
-                    <button
-                      type="button"
-                      onClick={() => onRemove(member.agentId)}
-                      disabled={pending}
-                      aria-label={`Remove ${member.agentName}`}
-                      className="inline-flex h-7 w-7 items-center justify-center rounded-md text-text-muted hover:bg-card-bg hover:text-destructive disabled:opacity-50"
+                members.map((member) => {
+                  const name = displayName(member);
+                  return (
+                    <div
+                      key={member.agentId}
+                      className="flex items-center gap-2 rounded-md px-1.5 py-1.5 hover:bg-app-bg"
                     >
-                      <X className="h-3.5 w-3.5" strokeWidth={2} />
-                    </button>
-                  </div>
-                ))
+                      <Avatar
+                        name={name}
+                        seed={member.agentId}
+                        src={agentsById.get(member.agentId)?.imageUrl}
+                        size="sm"
+                      />
+                      <span className="min-w-0 flex-1 truncate text-[13px] font-medium text-text-primary">
+                        {name}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => onRemove(member.agentId)}
+                        disabled={pending}
+                        aria-label={`Remove ${name}`}
+                        className="inline-flex h-7 w-7 items-center justify-center rounded-md text-text-muted hover:bg-card-bg hover:text-destructive disabled:opacity-50"
+                      >
+                        <X className="h-3.5 w-3.5" strokeWidth={2} />
+                      </button>
+                    </div>
+                  );
+                })
               )}
             </section>
 
@@ -330,7 +338,7 @@ export function ReportMembers({
                   <button
                     key={agent.id}
                     type="button"
-                    onClick={() => onAdd(agent.id)}
+                    onClick={() => onAdd(agent.id, agent.name)}
                     disabled={pending}
                     className="flex w-full items-center gap-2 rounded-md px-1.5 py-1.5 text-left hover:bg-app-bg disabled:opacity-50"
                   >

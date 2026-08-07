@@ -21,13 +21,14 @@ export function ProtocolPhase({
   return (
     <main className="grid min-h-0 flex-1 grid-cols-[320px_minmax(0,1fr)]">
       <div className="min-h-0 border-r border-border bg-surface/60">
-        <PropertyPanel property={property} />
+        <PropertyPanel property={property} contacts={customer?.contacts ?? []} />
       </div>
       <div className="min-h-0 bg-background">
         <IssuePanel
           issue={issue}
           property={property}
           customerId={customer?.id}
+          contacts={customer?.contacts ?? []}
           onPick={(next) => (onPickIssue ?? selectIssue)(next)}
           onBack={onBack}
           checked={checked}

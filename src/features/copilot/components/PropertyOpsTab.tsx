@@ -22,7 +22,7 @@ import {
 import { SectionCard } from "@/components/ui/UiKit";
 import { LinkifiedText } from "@/shared/components/LinkifiedText";
 import { SYSTEM_LABELS } from "@/shared/constants/system-labels";
-import type { Property, SystemKey } from "@/shared/types";
+import type { CustomerContact, Property, SystemKey } from "@/shared/types";
 import { ExpandableNote, FieldLabel, PhoneRow, propertyCardClass } from "./PropertyDetailSections";
 
 const SYSTEM_ICONS: Record<SystemKey, LucideIcon> = {
@@ -49,7 +49,13 @@ function houseRuleIcon(rule: string): LucideIcon {
   return CircleAlert;
 }
 
-export function PropertyOpsTab({ property }: { property: Property }) {
+export function PropertyOpsTab({
+  property,
+  contacts = [],
+}: {
+  property: Property;
+  contacts?: CustomerContact[];
+}) {
   const systemEntries = Object.entries(property.systems) as [
     SystemKey,
     { info?: string; escalation?: unknown },
@@ -160,16 +166,20 @@ export function PropertyOpsTab({ property }: { property: Property }) {
 
       <SectionCard title="Emergency Contacts" className={propertyCardClass} padded={false}>
         <div className="divide-y divide-border/60">
-          {property.hosts.length === 0 ? (
+          {contacts.length === 0 ? (
             <p className="px-4 py-3 text-[12.5px] text-muted-foreground">
-              No host contacts on file.
+              No emergency contacts on file.
             </p>
           ) : (
-            property.hosts.map((h) => (
+            contacts.map((contact) => (
               <PhoneRow
-                key={`${h.name}-${h.phone}`}
-                label={`Host (${h.name})`}
-                value={h.phone}
+                key={contact.id}
+                label={
+                  contact.label && contact.name && contact.label !== contact.name
+                    ? `${contact.label.replace(/:\s*$/, "")}: ${contact.name}`
+                    : contact.label || contact.name
+                }
+                value={contact.phone}
                 icon={PhoneCall}
               />
             ))

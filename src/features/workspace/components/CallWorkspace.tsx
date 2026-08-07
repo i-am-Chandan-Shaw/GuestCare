@@ -5,7 +5,7 @@ import { CustomerBrowsePhase } from "@/features/workspace/components/CustomerBro
 import { CustomerLockedPhase } from "@/features/workspace/components/CustomerLockedPhase";
 import { ProtocolPhase } from "@/features/workspace/components/ProtocolPhase";
 import { useWorkspaceSelection } from "@/features/workspace/hooks/useWorkspace";
-import { LoadingState } from "@/shared/components/LoadingState";
+import { WorkspaceRestoreSkeleton } from "@/shared/components/ListSkeletons";
 import type { WorkspaceSearch } from "@/features/workspace/lib/workspace-url";
 import type { Customer, Issue, Property } from "@/shared/types";
 
@@ -101,9 +101,10 @@ export function CallWorkspace() {
 
   if (hydrating) {
     return (
-      <div className="flex min-h-0 flex-1 flex-col items-center justify-center overflow-hidden">
-        <LoadingState label="Restoring workspace…" />
-      </div>
+      <WorkspaceRestoreSkeleton
+        hasProperty={Boolean(urlSearch.propertyId)}
+        hasIssue={Boolean(urlSearch.issueId)}
+      />
     );
   }
 

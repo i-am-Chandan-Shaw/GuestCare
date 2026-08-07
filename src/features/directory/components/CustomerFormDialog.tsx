@@ -9,7 +9,7 @@ import { CustomerContactsEditor } from "@/features/directory/components/Customer
 import { DirectoryFormSkeleton } from "@/features/directory/components/DirectoryFormSkeleton";
 import { DirectoryWizardDialog } from "@/features/directory/components/DirectoryWizardDialog";
 import { DynamicOrderedList } from "@/features/directory/components/DynamicOrderedList";
-import { getClientErrorMessage } from "@/features/directory/lib/client-error";
+import { getClientErrorMessage } from "@/shared/lib/client-error";
 import type { CustomerContact, OrderedStepItem } from "@/shared/types";
 import { Input, Phone, usePasswordEndAction } from "@/shared/components/FloatingLabelField";
 

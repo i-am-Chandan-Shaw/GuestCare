@@ -1,6 +1,9 @@
 import type { OrderedStepItem, Priority, ReservationVerification } from "@/shared/types";
-import type { PriorityCategory } from "@/features/directory/lib/priority-from-category";
-import { PRIORITY_CATEGORIES } from "@/features/directory/lib/priority-from-category";
+import {
+  parsePriority,
+  parsePriorityCategory,
+  type PriorityCategory,
+} from "@/features/directory/lib/priority-from-category";
 import { RESERVATION_VERIFICATIONS } from "@/features/directory/validations/protocol-form.schema";
 
 export type ProtocolEscalationKind =
@@ -77,15 +80,19 @@ function mapVerification(value: string): ReservationVerification {
 }
 
 function mapPriorityCategory(value: string): PriorityCategory {
-  if ((PRIORITY_CATEGORIES as readonly string[]).includes(value)) {
-    return value as PriorityCategory;
+  const parsed = parsePriorityCategory(value);
+  if (!parsed) {
+    throw new Error(`Invalid protocol priority_category: ${value}`);
   }
-  return "Admin / Informational";
+  return parsed;
 }
 
 function mapPriority(value: string): Priority {
-  if (value === "P1" || value === "P2" || value === "P3" || value === "P4") return value;
-  return "P4";
+  const parsed = parsePriority(value);
+  if (!parsed) {
+    throw new Error(`Invalid protocol priority: ${value}`);
+  }
+  return parsed;
 }
 
 function mapEscalationKind(value: string | null): ProtocolEscalationKind | undefined {

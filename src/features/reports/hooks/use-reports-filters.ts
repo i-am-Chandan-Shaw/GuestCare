@@ -1,11 +1,13 @@
 import { useMemo, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { useAgents } from "@/features/agents/hooks/useAgents";
 import { useCustomerSummaries } from "@/features/customers/hooks/useCustomers";
 import {
   EMPTY_REPORTS_LIST_FILTERS,
   type ReportsListFilters,
 } from "@/features/reports/lib/reports-list-filters";
-import { PROPERTIES } from "@/mock-data/properties";
+import { getPropertySummaries } from "@/features/customers/api/customers.api";
+import { queryKeys } from "@/shared/lib/query-keys";
 
 export type AccordionKey =
   "status" | "priority" | "agent" | "customer" | "property" | "issueType" | "dateRange";
@@ -68,12 +70,28 @@ export function useReportsFiltersState(applied: ReportsListFilters) {
       .sort((a, b) => a.name.localeCompare(b.name));
   }, [customers, customerQ]);
 
+  const customerIds = useMemo(
+    () => customers.map((c) => c.id),
+    [customers],
+  );
+
+  const { data: allProperties = [] } = useQuery({
+    queryKey: [...queryKeys.properties.all, "filter-all", ...customerIds],
+    queryFn: async () => {
+      const batches = await Promise.all(
+        customerIds.map((id) => getPropertySummaries(id)),
+      );
+      return batches.flat();
+    },
+    enabled: customerIds.length > 0,
+  });
+
   const filteredProperties = useMemo(() => {
     const q = propertyQ.trim().toLowerCase();
-    return [...PROPERTIES]
+    return [...allProperties]
       .filter((p) => !q || p.name.toLowerCase().includes(q) || p.address.toLowerCase().includes(q))
       .sort((a, b) => a.name.localeCompare(b.name));
-  }, [propertyQ]);
+  }, [allProperties, propertyQ]);
 
   const toggleAccordion = (key: AccordionKey) => {
     setExpanded((prev) => (prev === key ? null : key));

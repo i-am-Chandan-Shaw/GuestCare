@@ -29,17 +29,14 @@ import {
 } from "@/features/reports/components/ReportThread";
 import { ReportActivityTimeline } from "@/features/reports/components/ReportActivityTimeline";
 import { ReportMembers } from "@/features/reports/components/ReportMembers";
+import { ReportDetailSkeleton } from "@/features/reports/components/ReportDetailSkeleton";
 import { ReportEditDialog } from "@/features/reports/components/ReportEditDialog";
 import { agentCanAssignReport, agentCanEditReport } from "@/features/reports/lib/report-scope";
-import { priorityMeta } from "@/shared/constants/agent";
+import { getPriorityMeta } from "@/shared/constants/agent";
 import { Avatar } from "@/shared/components/Avatar";
 import { cn } from "@/lib/utils";
 import { formatActivityTimestamp, formatActivityTimestampRelative } from "@/shared/lib/datetime";
 import type { Report } from "@/shared/types/report";
-
-function formatReportId(id: string) {
-  return id.replaceAll("-", "");
-}
 
 const ICON_TONES = {
   blue: "bg-sky-500/10 text-sky-600",
@@ -215,11 +212,7 @@ export function ReportDetailPage({ reportId, onBack }: { reportId: string; onBac
   const [editOpen, setEditOpen] = useState(false);
 
   if (isLoading) {
-    return (
-      <div className="flex h-full min-h-0 flex-1 items-center justify-center text-[13px] text-text-secondary">
-        Loading report…
-      </div>
-    );
+    return <ReportDetailSkeleton />;
   }
 
   if (!data?.report) {
@@ -246,15 +239,11 @@ export function ReportDetailPage({ reportId, onBack }: { reportId: string; onBac
   const { report, thread } = data;
   const canEdit = agentCanEditReport(currentAgent, report);
   const canAssign = agentCanAssignReport(currentAgent, report);
-  const priority = priorityMeta[report.priority];
-  const displayId = formatReportId(report.id);
+  const priority = getPriorityMeta(report.priority);
+  const displayId = report.displayId;
 
   const isBusy =
-    updateReport.isPending ||
-    addAssignee.isPending ||
-    removeAssignee.isPending ||
-    addComment.isPending ||
-    updateComment.isPending;
+    updateReport.isPending || addComment.isPending || updateComment.isPending;
 
   const handleRootComment = () => {
     const body = comment.trim();
@@ -361,8 +350,7 @@ export function ReportDetailPage({ reportId, onBack }: { reportId: string; onBac
                   assignees={report.assignees ?? []}
                   agents={agents}
                   canAssign={canAssign}
-                  pending={addAssignee.isPending || removeAssignee.isPending}
-                  onAdd={(agentId) => addAssignee.mutate({ agentId })}
+                  onAdd={(agentId, agentName) => addAssignee.mutate({ agentId, agentName })}
                   onRemove={(agentId) => removeAssignee.mutate({ agentId })}
                 />
                 <span className="inline-flex rounded-full bg-violet-500/10 px-2.5 py-1 text-[11px] font-semibold text-violet-700">
