@@ -8,6 +8,7 @@ import type {
   ReportSource,
 } from "@/shared/types/report";
 import type { Priority } from "@/shared/types";
+import { mapLegacyPriority } from "@/features/directory/lib/priority-from-category";
 import {
   ensureAssignees,
   formatAssigneesLabel,
@@ -30,8 +31,8 @@ export type ReportRow = {
   caller_contact: string;
   reservation_number: string;
   name_on_booking: string;
-  call_notes: string;
-  actions_taken: unknown;
+  call_notes?: string | null;
+  actions_taken?: unknown;
   customer_name: string;
   property_name: string;
   created_by_agent_name: string;
@@ -69,8 +70,7 @@ function mapActions(raw: unknown): string[] {
 }
 
 function mapPriority(value: string): Priority {
-  if (value === "P1" || value === "P2" || value === "P3" || value === "P4") return value;
-  return "P4";
+  return mapLegacyPriority(value);
 }
 
 function mapStatus(value: string): ReportStatus {
@@ -118,6 +118,7 @@ export function mapReportRow(
 ): Report {
   const report: Report = {
     id: row.id,
+    displayId: row.display_id,
     issueName: row.issue_name,
     issueType: row.issue_type,
     priority: mapPriority(row.priority),
@@ -131,7 +132,7 @@ export function mapReportRow(
     callerContact: row.caller_contact,
     reservationNumber: row.reservation_number,
     nameOnBooking: row.name_on_booking,
-    callNotes: row.call_notes,
+    callNotes: row.call_notes ?? "",
     actionsTaken: mapActions(row.actions_taken),
     protocolIssueId: row.protocol_id ?? undefined,
     customerName: row.customer_name,
@@ -154,6 +155,7 @@ export function toReportListItem(report: Report, threadCount: number): ReportLis
   const assignees = ensureAssignees(report);
   return {
     id: report.id,
+    displayId: report.displayId,
     issueName: report.issueName,
     issueType: report.issueType,
     priority: report.priority,

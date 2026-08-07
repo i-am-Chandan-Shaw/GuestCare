@@ -1,4 +1,4 @@
-import type { ICellRendererParams, ValueFormatterParams } from "ag-grid-community";
+import type { ICellRendererParams } from "ag-grid-community";
 import type { ColDef } from "ag-grid-community";
 import { Eye } from "lucide-react";
 import { StatusChip } from "@/components/ui/StatusChip";
@@ -47,10 +47,6 @@ function MembersCell({ data }: ICellRendererParams<ReportListItem>) {
   return <AssigneeAvatarStack assignees={data.assignees ?? []} size="sm" />;
 }
 
-function formatReportId(value: string | null | undefined) {
-  return value?.replaceAll("-", "") ?? "";
-}
-
 function ActionsCell({
   data,
   onViewReport,
@@ -80,14 +76,12 @@ export function createReportsTableColumnDefs(options: {
   return [
     {
       headerName: "REPORT ID",
-      field: "id",
+      field: "displayId",
       colId: "reportId",
-      width: 130,
-      minWidth: 110,
-      cellClass: "tabular-nums text-text-secondary",
-      valueFormatter: (params: ValueFormatterParams<ReportListItem, string>) =>
-        formatReportId(params.value),
-      tooltipValueGetter: (params) => params.data?.id,
+      width: 120,
+      minWidth: 100,
+      cellClass: "font-mono tabular-nums text-text-secondary",
+      tooltipValueGetter: (params) => params.data?.displayId,
       suppressSizeToFit: true,
     },
     {

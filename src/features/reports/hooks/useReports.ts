@@ -111,6 +111,11 @@ export function useAddReportAssigneeMutation(reportId: string) {
       });
       return { previous };
     },
+    onSuccess: (report) => {
+      queryClient.setQueryData<ReportDetail>(detailKey, (current) =>
+        current ? { ...current, report } : current,
+      );
+    },
     onError: (_error, _vars, context) => {
       if (context?.previous) {
         queryClient.setQueryData(detailKey, context.previous);
@@ -141,6 +146,11 @@ export function useRemoveReportAssigneeMutation(reportId: string) {
         );
       });
       return { previous };
+    },
+    onSuccess: (report) => {
+      queryClient.setQueryData<ReportDetail>(detailKey, (current) =>
+        current ? { ...current, report } : current,
+      );
     },
     onError: (_error, _vars, context) => {
       if (context?.previous) {

@@ -7,7 +7,7 @@ export function getIncidentFormBaseline(issue: Issue | null): FormState {
     ...emptyForm(),
     issueSummary: issue?.name ?? "",
     incidentType: issue ? protocolToIncidentType(issue.category) : "Other",
-    priority: issue?.priority ?? "P2",
+    priority: issue?.priority ?? "Medium-High",
   };
 }
 

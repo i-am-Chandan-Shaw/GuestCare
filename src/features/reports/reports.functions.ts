@@ -43,6 +43,47 @@ import type {
 
 type SupabaseAdmin = ReturnType<typeof createSupabaseAdmin>;
 
+function asReportRow(data: unknown): ReportRow {
+  return data as ReportRow;
+}
+
+function asReportRows(data: unknown): ReportRow[] {
+  return (data as ReportRow[] | null) ?? [];
+}
+
+/** Columns needed for list rows (omit large note/action payloads). */
+const REPORT_LIST_SELECT = [
+  "id",
+  "display_id",
+  "issue_name",
+  "issue_type",
+  "priority",
+  "status",
+  "source",
+  "customer_id",
+  "property_id",
+  "protocol_id",
+  "created_by_agent_id",
+  "caller_name",
+  "caller_contact",
+  "reservation_number",
+  "name_on_booking",
+  "customer_name",
+  "property_name",
+  "created_by_agent_name",
+  "created_at",
+  "updated_at",
+  "last_activity_at",
+  "resolved_at",
+  "version",
+].join(",");
+
+const REPORT_DETAIL_SELECT = [
+  REPORT_LIST_SELECT,
+  "call_notes",
+  "actions_taken",
+].join(",");
+
 async function loadAssignees(
   supabase: SupabaseAdmin,
   reportId: string,
@@ -87,16 +128,14 @@ async function loadThreadCounts(
   const counts = new Map<string, number>();
   if (reportIds.length === 0) return counts;
 
-  const { data, error } = await supabase
-    .from("report_thread_entries")
-    .select("report_id")
-    .in("report_id", reportIds);
+  const { data, error } = await supabase.rpc("count_report_thread_entries", {
+    p_report_ids: reportIds,
+  });
 
   if (error) throwHttpError(error.message || "Failed to load thread counts.", 500);
 
-  for (const row of data ?? []) {
-    const reportId = (row as { report_id: string }).report_id;
-    counts.set(reportId, (counts.get(reportId) ?? 0) + 1);
+  for (const row of (data ?? []) as { report_id: string; entry_count: number | string }[]) {
+    counts.set(row.report_id, Number(row.entry_count) || 0);
   }
   return counts;
 }
@@ -121,12 +160,12 @@ async function loadReportRow(
 ): Promise<ReportRow | null> {
   const { data, error } = await supabase
     .from("reports")
-    .select("*")
+    .select(REPORT_DETAIL_SELECT)
     .eq("id", reportId)
     .maybeSingle();
 
   if (error) throwHttpError(error.message || "Failed to load report.", 500);
-  return (data as ReportRow | null) ?? null;
+  return data ? asReportRow(data) : null;
 }
 
 async function loadReport(
@@ -137,6 +176,19 @@ async function loadReport(
   if (!row) return null;
   const assignees = await loadAssignees(supabase, reportId);
   return mapReportRow(row, assignees);
+}
+
+async function loadReportDetail(
+  supabase: SupabaseAdmin,
+  reportId: string,
+): Promise<ReportDetail | null> {
+  const row = await loadReportRow(supabase, reportId);
+  if (!row) return null;
+  const [assignees, thread] = await Promise.all([
+    loadAssignees(supabase, reportId),
+    loadThread(supabase, reportId),
+  ]);
+  return { report: mapReportRow(row, assignees), thread };
 }
 
 async function insertThreadEntry(
@@ -184,28 +236,21 @@ async function touchReportTimestamps(
       ...patch.extra,
     })
     .eq("id", reportId)
-    .select("*")
+    .select(REPORT_DETAIL_SELECT)
     .single();
 
   if (error || !data) {
     throwHttpError(error?.message ?? "Failed to update report.", 500);
   }
-  return data as ReportRow;
+  return asReportRow(data);
 }
 
 async function nextDisplayId(supabase: SupabaseAdmin): Promise<string> {
-  const year = new Date().getFullYear();
-  const prefix = `GCR-${year}-`;
-
-  const { count, error } = await supabase
-    .from("reports")
-    .select("*", { count: "exact", head: true })
-    .like("display_id", `${prefix}%`);
-
-  if (error) throwHttpError(error.message || "Failed to generate report id.", 500);
-
-  const next = (count ?? 0) + 1;
-  return `${prefix}${String(next).padStart(5, "0")}`;
+  const { data, error } = await supabase.rpc("next_report_display_id");
+  if (error || typeof data !== "string" || !data) {
+    throwHttpError(error?.message || "Failed to generate report id.", 500);
+  }
+  return data;
 }
 
 async function resolveCustomerName(
@@ -260,6 +305,43 @@ function emptyPage(page: number, limit: number): PaginatedReports {
   };
 }
 
+async function finalizeNewReport(
+  supabase: SupabaseAdmin,
+  reportRow: ReportRow,
+  currentAgent: { id: string; name: string },
+  now: string,
+): Promise<Report> {
+  const { error: assigneeError } = await supabase.from("report_assignees").insert({
+    report_id: reportRow.id,
+    agent_id: currentAgent.id,
+    agent_name: currentAgent.name,
+    assigned_at: now,
+    assigned_by_agent_id: currentAgent.id,
+  });
+
+  if (assigneeError) {
+    throwHttpError(assigneeError.message || "Failed to assign report creator.", 500);
+  }
+
+  await insertThreadEntry(supabase, {
+    report_id: reportRow.id,
+    type: "system",
+    author_agent_id: currentAgent.id,
+    author_agent_name: currentAgent.name,
+    body: "Report created and assigned to you",
+    created_at: now,
+  });
+
+  return mapReportRow(reportRow, [
+    {
+      agentId: currentAgent.id,
+      agentName: currentAgent.name,
+      assignedAt: now,
+      assignedByAgentId: currentAgent.id,
+    },
+  ]);
+}
+
 export const listReportsFn = createServerFn({ method: "POST" })
   .validator(reportsQuerySchema)
   .handler(async ({ data }): Promise<PaginatedReports> => {
@@ -306,7 +388,7 @@ export const listReportsFn = createServerFn({ method: "POST" })
       if (assignedReportIds.length === 0) return emptyPage(data.page, data.limit);
     }
 
-    let query = supabase.from("reports").select("*", { count: "exact" });
+    let query = supabase.from("reports").select(REPORT_LIST_SELECT, { count: "exact" });
 
     if (customerFilter) query = query.in("customer_id", customerFilter);
     if (assignedReportIds) query = query.in("id", assignedReportIds);
@@ -357,7 +439,7 @@ export const listReportsFn = createServerFn({ method: "POST" })
 
     if (error) throwHttpError(error.message || "Failed to load reports.", 500);
 
-    const reportRows = (rows ?? []) as ReportRow[];
+    const reportRows = asReportRows(rows);
     const ids = reportRows.map((row) => row.id);
     const [assigneesByReport, threadCounts] = await Promise.all([
       loadAssigneesForReports(supabase, ids),
@@ -390,12 +472,10 @@ export const getReportFn = createServerFn({ method: "POST" })
     const agent = toAgentAccess(session.agent);
     const supabase = createSupabaseAdmin();
 
-    const report = await loadReport(supabase, data.id);
-    if (!report) return null;
-    if (!agentCanAccessCustomer(agent, report.customerId)) return null;
-
-    const thread = await loadThread(supabase, data.id);
-    return { report, thread };
+    const detail = await loadReportDetail(supabase, data.id);
+    if (!detail) return null;
+    if (!agentCanAccessCustomer(agent, detail.report.customerId)) return null;
+    return detail;
   });
 
 export const createReportFn = createServerFn({ method: "POST" })
@@ -408,13 +488,20 @@ export const createReportFn = createServerFn({ method: "POST" })
     const supabase = createSupabaseAdmin();
     const now = new Date().toISOString();
     const status: ReportStatus = data.status ?? "OPEN";
+    const propertyId: string | null = data.propertyId ?? null;
 
-    const customerName = await resolveCustomerName(supabase, data.customerId);
+    const [customerName, property, protocolResult, displayId] = await Promise.all([
+      resolveCustomerName(supabase, data.customerId),
+      propertyId ? resolveProperty(supabase, propertyId) : Promise.resolve(null),
+      data.protocolIssueId
+        ? supabase.from("protocols").select("id").eq("id", data.protocolIssueId).maybeSingle()
+        : Promise.resolve({ data: null, error: null }),
+      nextDisplayId(supabase),
+    ]);
+
     let propertyName = "—";
-    let propertyId: string | null = data.propertyId ?? null;
-
     if (propertyId) {
-      const property = await resolveProperty(supabase, propertyId);
+      if (!property) throwHttpError("Property not found.", 404);
       if (property.customer_id !== data.customerId) {
         throwHttpError("Property does not belong to the selected customer.", 400);
       }
@@ -422,18 +509,11 @@ export const createReportFn = createServerFn({ method: "POST" })
     }
 
     if (data.protocolIssueId) {
-      const { data: protocol, error: protocolError } = await supabase
-        .from("protocols")
-        .select("id")
-        .eq("id", data.protocolIssueId)
-        .maybeSingle();
-      if (protocolError) {
-        throwHttpError(protocolError.message || "Failed to validate protocol.", 500);
+      if (protocolResult.error) {
+        throwHttpError(protocolResult.error.message || "Failed to validate protocol.", 500);
       }
-      if (!protocol) throwHttpError("Protocol not found.", 404);
+      if (!protocolResult.data) throwHttpError("Protocol not found.", 404);
     }
-
-    const displayId = await nextDisplayId(supabase);
 
     const { data: row, error } = await supabase
       .from("reports")
@@ -463,38 +543,57 @@ export const createReportFn = createServerFn({ method: "POST" })
         resolved_at: status === "RESOLVED" ? now : null,
         version: 1,
       })
-      .select("*")
+      .select(REPORT_DETAIL_SELECT)
       .single();
 
     if (error || !row) {
+      // Retry once on rare display_id collision
+      if (error?.code === "23505" && error.message?.includes("display_id")) {
+        const retryId = await nextDisplayId(supabase);
+        const retry = await supabase
+          .from("reports")
+          .insert({
+            display_id: retryId,
+            issue_name: data.issueName.trim(),
+            issue_type: data.issueType.trim(),
+            priority: data.priority,
+            status,
+            source: data.source ?? "manual",
+            customer_id: data.customerId,
+            property_id: propertyId,
+            protocol_id: data.protocolIssueId ?? null,
+            created_by_agent_id: currentAgent.id,
+            caller_name: data.callerName,
+            caller_contact: data.callerContact,
+            reservation_number: data.reservationNumber,
+            name_on_booking: data.nameOnBooking,
+            call_notes: data.callNotes,
+            actions_taken: data.actionsTaken,
+            customer_name: customerName,
+            property_name: propertyName,
+            created_by_agent_name: currentAgent.name,
+            created_at: now,
+            updated_at: now,
+            last_activity_at: now,
+            resolved_at: status === "RESOLVED" ? now : null,
+            version: 1,
+          })
+          .select(REPORT_DETAIL_SELECT)
+          .single();
+        if (retry.error || !retry.data) {
+          throwHttpError(retry.error?.message ?? "Failed to create report.", 500);
+        }
+        return finalizeNewReport(
+          supabase,
+          asReportRow(retry.data),
+          currentAgent,
+          now,
+        );
+      }
       throwHttpError(error?.message ?? "Failed to create report.", 500);
     }
 
-    const reportRow = row as ReportRow;
-
-    const { error: assigneeError } = await supabase.from("report_assignees").insert({
-      report_id: reportRow.id,
-      agent_id: currentAgent.id,
-      agent_name: currentAgent.name,
-      assigned_at: now,
-      assigned_by_agent_id: currentAgent.id,
-    });
-
-    if (assigneeError) {
-      throwHttpError(assigneeError.message || "Failed to assign report creator.", 500);
-    }
-
-    await insertThreadEntry(supabase, {
-      report_id: reportRow.id,
-      type: "system",
-      author_agent_id: currentAgent.id,
-      author_agent_name: currentAgent.name,
-      body: "Report created and assigned to you",
-      created_at: now,
-    });
-
-    const assignees = await loadAssignees(supabase, reportRow.id);
-    return mapReportRow(reportRow, assignees);
+    return finalizeNewReport(supabase, asReportRow(row), currentAgent, now);
   });
 
 export const updateReportFn = createServerFn({ method: "POST" })
@@ -647,8 +746,13 @@ export const addReportAssigneeFn = createServerFn({ method: "POST" })
     const currentAgent = toAgentAccess(session.agent);
     const supabase = createSupabaseAdmin();
 
-    const report = await loadReport(supabase, data.id);
-    if (!report) throwHttpError("Report not found.", 404);
+    const [row, assignees, target] = await Promise.all([
+      loadReportRow(supabase, data.id),
+      loadAssignees(supabase, data.id),
+      loadAgentRow(supabase, data.agentId),
+    ]);
+    if (!row) throwHttpError("Report not found.", 404);
+    const report = mapReportRow(row, assignees);
     if (!agentCanAssignReport(currentAgent, report)) {
       throwHttpError("Not allowed to assign agents on this report.", 403);
     }
@@ -657,7 +761,6 @@ export const addReportAssigneeFn = createServerFn({ method: "POST" })
       return report;
     }
 
-    const target = await loadAgentRow(supabase, data.agentId);
     if (!target.isActive) throwHttpError("Agent is not active.", 400);
     if (!agentCanAccessCustomer(toAgentAccess(target), report.customerId)) {
       throwHttpError("Agent cannot access this report's customer.", 400);
@@ -677,28 +780,34 @@ export const addReportAssigneeFn = createServerFn({ method: "POST" })
       throwHttpError(insertError.message || "Failed to add assignee.", 500);
     }
 
-    await insertThreadEntry(supabase, {
-      report_id: data.id,
-      type: "assignment",
-      author_agent_id: currentAgent.id,
-      author_agent_name: currentAgent.name,
-      body: data.note?.trim() || null,
-      metadata: {
-        action: "added",
-        toAgentId: target.id,
-        toAgentName: target.name,
+    const nextAssignees: ReportAssignee[] = [
+      ...report.assignees,
+      {
+        agentId: target.id,
+        agentName: target.name,
+        assignedAt: now,
+        assignedByAgentId: currentAgent.id,
       },
-      created_at: now,
-    });
+    ];
 
-    const row = await touchReportTimestamps(
-      supabase,
-      data.id,
-      { version: report.version + 1 },
-      now,
-    );
-    const assignees = await loadAssignees(supabase, data.id);
-    return mapReportRow(row, assignees);
+    const [, updatedRow] = await Promise.all([
+      insertThreadEntry(supabase, {
+        report_id: data.id,
+        type: "assignment",
+        author_agent_id: currentAgent.id,
+        author_agent_name: currentAgent.name,
+        body: data.note?.trim() || null,
+        metadata: {
+          action: "added",
+          toAgentId: target.id,
+          toAgentName: target.name,
+        },
+        created_at: now,
+      }),
+      touchReportTimestamps(supabase, data.id, { version: report.version + 1 }, now),
+    ]);
+
+    return mapReportRow(updatedRow, nextAssignees);
   });
 
 export const removeReportAssigneeFn = createServerFn({ method: "POST" })
@@ -708,8 +817,12 @@ export const removeReportAssigneeFn = createServerFn({ method: "POST" })
     const currentAgent = toAgentAccess(session.agent);
     const supabase = createSupabaseAdmin();
 
-    const report = await loadReport(supabase, data.id);
-    if (!report) throwHttpError("Report not found.", 404);
+    const [row, assignees] = await Promise.all([
+      loadReportRow(supabase, data.id),
+      loadAssignees(supabase, data.id),
+    ]);
+    if (!row) throwHttpError("Report not found.", 404);
+    const report = mapReportRow(row, assignees);
     if (!agentCanAssignReport(currentAgent, report)) {
       throwHttpError("Not allowed to assign agents on this report.", 403);
     }
@@ -728,28 +841,25 @@ export const removeReportAssigneeFn = createServerFn({ method: "POST" })
     }
 
     const now = new Date().toISOString();
+    const nextAssignees = report.assignees.filter((a) => a.agentId !== data.agentId);
 
-    await insertThreadEntry(supabase, {
-      report_id: data.id,
-      type: "assignment",
-      author_agent_id: currentAgent.id,
-      author_agent_name: currentAgent.name,
-      metadata: {
-        action: "removed",
-        toAgentId: existing.agentId,
-        toAgentName: existing.agentName,
-      },
-      created_at: now,
-    });
+    const [, updatedRow] = await Promise.all([
+      insertThreadEntry(supabase, {
+        report_id: data.id,
+        type: "assignment",
+        author_agent_id: currentAgent.id,
+        author_agent_name: currentAgent.name,
+        metadata: {
+          action: "removed",
+          toAgentId: existing.agentId,
+          toAgentName: existing.agentName,
+        },
+        created_at: now,
+      }),
+      touchReportTimestamps(supabase, data.id, { version: report.version + 1 }, now),
+    ]);
 
-    const row = await touchReportTimestamps(
-      supabase,
-      data.id,
-      { version: report.version + 1 },
-      now,
-    );
-    const assignees = await loadAssignees(supabase, data.id);
-    return mapReportRow(row, assignees);
+    return mapReportRow(updatedRow, nextAssignees);
   });
 export const addReportCommentFn = createServerFn({ method: "POST" })
   .validator(addReportCommentSchema)

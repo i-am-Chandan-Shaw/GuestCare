@@ -226,7 +226,7 @@ function summarizeCustomer(
   const openReportsCount = logs.filter(isOpenIncident).length;
   const resolvedCount = logs.filter((log) => log.status === "Resolved").length;
   const criticalOpenCount = logs.filter(
-    (log) => isOpenIncident(log) && log.priority === "P1",
+    (log) => isOpenIncident(log) && log.priority === "High",
   ).length;
   const newest = customerReports[0];
 

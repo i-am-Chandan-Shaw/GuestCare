@@ -26,7 +26,8 @@ export function initialsFromName(name: string): string {
   return `${parts[0]![0] ?? ""}${parts[1]![0] ?? ""}`.toUpperCase();
 }
 
-function toneForSeed(seed: string): string {
+/** Stable color class from an id/name — shared by Avatar and portfolio thumbs. */
+export function avatarToneClass(seed: string): string {
   let hash = 0;
   for (let i = 0; i < seed.length; i += 1) {
     hash = (hash + seed.charCodeAt(i) * (i + 1)) % AVATAR_TONES.length;
@@ -56,7 +57,7 @@ export function Avatar({
   const [imageFailed, setImageFailed] = useState(false);
   const showImage = Boolean(src) && !imageFailed;
   const initials = initialsFromName(name);
-  const tone = toneForSeed(seed ?? name);
+  const tone = avatarToneClass(seed ?? name);
 
   return (
     <span

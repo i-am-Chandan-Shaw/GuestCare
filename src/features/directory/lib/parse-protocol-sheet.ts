@@ -1,7 +1,4 @@
-import {
-  PRIORITY_CATEGORIES,
-  type PriorityCategory,
-} from "@/features/directory/lib/priority-from-category";
+import { resolvePriorityFromSheet } from "@/features/directory/lib/priority-from-category";
 import {
   buildHeaderIndex,
   getCell,
@@ -19,6 +16,7 @@ import {
 
 /**
  * Protocol sheet: one column → one field.
+ * Reads Priority Category + Priority (High / Medium-High / Medium / Low).
  * Accepts typo header "Priority Cateory" and "Escalation Contact [Name/Info]".
  */
 const HEADERS = {
@@ -35,7 +33,6 @@ const HEADERS = {
 } as const;
 
 const VERIFICATION_SET = new Set<string>(RESERVATION_VERIFICATIONS);
-const PRIORITY_CATEGORY_SET = new Set<string>(PRIORITY_CATEGORIES);
 
 export type ParsedProtocolPayload = Omit<CreateProtocolInput, "propertyId">;
 
@@ -86,10 +83,22 @@ function rowToPayload(
   const priorityCategoryRaw =
     optionalText(getCell(row, headerIndex, HEADERS.priorityCategory)) ??
     optionalText(getCell(row, headerIndex, HEADERS.priorityCategoryTypo));
-  const priorityCategory =
-    priorityCategoryRaw && PRIORITY_CATEGORY_SET.has(priorityCategoryRaw)
-      ? (priorityCategoryRaw as PriorityCategory)
-      : "Admin / Informational";
+  const sheetPriority = optionalText(getCell(row, headerIndex, HEADERS.priority));
+  const resolved = resolvePriorityFromSheet(priorityCategoryRaw, sheetPriority);
+  if (!resolved) {
+    const reason =
+      !priorityCategoryRaw && !sheetPriority
+        ? "Priority Category and Priority are required."
+        : !priorityCategoryRaw
+          ? "Priority Category is required."
+          : !sheetPriority
+            ? "Priority is required (High, Medium-High, Medium, or Low)."
+            : `Unknown or mismatched Priority Category / Priority ("${priorityCategoryRaw}" / "${sheetPriority}").`;
+    return {
+      ok: false,
+      skip: { sheetRow: 0, name, reason },
+    };
+  }
 
   const escalationContact = optionalText(getCell(row, headerIndex, HEADERS.escalationContact));
   const escalationDetails =
@@ -104,17 +113,15 @@ function rowToPayload(
     position,
   }));
 
-  const sheetPriority = optionalText(getCell(row, headerIndex, HEADERS.priority));
-
   return {
     ok: true,
     name,
-    sheetPriority,
+    sheetPriority: resolved.priority,
     payload: {
       category,
       name,
       reservationVerification,
-      priorityCategory,
+      priorityCategory: resolved.category,
       steps,
       customerContactId: null,
       escalationKind: escalationText ? "custom" : null,

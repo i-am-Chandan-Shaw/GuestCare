@@ -65,7 +65,9 @@ export function CustomerWorkbookImportDialog({
 
   const validateBasics = () => {
     const nextNameError = name.trim() ? undefined : "Name is required.";
-    const nextEmailError = isValidEmail(email.trim()) ? undefined : "A valid email is required.";
+    const trimmedEmail = email.trim();
+    const nextEmailError =
+      trimmedEmail && !isValidEmail(trimmedEmail) ? "Enter a valid email, or leave it blank." : undefined;
     setNameError(nextNameError);
     setEmailError(nextEmailError);
     return !nextNameError && !nextEmailError;
@@ -74,7 +76,7 @@ export function CustomerWorkbookImportDialog({
   const handleFile = async (file: File | undefined) => {
     if (!file) return;
     if (!validateBasics()) {
-      toast.error("Enter customer name and a valid email before uploading.");
+      toast.error("Enter a customer name before uploading.");
       return;
     }
 
@@ -211,8 +213,8 @@ export function CustomerWorkbookImportDialog({
         <DialogHeader className="shrink-0 border-b border-border-color px-5 py-4">
           <DialogTitle>Import customer from Excel</DialogTitle>
           <DialogDescription>
-            Enter name and email, then upload a multi-sheet workbook (Property Info, Protocol,
-            Emergency Contact, System details + steps).
+            Enter the customer name (email optional), then upload a multi-sheet workbook (Property
+            Info, Protocol, Emergency Contact, System details + steps).
           </DialogDescription>
         </DialogHeader>
 
@@ -220,11 +222,12 @@ export function CustomerWorkbookImportDialog({
           {step === "form" ? (
             <div className="space-y-4">
               <Input
-                label="Customer name"
+                label="Customer name *"
                 value={name}
                 onChange={setName}
                 error={nameError}
                 disabled={parsing}
+                required
               />
               <Input
                 label="Email"

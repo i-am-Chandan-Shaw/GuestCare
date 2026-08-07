@@ -37,10 +37,6 @@ import { cn } from "@/lib/utils";
 import { formatActivityTimestamp, formatActivityTimestampRelative } from "@/shared/lib/datetime";
 import type { Report } from "@/shared/types/report";
 
-function formatReportId(id: string) {
-  return id.replaceAll("-", "");
-}
-
 const ICON_TONES = {
   blue: "bg-sky-500/10 text-sky-600",
   green: "bg-emerald-500/10 text-emerald-600",
@@ -247,7 +243,7 @@ export function ReportDetailPage({ reportId, onBack }: { reportId: string; onBac
   const canEdit = agentCanEditReport(currentAgent, report);
   const canAssign = agentCanAssignReport(currentAgent, report);
   const priority = priorityMeta[report.priority];
-  const displayId = formatReportId(report.id);
+  const displayId = report.displayId;
 
   const isBusy =
     updateReport.isPending || addComment.isPending || updateComment.isPending;

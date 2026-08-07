@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-const prioritySchema = z.enum(["P1", "P2", "P3", "P4"]);
+const prioritySchema = z.enum(["High", "Medium-High", "Medium", "Low"]);
 const reportStatusSchema = z.enum(["OPEN", "ESCALATED", "HANDEDOVER", "RESOLVED"]);
 const reportSourceSchema = z.enum(["copilot", "manual"]);
 

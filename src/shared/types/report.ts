@@ -14,7 +14,10 @@ export interface ReportAssignee {
 }
 
 export interface ReportListItem {
+  /** Internal UUID PK (routing / FKs). */
   id: string;
+  /** Public compact id, e.g. GCR0423. */
+  displayId: string;
   issueName: string;
   issueType: string;
   priority: Priority;
@@ -32,7 +35,10 @@ export interface ReportListItem {
 }
 
 export interface Report {
+  /** Internal UUID PK (routing / FKs). */
   id: string;
+  /** Public compact id, e.g. GCR0423. */
+  displayId: string;
   issueName: string;
   issueType: string;
   priority: Priority;

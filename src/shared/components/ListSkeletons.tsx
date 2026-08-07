@@ -157,3 +157,106 @@ export function HistoryListSkeleton({ rows = 5 }: { rows?: number }) {
     </ul>
   );
 }
+
+function WorkspaceHeaderSkeleton({ crumbs }: { crumbs: number }) {
+  return (
+    <div className="shrink-0 border-b border-border-color bg-white px-5 py-2.5">
+      <SkeletonBar className="h-4 w-28" />
+      <div className="mt-2.5 flex flex-wrap items-center gap-2">
+        {Array.from({ length: crumbs }, (_, index) => (
+          <SkeletonBlock
+            key={index}
+            className={cn("h-8 rounded-md", index === 0 ? "w-36" : index === 1 ? "w-40" : "w-44")}
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function ProtocolLayoutSkeleton() {
+  return (
+    <main className="grid min-h-0 flex-1 grid-cols-[320px_minmax(0,1fr)]">
+      <div className="min-h-0 space-y-3 overflow-hidden border-r border-border bg-surface/60 p-4">
+        <SkeletonBlock className="h-40 w-full rounded-xl" />
+        <SkeletonBlock className="h-9 w-full rounded-lg" />
+        <div className="space-y-3 pt-1">
+          <SkeletonBlock className="h-24 w-full rounded-md" />
+          <SkeletonBlock className="h-28 w-full rounded-md" />
+          <SkeletonBlock className="h-20 w-full rounded-md" />
+        </div>
+      </div>
+      <div className="min-h-0 overflow-hidden bg-background p-6">
+        <div className="mx-auto max-w-[850px] space-y-5">
+          <div className="space-y-3 border-b border-border pb-4">
+            <div className="flex items-center gap-3">
+              <SkeletonBar className="h-6 w-56" />
+              <SkeletonBlock className="h-6 w-16 rounded-md" />
+            </div>
+            <SkeletonBar className="h-3 w-72" />
+            <div className="flex gap-4 pt-1">
+              <SkeletonBar className="h-3 w-16" />
+              <SkeletonBar className="h-3 w-20" />
+              <SkeletonBar className="h-3 w-24" />
+            </div>
+          </div>
+          <div className="space-y-3">
+            <SkeletonBlock className="h-16 w-full rounded-md" />
+            <SkeletonBlock className="h-16 w-full rounded-md" />
+            <SkeletonBlock className="h-16 w-full rounded-md" />
+            <SkeletonBlock className="h-16 w-full rounded-md" />
+          </div>
+        </div>
+      </div>
+    </main>
+  );
+}
+
+function PropertyBrowseLayoutSkeleton() {
+  return (
+    <div className="flex min-h-0 flex-1 gap-4 overflow-hidden bg-app-bg p-4">
+      <div className="flex min-h-0 min-w-0 flex-[7] flex-col overflow-hidden rounded-md border border-border-color bg-card-bg">
+        <div className="flex shrink-0 items-center justify-between gap-3 border-b border-border-color px-4 py-3">
+          <div className="flex items-center gap-2">
+            <SkeletonCircle className="h-7 w-7" />
+            <SkeletonBar className="h-4 w-40" />
+          </div>
+          <SkeletonBlock className="h-9 w-56 rounded-md" />
+        </div>
+        <div className="min-h-0 flex-1 overflow-hidden">
+          <PropertyListSkeleton rows={6} />
+        </div>
+      </div>
+      <div className="flex min-h-0 w-[320px] shrink-0 flex-col overflow-hidden rounded-md border border-border-color bg-card-bg p-4">
+        <SkeletonBar className="mb-4 h-4 w-28" />
+        <HistoryListSkeleton rows={4} />
+      </div>
+    </div>
+  );
+}
+
+/**
+ * Full-page skeleton while URL-driven workspace selection is restored.
+ * Matches property browse vs protocol layout based on deep-link depth.
+ */
+export function WorkspaceRestoreSkeleton({
+  hasProperty,
+  hasIssue,
+}: {
+  hasProperty?: boolean;
+  hasIssue?: boolean;
+}) {
+  const crumbs = hasIssue ? 3 : hasProperty ? 2 : 1;
+  const showProtocol = Boolean(hasProperty || hasIssue);
+
+  return (
+    <div
+      className="flex min-h-0 flex-1 flex-col overflow-hidden"
+      aria-busy="true"
+      aria-label="Restoring workspace"
+    >
+      <WorkspaceHeaderSkeleton crumbs={crumbs} />
+      {showProtocol ? <ProtocolLayoutSkeleton /> : <PropertyBrowseLayoutSkeleton />}
+    </div>
+  );
+}

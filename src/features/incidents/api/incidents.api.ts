@@ -19,7 +19,7 @@ const createIncidentSchema = z.object({
   incidentType: z.string().min(1, "Please select an issue type."),
   issueSummary: z.string().trim().min(1, "Please select or enter what the issue is."),
   actions: z.array(z.string()),
-  priority: z.enum(["P1", "P2", "P3", "P4"]),
+  priority: z.enum(["High", "Medium-High", "Medium", "Low"]),
   status: z.string(),
   callNotes: z.string(),
   customerId: z.string().optional(),

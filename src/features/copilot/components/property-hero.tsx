@@ -4,60 +4,69 @@ import { cn } from "@/lib/utils";
 import { Dialog, DialogClose, DialogContent, DialogTitle } from "@/components/ui/Dialog";
 import type { Property } from "@/shared/types";
 
-const PROPERTY_HERO_IMAGE =
-  "https://images.unsplash.com/photo-1512918728675-ed5a9ecdebfd?auto=format&fit=crop&q=80&w=1600&h=1000";
-
 export function PropertyHero({ property }: { property: Property }) {
   const [imagePreviewOpen, setImagePreviewOpen] = useState(false);
-  const heroSrc = property.imageUrl || PROPERTY_HERO_IMAGE;
+  const imageUrl = property.imageUrl?.trim() || null;
 
   return (
     <div className="space-y-4">
-      <div className="relative h-40 w-full shrink-0 overflow-hidden rounded-xl bg-muted shadow-sm">
-        <img src={heroSrc} alt={property.name} className="h-full w-full object-cover" />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-black/10 to-transparent" />
-        <button
-          type="button"
-          onClick={() => setImagePreviewOpen(true)}
-          className="cursor-pointer absolute right-3 top-3 flex h-7 w-7 items-center justify-center rounded-full bg-white/95 shadow-sm text-foreground hover:bg-white transition-colors"
-          aria-label="View full image"
-        >
-          <Search className="h-3.5 w-3.5" />
-        </button>
-        <div className="absolute bottom-3 left-4 right-4">
-          <h2 className="text-[18px] font-bold tracking-tight text-white drop-shadow-sm">
-            {property.name}
-          </h2>
-          <div className="mt-1 flex items-start gap-1.5 text-[12px] text-white/90">
-            <MapPin className="h-3.5 w-3.5 shrink-0 mt-0.5" />
-            <span className="leading-snug line-clamp-2">{property.address}</span>
+      {imageUrl ? (
+        <>
+          <div className="relative h-40 w-full shrink-0 overflow-hidden rounded-xl bg-muted shadow-sm">
+            <img src={imageUrl} alt={property.name} className="h-full w-full object-cover" />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-black/10 to-transparent" />
+            <button
+              type="button"
+              onClick={() => setImagePreviewOpen(true)}
+              className="absolute right-3 top-3 flex h-7 w-7 cursor-pointer items-center justify-center rounded-full bg-white/95 text-foreground shadow-sm transition-colors hover:bg-white"
+              aria-label="View full image"
+            >
+              <Search className="h-3.5 w-3.5" />
+            </button>
+            <div className="absolute bottom-3 left-4 right-4">
+              <h2 className="text-[18px] font-bold tracking-tight text-white drop-shadow-sm">
+                {property.name}
+              </h2>
+              <div className="mt-1 flex items-start gap-1.5 text-[12px] text-white/90">
+                <MapPin className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+                <span className="line-clamp-2 leading-snug">{property.address}</span>
+              </div>
+            </div>
+          </div>
+
+          <Dialog open={imagePreviewOpen} onOpenChange={setImagePreviewOpen}>
+            <DialogContent
+              className={cn(
+                "w-full max-w-[min(96vw,1100px)] border-0 bg-transparent p-0 shadow-none",
+                "[&>button]:hidden",
+              )}
+            >
+              <DialogTitle className="sr-only">{property.name} photo</DialogTitle>
+              <div className="relative w-full">
+                <img
+                  src={imageUrl}
+                  alt={property.name}
+                  className="max-h-[90vh] w-full rounded-lg object-contain"
+                />
+                <DialogClose
+                  className="absolute -right-3 -top-3 flex h-9 w-9 items-center justify-center rounded-full bg-white text-foreground opacity-100 shadow-md ring-offset-background transition-opacity hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+                  aria-label="Close"
+                >
+                  <X className="h-4 w-4" />
+                </DialogClose>
+              </div>
+            </DialogContent>
+          </Dialog>
+        </>
+      ) : (
+        <div>
+          <h2 className="text-[18px] font-bold tracking-tight text-foreground">{property.name}</h2>
+          <div className="mt-1 flex items-start gap-1.5 text-[12px] text-muted-foreground">
+            <MapPin className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+            <span className="line-clamp-2 leading-snug">{property.address}</span>
           </div>
         </div>
-      </div>
-
-      <Dialog open={imagePreviewOpen} onOpenChange={setImagePreviewOpen}>
-        <DialogContent
-          className={cn(
-            "w-full max-w-[min(96vw,1100px)] border-0 bg-transparent p-0 shadow-none",
-            "[&>button]:hidden",
-          )}
-        >
-          <DialogTitle className="sr-only">{property.name} photo</DialogTitle>
-          <div className="relative w-full">
-            <img
-              src={heroSrc}
-              alt={property.name}
-              className="max-h-[90vh] w-full rounded-lg object-contain"
-            />
-            <DialogClose
-              className="absolute -right-3 -top-3 flex h-9 w-9 items-center justify-center rounded-full bg-white text-foreground shadow-md opacity-100 ring-offset-background transition-opacity hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
-              aria-label="Close"
-            >
-              <X className="h-4 w-4" />
-            </DialogClose>
-          </div>
-        </DialogContent>
-      </Dialog>
+      )}
 
       <div className="flex flex-wrap items-center gap-1.5">
         {property.tags.map((t) => (

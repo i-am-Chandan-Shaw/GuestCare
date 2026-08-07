@@ -1,4 +1,4 @@
-export type Priority = "P1" | "P2" | "P3" | "P4";
+export type Priority = "High" | "Medium-High" | "Medium" | "Low";
 
 export type EscalationKind =
   "host" | "emergency-then-host" | "next-day-followup" | "cleaning" | { custom: string };
