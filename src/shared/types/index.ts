@@ -197,10 +197,6 @@ export interface CreateIncidentInput {
   propertyId?: string;
   propertyLabel?: string;
   protocolIssueId?: string;
-  /** @deprecated Ignored — identity comes from session currentAgent. */
-  agentName?: string;
-  /** @deprecated Ignored — identity comes from session currentAgent. */
-  submittedBy?: string;
 }
 
 export interface IncidentLogFilters {
@@ -254,7 +250,6 @@ export type {
 
 export type {
   AddReportCommentInput,
-  AssignReportInput,
   CreateReportInput,
   PaginatedReports,
   Report,

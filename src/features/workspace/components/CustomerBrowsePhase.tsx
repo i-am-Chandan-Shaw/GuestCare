@@ -1,7 +1,5 @@
 import { useMemo, useState } from "react";
-import { useAuth } from "@/features/auth/hooks/useAuth";
 import { useCustomerSummaries } from "@/features/customers/hooks/useCustomers";
-import { toAgentAccess } from "@/features/reports/lib/report-scope";
 import { CustomerPortfolioCard } from "@/shared/components/CustomerPortfolioCard";
 import { CustomerListSkeleton } from "@/shared/components/ListSkeletons";
 import { QueryErrorState } from "@/shared/components/QueryErrorState";
@@ -14,9 +12,7 @@ export function CustomerBrowsePhase({
   onSelect: (customer: CustomerSummary) => void;
 }) {
   const [search, setSearch] = useState("");
-  const { agent } = useAuth();
-  const currentAgent = useMemo(() => toAgentAccess(agent), [agent]);
-  const { data, isLoading, isError, refetch } = useCustomerSummaries(currentAgent);
+  const { data, isLoading, isError, refetch } = useCustomerSummaries();
 
   const customers = data ?? [];
 

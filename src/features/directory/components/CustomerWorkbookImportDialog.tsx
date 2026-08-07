@@ -13,7 +13,7 @@ import {
 import { createCustomer } from "@/features/directory/api/customers.api";
 import { createProperty } from "@/features/directory/api/properties.api";
 import { createProtocol, linkProtocolToProperties } from "@/features/directory/api/protocols.api";
-import { getClientErrorMessage } from "@/features/directory/lib/client-error";
+import { getClientErrorMessage } from "@/shared/lib/client-error";
 import {
   parseCustomerWorkbook,
   type ParsedCustomerWorkbook,

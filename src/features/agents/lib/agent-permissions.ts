@@ -1,4 +1,3 @@
-import { CUSTOMERS } from "@/mock-data/mocks/customers.mock";
 import type { Agent, AgentCustomerScope, AgentRole, AgentAccess } from "@/shared/types/agent";
 
 export function canManageAgents(currentAgent: AgentAccess): boolean {
@@ -14,10 +13,13 @@ export function canGrantAllCustomers(currentAgent: AgentAccess): boolean {
   return currentAgent.role === "admin" || (currentAgent.role === "manager" && currentAgent.customerScope.type === "all");
 }
 
-/** Customers the signed-in agent may assign to another agent. */
-export function assignableCustomerIds(currentAgent: AgentAccess): string[] {
+/**
+ * Customers the signed-in agent may assign to another agent.
+ * @param allCustomerIds — full list of customer IDs (from Supabase or the UI's loaded data).
+ */
+export function assignableCustomerIds(currentAgent: AgentAccess, allCustomerIds: string[]): string[] {
   if (currentAgent.role === "admin" || currentAgent.customerScope.type === "all") {
-    return CUSTOMERS.map((c) => c.id);
+    return allCustomerIds;
   }
   return [...currentAgent.customerScope.customerIds];
 }
@@ -32,6 +34,7 @@ export function canEditAgent(currentAgent: AgentAccess, target: Pick<Agent, "id"
 export function validateCustomerScope(
   currentAgent: AgentAccess,
   scope: AgentCustomerScope,
+  allCustomerIds: string[],
 ): string | null {
   if (scope.type === "all") {
     if (!canGrantAllCustomers(currentAgent)) {
@@ -44,7 +47,7 @@ export function validateCustomerScope(
     return "Select at least one customer, or choose All customers.";
   }
 
-  const allowed = new Set(assignableCustomerIds(currentAgent));
+  const allowed = new Set(assignableCustomerIds(currentAgent, allCustomerIds));
   const invalid = scope.customerIds.filter((id) => !allowed.has(id));
   if (invalid.length > 0) {
     return "One or more selected customers are outside your access.";

@@ -3,8 +3,6 @@ import { reportHasAssignee } from "@/features/reports/lib/report-assignees";
 import { agentCanAccessCustomer } from "@/shared/lib/access";
 import type { Report } from "@/shared/types/report";
 
-export { agentCanAccessCustomer };
-
 /** Narrow a full agent to the fields used for permission checks. */
 export function toAgentAccess(agent: Agent | AgentAccess): AgentAccess {
   return {

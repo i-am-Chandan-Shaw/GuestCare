@@ -187,8 +187,6 @@ export function IssuePickerSection({
   layout = "page",
 }: {
   property: Property;
-  /** @deprecated Kept for call-site compatibility; all issues are shown by default. */
-  recentIssues?: Issue[];
   onPick: (issue: Issue) => void;
   onBack?: () => void;
   /** `page` = full centered column; `fill` = stretch to parent height with one scroll */

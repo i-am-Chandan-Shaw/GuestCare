@@ -7,7 +7,7 @@ import {
   clearFieldErrorsForPatch,
   type AgentFormFieldErrors,
 } from "@/features/agents/lib/agent-form-errors";
-import { getClientErrorMessage } from "@/features/agents/lib/client-error";
+import { getClientErrorMessage } from "@/shared/lib/client-error";
 import {
   formValuesToCustomerScope,
   validateAgentPasswords,

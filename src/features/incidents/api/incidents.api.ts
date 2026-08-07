@@ -8,7 +8,6 @@ import type {
   IncidentLogFilters,
   IncidentStatus,
 } from "@/shared/types";
-import type { AgentAccess } from "@/shared/types/agent";
 
 export type { CreateIncidentInput };
 
@@ -27,10 +26,6 @@ const createIncidentSchema = z.object({
   propertyId: z.string().optional(),
   propertyLabel: z.string().optional(),
   protocolIssueId: z.string().optional(),
-  /** @deprecated Ignored — signed-in agent comes from session. */
-  agentName: z.string().optional(),
-  /** @deprecated Ignored — signed-in agent comes from session. */
-  submittedBy: z.string().optional(),
 });
 
 function firstValidationMessage(error: z.ZodError): string {
@@ -43,7 +38,6 @@ export async function getIncidentLogs(filters: IncidentLogFilters = {}): Promise
 
 export async function createIncident(
   input: CreateIncidentInput,
-  _currentAgent?: AgentAccess,
 ): Promise<IncidentLog> {
   const parsed = createIncidentSchema.safeParse(input);
   if (!parsed.success) {

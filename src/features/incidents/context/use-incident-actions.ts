@@ -192,8 +192,6 @@ export function useIncidentActions({
       propertyId: property?.id,
       propertyLabel: property?.name,
       protocolIssueId: issue?.id,
-      agentName: "",
-      submittedBy: "",
     });
   }, [createIncidentMutate, form, customer, property, issue]);
 

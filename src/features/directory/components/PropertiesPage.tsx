@@ -16,7 +16,7 @@ import { DirectoryListLayout } from "@/features/directory/components/DirectoryLi
 import { PropertyBulkUploadDialog } from "@/features/directory/components/PropertyBulkUploadDialog";
 import { PropertyFormDialog } from "@/features/directory/components/PropertyFormDialog";
 import { createPropertiesTableColumnDefs } from "@/features/directory/components/properties-table-columns";
-import { getClientErrorMessage } from "@/features/directory/lib/client-error";
+import { getClientErrorMessage } from "@/shared/lib/client-error";
 import type { PropertyListItem } from "@/features/directory/lib/map-property-row";
 import {
   ServerPaginatedTable,

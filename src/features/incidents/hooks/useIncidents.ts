@@ -1,8 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { createIncident, getIncidentLogs } from "@/features/incidents/api/incidents.api";
-import { useAuth } from "@/features/auth/hooks/useAuth";
-import { toAgentAccess } from "@/features/reports/lib/report-scope";
 import { queryKeys } from "@/shared/lib/query-keys";
 import type { CreateIncidentInput, IncidentLogFilters } from "@/shared/types";
 
@@ -26,11 +24,9 @@ export function useIncidentLogs(filters: IncidentLogFilters = {}, options?: { en
 
 export function useCreateIncidentMutation(options?: { onSuccess?: () => void }) {
   const invalidate = useInvalidateIncidentQueries();
-  const { agent } = useAuth();
-  const currentAgent = toAgentAccess(agent);
 
   return useMutation({
-    mutationFn: (input: CreateIncidentInput) => createIncident(input, currentAgent),
+    mutationFn: (input: CreateIncidentInput) => createIncident(input),
     onSuccess: () => {
       invalidate();
       toast.success("Report submitted");

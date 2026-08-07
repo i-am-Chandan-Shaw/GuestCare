@@ -7,7 +7,6 @@ import { getReportsPaginated } from "@/features/reports/api/reports.api";
 import { createReportsTableColumnDefs } from "@/features/reports/components/reports-table-columns";
 import { ReportDetailPage } from "@/features/reports/components/ReportDetailPage";
 import { ReportsFiltersPopover } from "@/features/reports/components/ReportsFiltersPopover";
-import { useAgentAccess } from "@/features/reports/hooks/useReports";
 import {
   EMPTY_REPORTS_LIST_FILTERS,
   reportsListFiltersToQuery,
@@ -27,7 +26,6 @@ export function ReportsPage({
   customerId?: string;
   reportId?: string;
 }) {
-  const currentAgent = useAgentAccess();
   const navigate = useNavigate({ from: "/reports" });
   const [filters, setFilters] = useState<ReportsListFilters>(EMPTY_REPORTS_LIST_FILTERS);
   const debouncedSearch = useDebouncedValue(filters.search, 300);
@@ -78,7 +76,6 @@ export function ReportsPage({
 
       const result = await getReportsPaginated(
         reportsListFiltersToQuery(appliedFilters, { page, limit, customerId }),
-        currentAgent,
       );
 
       const lastRow = computeInfiniteScrollLastRow({
@@ -90,7 +87,7 @@ export function ReportsPage({
 
       return { data: result.data, lastRow };
     },
-    [currentAgent, appliedFilters, customerId],
+    [appliedFilters, customerId],
   );
 
   useEffect(() => {
@@ -99,7 +96,7 @@ export function ReportsPage({
       return;
     }
     gridRef.current?.api?.refreshInfiniteCache();
-  }, [appliedFilters, customerId, currentAgent.id]);
+  }, [appliedFilters, customerId]);
 
   if (selectedReportId) {
     return <ReportDetailPage reportId={selectedReportId} onBack={handleBack} />;

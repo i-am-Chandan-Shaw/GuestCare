@@ -1,6 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
-import { canManageAgents } from "@/features/agents/lib/agent-permissions";
-import { throwHttpError } from "@/features/directory/lib/server-fn-error";
+import { throwHttpError } from "@/shared/lib/server-fn-error";
+import { requireDirectoryManager } from "@/shared/lib/server-auth";
 import {
   mapPropertyRow,
   toPropertyListItem,
@@ -15,18 +15,8 @@ import {
   updatePropertySchema,
   type CreatePropertyInput,
 } from "@/features/directory/validations/property-form.schema";
-import { getAuthSession } from "@/features/auth/server/session";
 import { createSupabaseAdmin } from "@/shared/lib/supabase/admin";
 import type { EscalationKind, SystemInfo, SystemKey } from "@/shared/types";
-
-async function requireDirectoryManager() {
-  const session = await getAuthSession();
-  if (!session) throwHttpError("You must be signed in.", 401);
-  if (!canManageAgents(session.agent)) {
-    throwHttpError("You do not have permission to manage the directory.", 403);
-  }
-  return session;
-}
 
 function cleanText(value: string | undefined): string | null {
   const trimmed = value?.trim();

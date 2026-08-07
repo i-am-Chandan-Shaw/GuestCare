@@ -1,7 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { mapAgentRow, type AgentRow } from "@/features/agents/lib/map-agent-row";
-import { throwHttpError } from "@/features/directory/lib/server-fn-error";
-import { getAuthSession } from "@/features/auth/server/session";
+import { throwHttpError } from "@/shared/lib/server-fn-error";
+import { requireSession, scopedCustomerIds, assertCustomerAccess } from "@/shared/lib/server-auth";
 import {
   mapAssigneeRow,
   mapReportRow,
@@ -12,8 +12,8 @@ import {
   type ReportThreadRow,
 } from "@/features/reports/lib/map-report-row";
 import { reportToIncidentLog } from "@/features/reports/lib/report-legacy";
+import { agentCanAccessCustomer } from "@/shared/lib/access";
 import {
-  agentCanAccessCustomer,
   agentCanAssignReport,
   agentCanEditReport,
   toAgentAccess,
@@ -21,7 +21,6 @@ import {
 import {
   addReportAssigneeSchema,
   addReportCommentSchema,
-  assignReportSchema,
   createReportSchema,
   listIncidentLogsSchema,
   removeReportAssigneeSchema,
@@ -31,7 +30,7 @@ import {
   updateReportSchema,
 } from "@/features/reports/validations/report.schema";
 import { createSupabaseAdmin } from "@/shared/lib/supabase/admin";
-import type { Agent, AgentAccess } from "@/shared/types/agent";
+import type { Agent } from "@/shared/types/agent";
 import type { IncidentLog } from "@/shared/types";
 import type {
   PaginatedReports,
@@ -43,24 +42,6 @@ import type {
 } from "@/shared/types/report";
 
 type SupabaseAdmin = ReturnType<typeof createSupabaseAdmin>;
-
-async function requireSession() {
-  const session = await getAuthSession();
-  if (!session) throwHttpError("You must be signed in.", 401);
-  return session;
-}
-
-function scopedCustomerIds(agent: AgentAccess): string[] | null {
-  if (agent.role === "admin") return null;
-  if (!agent.customerScope || agent.customerScope.type === "all") return null;
-  return agent.customerScope.customerIds;
-}
-
-function assertCustomerAccess(agent: AgentAccess, customerId: string) {
-  if (!agentCanAccessCustomer(agent, customerId)) {
-    throwHttpError("You do not have access to this customer.", 403);
-  }
-}
 
 async function loadAssignees(
   supabase: SupabaseAdmin,
@@ -770,74 +751,6 @@ export const removeReportAssigneeFn = createServerFn({ method: "POST" })
     const assignees = await loadAssignees(supabase, data.id);
     return mapReportRow(row, assignees);
   });
-
-/** @deprecated Prefer addReportAssigneeFn / removeReportAssigneeFn. */
-export const assignReportFn = createServerFn({ method: "POST" })
-  .validator(assignReportSchema)
-  .handler(async ({ data }): Promise<Report> => {
-    const session = await requireSession();
-    const currentAgent = toAgentAccess(session.agent);
-    const supabase = createSupabaseAdmin();
-
-    const report = await loadReport(supabase, data.id);
-    if (!report) throwHttpError("Report not found.", 404);
-    if (!agentCanAssignReport(currentAgent, report)) {
-      throwHttpError("Not allowed to assign agents on this report.", 403);
-    }
-
-    const toAgent = await loadAgentRow(supabase, data.toAgentId);
-    if (!toAgent.isActive) throwHttpError("Agent is not active.", 400);
-
-    const previous = report.assignees[0];
-    const now = new Date().toISOString();
-
-    const { error: deleteError } = await supabase
-      .from("report_assignees")
-      .delete()
-      .eq("report_id", data.id);
-
-    if (deleteError) {
-      throwHttpError(deleteError.message || "Failed to clear assignees.", 500);
-    }
-
-    const { error: insertError } = await supabase.from("report_assignees").insert({
-      report_id: data.id,
-      agent_id: toAgent.id,
-      agent_name: toAgent.name,
-      assigned_at: now,
-      assigned_by_agent_id: currentAgent.id,
-    });
-
-    if (insertError) {
-      throwHttpError(insertError.message || "Failed to assign agent.", 500);
-    }
-
-    await insertThreadEntry(supabase, {
-      report_id: data.id,
-      type: "assignment",
-      author_agent_id: currentAgent.id,
-      author_agent_name: currentAgent.name,
-      body: data.note?.trim() || null,
-      metadata: {
-        action: "added",
-        fromAgentId: previous?.agentId,
-        fromAgentName: previous?.agentName,
-        toAgentId: toAgent.id,
-        toAgentName: toAgent.name,
-      },
-      created_at: now,
-    });
-
-    const row = await touchReportTimestamps(
-      supabase,
-      data.id,
-      { version: report.version + 1 },
-      now,
-    );
-    const assignees = await loadAssignees(supabase, data.id);
-    return mapReportRow(row, assignees);
-  });
-
 export const addReportCommentFn = createServerFn({ method: "POST" })
   .validator(addReportCommentSchema)
   .handler(async ({ data }): Promise<ReportThreadEntry> => {

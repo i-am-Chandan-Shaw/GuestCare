@@ -71,12 +71,6 @@ export const removeReportAssigneeSchema = z.object({
   agentId: z.string().uuid("Invalid agent id."),
 });
 
-export const assignReportSchema = z.object({
-  id: z.string().uuid("Invalid report id."),
-  toAgentId: z.string().uuid("Invalid agent id."),
-  note: z.string().optional(),
-});
-
 export const addReportCommentSchema = z.object({
   id: z.string().uuid("Invalid report id."),
   body: z.string().trim().min(1, "Comment body is required."),

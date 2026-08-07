@@ -41,7 +41,6 @@ export interface Report {
 
   customerId: string;
   propertyId?: string;
-  /** @deprecated Prefer assignees[]; kept in sync for legacy adapters. */
   assignedAgentId: string;
   createdByAgentId: string;
 
@@ -57,7 +56,6 @@ export interface Report {
 
   customerName: string;
   propertyName: string;
-  /** @deprecated Prefer assignees[]; kept in sync as formatted label. */
   assignedAgentName: string;
   createdByAgentName: string;
 
@@ -150,11 +148,6 @@ export interface UpdateReportInput extends Partial<CreateReportInput> {
   status?: ReportStatus;
   assignedAgentId?: string;
   version: number;
-}
-
-export interface AssignReportInput {
-  toAgentId: string;
-  note?: string;
 }
 
 export interface AddReportAssigneeInput {

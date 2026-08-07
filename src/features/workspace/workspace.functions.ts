@@ -1,7 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
-import { getAuthSession } from "@/features/auth/server/session";
-import { throwHttpError } from "@/features/directory/lib/server-fn-error";
+import { throwHttpError } from "@/shared/lib/server-fn-error";
+import { requireSession, scopedCustomerIds, assertCustomerAccess } from "@/shared/lib/server-auth";
 import {
   mapCustomerRow,
   type CustomerContactRow,
@@ -27,7 +27,6 @@ import {
 } from "@/features/reports/lib/map-report-row";
 import { toAgentAccess } from "@/features/reports/lib/report-scope";
 import { createSupabaseAdmin } from "@/shared/lib/supabase/admin";
-import { agentCanAccessCustomer } from "@/shared/lib/access";
 import { isOpenIncident } from "@/shared/lib/incident-status";
 import type {
   Customer,
@@ -40,28 +39,10 @@ import type {
   PropertySummary,
   ProtocolStep,
 } from "@/shared/types";
-import type { AgentAccess } from "@/shared/types/agent";
+
 import type { Report } from "@/shared/types/report";
 
 type SupabaseAdmin = ReturnType<typeof createSupabaseAdmin>;
-
-async function requireSession() {
-  const session = await getAuthSession();
-  if (!session) throwHttpError("You must be signed in.", 401);
-  return session;
-}
-
-function scopedCustomerIds(agent: AgentAccess): string[] | null {
-  if (agent.role === "admin") return null;
-  if (!agent.customerScope || agent.customerScope.type === "all") return null;
-  return agent.customerScope.customerIds;
-}
-
-function assertCustomerAccess(agent: AgentAccess, customerId: string) {
-  if (!agentCanAccessCustomer(agent, customerId)) {
-    throwHttpError("You do not have access to this customer.", 403);
-  }
-}
 
 function directoryCustomerToCustomer(
   customer: DirectoryCustomer,

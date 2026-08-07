@@ -1,6 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
-import { canManageAgents } from "@/features/agents/lib/agent-permissions";
-import { throwHttpError } from "@/features/directory/lib/server-fn-error";
+import { throwHttpError } from "@/shared/lib/server-fn-error";
+import { requireDirectoryManager } from "@/shared/lib/server-auth";
 import { priorityFromCategory } from "@/features/directory/lib/priority-from-category";
 import {
   mapProtocolRow,
@@ -18,17 +18,7 @@ import {
   updateProtocolSchema,
   type CreateProtocolInput,
 } from "@/features/directory/validations/protocol-form.schema";
-import { getAuthSession } from "@/features/auth/server/session";
 import { createSupabaseAdmin } from "@/shared/lib/supabase/admin";
-
-async function requireDirectoryManager() {
-  const session = await getAuthSession();
-  if (!session) throwHttpError("You must be signed in.", 401);
-  if (!canManageAgents(session.agent)) {
-    throwHttpError("You do not have permission to manage the directory.", 403);
-  }
-  return session;
-}
 
 function protocolContentPayload(data: CreateProtocolInput) {
   const steps = data.steps

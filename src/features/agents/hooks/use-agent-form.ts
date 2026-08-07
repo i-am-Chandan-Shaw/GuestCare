@@ -2,7 +2,7 @@ import { useState, useMemo, useEffect } from "react";
 import { assignableCustomerIds } from "@/features/agents/lib/agent-permissions";
 import type { AgentFormValues } from "@/features/agents/validations/agent-form.schema";
 import type { Agent, AgentListItem, AgentAccess } from "@/shared/types/agent";
-import { CUSTOMERS } from "@/mock-data/mocks/customers.mock";
+import { useCustomerSummaries } from "@/features/customers/hooks/useCustomers";
 
 type AgentFormSource = Pick<
   Agent,
@@ -106,10 +106,13 @@ export function useAgentFormState({
     }));
   };
 
+  const { data: customers = [] } = useCustomerSummaries();
+
   const assignableCustomers = useMemo(() => {
-    const allowed = new Set(assignableCustomerIds(currentAgent));
-    return CUSTOMERS.filter((c) => allowed.has(c.id)).sort((a, b) => a.name.localeCompare(b.name));
-  }, [currentAgent]);
+    const allIds = customers.map((c) => c.id);
+    const allowed = new Set(assignableCustomerIds(currentAgent, allIds));
+    return customers.filter((c) => allowed.has(c.id)).sort((a, b) => a.name.localeCompare(b.name));
+  }, [currentAgent, customers]);
 
   const selectedCustomers = useMemo(() => {
     const selected = new Set(form.customerIds);

@@ -6,12 +6,18 @@ import {
   validateCustomerScope,
 } from "@/features/agents/lib/agent-permissions";
 import { mapAgentRow, type AgentRow } from "@/features/agents/lib/map-agent-row";
-import { throwHttpError } from "@/features/agents/lib/server-fn-error";
+import { throwHttpError } from "@/shared/lib/server-fn-error";
 import { createAgentSchema, updateAgentSchema } from "@/features/agents/create-agent.schema";
 import { isPasswordStrong } from "@/features/agents/validations/agent-form.schema";
 import { getAuthSession } from "@/features/auth/server/session";
 import { createSupabaseAdmin } from "@/shared/lib/supabase/admin";
 import type { Agent } from "@/shared/types/agent";
+
+async function fetchAllCustomerIds(): Promise<string[]> {
+  const supabase = createSupabaseAdmin();
+  const { data } = await supabase.from("customers").select("id");
+  return (data ?? []).map((row) => row.id);
+}
 
 const WEAK_PASSWORD_ERROR =
   "Password must be 8+ characters with uppercase, number, and special character.";
@@ -73,7 +79,8 @@ export const createAgentFn = createServerFn({ method: "POST" })
       throwHttpError(WEAK_PASSWORD_ERROR, 400);
     }
 
-    const scopeError = validateCustomerScope(currentAgent, data.customerScope);
+    const allCustomerIds = await fetchAllCustomerIds();
+    const scopeError = validateCustomerScope(currentAgent, data.customerScope, allCustomerIds);
     if (scopeError) throwHttpError(scopeError, 400);
 
     const supabase = createSupabaseAdmin();
@@ -178,7 +185,8 @@ export const updateAgentFn = createServerFn({ method: "POST" })
       }
     }
 
-    const scopeError = validateCustomerScope(currentAgent, data.customerScope);
+    const allCustomerIds = await fetchAllCustomerIds();
+    const scopeError = validateCustomerScope(currentAgent, data.customerScope, allCustomerIds);
     if (scopeError) throwHttpError(scopeError, 400);
 
     if (password && !isPasswordStrong(password)) {
