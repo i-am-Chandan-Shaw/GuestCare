@@ -3,7 +3,7 @@ import { Building2 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { cn } from "@/lib/utils";
 import { Chip, Tabs } from "@/components/ui/UiKit";
-import { priorityMeta } from "@/shared/constants/agent";
+import { getPriorityMeta } from "@/shared/constants/agent";
 import { useGlobalContact } from "@/features/copilot/hooks/useProtocolData";
 import { useIncidentComposeActions } from "@/features/incidents/context/IncidentComposeProvider";
 import { useIncidentLogs } from "@/features/incidents/hooks/useIncidents";
@@ -108,7 +108,7 @@ export function IssuePanel({
     );
   }
 
-  const pMeta = priorityMeta[issue.priority];
+  const pMeta = getPriorityMeta(issue.priority);
   const docs = issue.documents;
 
   return (

@@ -15,7 +15,7 @@ import { useIssues } from "@/features/copilot/hooks/useProtocolData";
 import { Chip, SectionCard } from "@/components/ui/UiKit";
 import { IssueListSkeleton } from "@/shared/components/ListSkeletons";
 import { SearchToolbar, filterBySearch } from "@/shared/components/SearchToolbar";
-import { priorityMeta } from "@/shared/constants/agent";
+import { getPriorityMeta } from "@/shared/constants/agent";
 import type { CustomerContact, GlobalContact, IncidentLog, Issue, Property } from "@/shared/types";
 
 export function IssueEscalationsSection({
@@ -270,17 +270,21 @@ export function IssuePickerSection({
                     <span className="line-clamp-2 text-[13px] font-medium text-foreground">
                       {i.name}
                     </span>
-                    <Chip
-                      tone={
-                        priorityMeta[i.priority].chipTone === "muted"
-                          ? "outline"
-                          : (priorityMeta[i.priority].chipTone as
-                              "danger" | "warning" | "info" | "outline")
-                      }
-                      className="shrink-0"
-                    >
-                      {priorityMeta[i.priority].name}
-                    </Chip>
+                    {(() => {
+                      const pMeta = getPriorityMeta(i.priority);
+                      return (
+                        <Chip
+                          tone={
+                            pMeta.chipTone === "muted"
+                              ? "outline"
+                              : (pMeta.chipTone as "danger" | "warning" | "info" | "outline")
+                          }
+                          className="shrink-0"
+                        >
+                          {pMeta.name}
+                        </Chip>
+                      );
+                    })()}
                   </div>
                   <div className="mt-1 text-[11px] text-muted-foreground">{i.category}</div>
                 </button>

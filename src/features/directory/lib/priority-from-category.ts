@@ -37,11 +37,8 @@ const CATEGORY_BY_KEY = new Map(
   PRIORITY_CATEGORIES.map((c) => [normalizeKey(c), c] as const),
 );
 
-/** Legacy label still present in some stored rows / older sheets. */
-CATEGORY_BY_KEY.set(
-  normalizeKey("Service Impacting (Medium-High)"),
-  "Service Impacting",
-);
+/** Common sheet typo / abbreviated header value. */
+CATEGORY_BY_KEY.set(normalizeKey("Service Impacting (Medium-High)"), "Service Impacting");
 
 const PRIORITY_BY_KEY = new Map(PRIORITIES.map((p) => [normalizeKey(p), p] as const));
 
@@ -59,34 +56,15 @@ export function resolvePriorityFromSheet(
   const priority = PRIORITY_BY_KEY.get(normalizeKey(sheetPriorityRaw));
   if (!category || !priority) return null;
 
-  // Enforce the sheet’s 1:1 pairing
   if (priorityFromCategory(category) !== priority) return null;
 
   return { category, priority };
 }
 
-/** Remap legacy P1–P4 codes if still present in the DB during transition. */
-export function mapLegacyPriority(value: string): Priority {
-  switch (value) {
-    case "P1":
-      return "High";
-    case "P2":
-      return "Medium-High";
-    case "P3":
-      return "Medium";
-    case "P4":
-      return "Low";
-    default:
-      if ((PRIORITIES as readonly string[]).includes(value)) return value as Priority;
-      return "Low";
-  }
+export function parsePriority(value: string): Priority | null {
+  return (PRIORITIES as readonly string[]).includes(value) ? (value as Priority) : null;
 }
 
-export function mapLegacyPriorityCategory(value: string): PriorityCategory {
-  const normalized = CATEGORY_BY_KEY.get(normalizeKey(value));
-  if (normalized) return normalized;
-  if ((PRIORITY_CATEGORIES as readonly string[]).includes(value)) {
-    return value as PriorityCategory;
-  }
-  return "Admin / Informational";
+export function parsePriorityCategory(value: string): PriorityCategory | null {
+  return CATEGORY_BY_KEY.get(normalizeKey(value)) ?? null;
 }

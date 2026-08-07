@@ -15,7 +15,7 @@ import {
   mapLegacyIncidentStatus,
   mapReportStatusToLegacyIncidentStatus,
 } from "@/features/reports/lib/report-status";
-import { priorityMeta } from "@/shared/constants/agent";
+import { getPriorityMeta, priorityMeta } from "@/shared/constants/agent";
 import { INCIDENT_STATUSES, INCIDENT_TYPES } from "@/shared/constants/incident";
 import type { IncidentStatus, IncidentType, Priority } from "@/shared/types";
 import type { Report, UpdateReportInput } from "@/shared/types/report";
@@ -66,7 +66,7 @@ export function ReportEditDialog({
 }) {
   const [form, setForm] = useState<ReportFormState>(() => toFormState(report));
   const { data: issues = [] } = useIssues(report.propertyId);
-  const pMeta = priorityMeta[form.priority];
+  const pMeta = getPriorityMeta(form.priority);
   const propertyLabel = report.propertyName || "";
   const propertyCopy = useCopyEndAction(propertyLabel, "property");
   const reservationCopy = useCopyEndAction(form.reservationNumber, "reservation");

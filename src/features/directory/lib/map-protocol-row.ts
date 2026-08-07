@@ -1,8 +1,8 @@
 import type { OrderedStepItem, Priority, ReservationVerification } from "@/shared/types";
-import type { PriorityCategory } from "@/features/directory/lib/priority-from-category";
 import {
-  mapLegacyPriority,
-  mapLegacyPriorityCategory,
+  parsePriority,
+  parsePriorityCategory,
+  type PriorityCategory,
 } from "@/features/directory/lib/priority-from-category";
 import { RESERVATION_VERIFICATIONS } from "@/features/directory/validations/protocol-form.schema";
 
@@ -80,11 +80,19 @@ function mapVerification(value: string): ReservationVerification {
 }
 
 function mapPriorityCategory(value: string): PriorityCategory {
-  return mapLegacyPriorityCategory(value);
+  const parsed = parsePriorityCategory(value);
+  if (!parsed) {
+    throw new Error(`Invalid protocol priority_category: ${value}`);
+  }
+  return parsed;
 }
 
 function mapPriority(value: string): Priority {
-  return mapLegacyPriority(value);
+  const parsed = parsePriority(value);
+  if (!parsed) {
+    throw new Error(`Invalid protocol priority: ${value}`);
+  }
+  return parsed;
 }
 
 function mapEscalationKind(value: string | null): ProtocolEscalationKind | undefined {

@@ -2,7 +2,7 @@ import { FilePlus2 } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/Button";
-import { priorityMeta } from "@/shared/constants/agent";
+import { getPriorityMeta, priorityMeta } from "@/shared/constants/agent";
 import { INCIDENT_STATUSES, INCIDENT_TYPES } from "@/shared/constants/incident";
 import { useIssues } from "@/features/copilot/hooks/useProtocolData";
 import type {
@@ -95,7 +95,7 @@ export function IncidentForm({
   const { data: issues = [] } = useIssues(property?.id);
   const [confirmClear, setConfirmClear] = useState(false);
   const update = <K extends keyof FormState>(k: K, v: FormState[K]) => setForm({ ...form, [k]: v });
-  const pMeta = priorityMeta[form.priority];
+  const pMeta = getPriorityMeta(form.priority);
   const propertyLabel = property ? `${property.name} — ${property.address}` : "—";
   const issueOptions = issues.map((i) => i.name);
   const propertyCopy = useCopyEndAction(property ? propertyLabel : "", "property");

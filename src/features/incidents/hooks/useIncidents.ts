@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { createIncident, getIncidentLogs } from "@/features/incidents/api/incidents.api";
+import { getClientErrorMessage } from "@/shared/lib/client-error";
 import { queryKeys } from "@/shared/lib/query-keys";
 import type { CreateIncidentInput, IncidentLogFilters } from "@/shared/types";
 
@@ -33,11 +34,12 @@ export function useCreateIncidentMutation(options?: { onSuccess?: () => void }) 
       options?.onSuccess?.();
     },
     onError: (error: unknown) => {
-      const message =
-        error instanceof Error && error.message && !error.message.startsWith("[")
-          ? error.message
-          : "Could not submit report. Check the required fields and try again.";
-      toast.error(message);
+      toast.error(
+        getClientErrorMessage(
+          error,
+          "Could not submit report. Check the required fields and try again.",
+        ),
+      );
     },
   });
 }

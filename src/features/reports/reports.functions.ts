@@ -565,6 +565,7 @@ export const createReportFn = createServerFn({ method: "POST" })
     const supabase = createSupabaseAdmin();
     const now = new Date().toISOString();
     const status: ReportStatus = data.status ?? "OPEN";
+    const priority = data.priority;
     const propertyId: string | null = data.propertyId ?? null;
 
     const [customerName, property, protocolResult, displayId] = await Promise.all([
@@ -598,7 +599,7 @@ export const createReportFn = createServerFn({ method: "POST" })
         display_id: displayId,
         issue_name: data.issueName.trim(),
         issue_type: data.issueType.trim(),
-        priority: data.priority,
+        priority,
         status,
         source: data.source ?? "manual",
         customer_id: data.customerId,
@@ -633,7 +634,7 @@ export const createReportFn = createServerFn({ method: "POST" })
             display_id: retryId,
             issue_name: data.issueName.trim(),
             issue_type: data.issueType.trim(),
-            priority: data.priority,
+            priority,
             status,
             source: data.source ?? "manual",
             customer_id: data.customerId,

@@ -32,7 +32,7 @@ import { ReportMembers } from "@/features/reports/components/ReportMembers";
 import { ReportDetailSkeleton } from "@/features/reports/components/ReportDetailSkeleton";
 import { ReportEditDialog } from "@/features/reports/components/ReportEditDialog";
 import { agentCanAssignReport, agentCanEditReport } from "@/features/reports/lib/report-scope";
-import { priorityMeta } from "@/shared/constants/agent";
+import { getPriorityMeta } from "@/shared/constants/agent";
 import { Avatar } from "@/shared/components/Avatar";
 import { cn } from "@/lib/utils";
 import { formatActivityTimestamp, formatActivityTimestampRelative } from "@/shared/lib/datetime";
@@ -239,7 +239,7 @@ export function ReportDetailPage({ reportId, onBack }: { reportId: string; onBac
   const { report, thread } = data;
   const canEdit = agentCanEditReport(currentAgent, report);
   const canAssign = agentCanAssignReport(currentAgent, report);
-  const priority = priorityMeta[report.priority];
+  const priority = getPriorityMeta(report.priority);
   const displayId = report.displayId;
 
   const isBusy =

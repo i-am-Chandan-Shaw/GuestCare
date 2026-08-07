@@ -1,15 +1,14 @@
 import type { Priority } from "@/shared/types";
 
-export const priorityMeta: Record<
-  Priority,
-  {
-    label: string;
-    name: string;
-    chipTone: "danger" | "warning" | "info" | "muted";
-    tone: string;
-    dot: string;
-  }
-> = {
+export type PriorityMeta = {
+  label: string;
+  name: string;
+  chipTone: "danger" | "warning" | "info" | "muted";
+  tone: string;
+  dot: string;
+};
+
+export const priorityMeta: Record<Priority, PriorityMeta> = {
   High: {
     label: "High",
     name: "High",
@@ -39,3 +38,7 @@ export const priorityMeta: Record<
     dot: "bg-muted-foreground",
   },
 };
+
+export function getPriorityMeta(priority: Priority): PriorityMeta {
+  return priorityMeta[priority];
+}

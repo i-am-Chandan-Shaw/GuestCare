@@ -8,7 +8,7 @@ import type {
   ReportSource,
 } from "@/shared/types/report";
 import type { Priority } from "@/shared/types";
-import { mapLegacyPriority } from "@/features/directory/lib/priority-from-category";
+import { parsePriority } from "@/features/directory/lib/priority-from-category";
 import {
   ensureAssignees,
   formatAssigneesLabel,
@@ -70,7 +70,11 @@ function mapActions(raw: unknown): string[] {
 }
 
 function mapPriority(value: string): Priority {
-  return mapLegacyPriority(value);
+  const parsed = parsePriority(value);
+  if (!parsed) {
+    throw new Error(`Invalid report priority: ${value}`);
+  }
+  return parsed;
 }
 
 function mapStatus(value: string): ReportStatus {
