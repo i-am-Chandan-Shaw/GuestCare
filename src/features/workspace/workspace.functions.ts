@@ -58,6 +58,7 @@ function directoryCustomerToCustomer(
     contacts: customer.contacts,
     pms: customer.pms,
     guestVerificationSteps: customer.guestVerificationSteps,
+    hasSlackWebhook: Boolean(customer.slackWebhookUrl?.trim()),
   };
 }
 
@@ -473,6 +474,7 @@ export const listWorkspaceIssuesFn = createServerFn({ method: "POST" })
         pms_url: null,
         pms_username: null,
         pms_password: null,
+        slack_webhook_url: null,
         guest_verification_steps:
           (customerRow as { guest_verification_steps?: unknown } | null)
             ?.guest_verification_steps ?? [],
@@ -522,6 +524,7 @@ export const getWorkspaceIssueFn = createServerFn({ method: "POST" })
         pms_url: null,
         pms_username: null,
         pms_password: null,
+        slack_webhook_url: null,
         guest_verification_steps:
           (customerRow as { guest_verification_steps?: unknown } | null)
             ?.guest_verification_steps ?? [],

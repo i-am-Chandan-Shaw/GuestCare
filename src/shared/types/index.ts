@@ -67,6 +67,8 @@ export interface Customer {
   contacts?: CustomerContact[];
   pms?: CustomerPms;
   guestVerificationSteps?: OrderedStepItem[];
+  /** True when a Slack webhook is configured (URL never sent to the client). */
+  hasSlackWebhook?: boolean;
 }
 
 export interface Property {

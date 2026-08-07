@@ -30,6 +30,14 @@ const customerFieldsSchema = z.object({
   pmsUrl: z.string().trim().optional(),
   pmsUsername: z.string().trim().optional(),
   pmsPassword: z.string().optional(),
+  slackWebhookUrl: z
+    .string()
+    .trim()
+    .refine(
+      (value) => value === "" || value.startsWith("https://hooks.slack.com/"),
+      "Enter a valid Slack incoming webhook URL.",
+    )
+    .optional(),
   contacts: z.array(contactSchema),
   guestVerificationSteps: z.array(orderedStepSchema),
 });

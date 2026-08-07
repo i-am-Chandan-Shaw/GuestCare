@@ -1,6 +1,8 @@
 import { useCallback } from "react";
 import { toast } from "sonner";
 import { type FormState } from "@/features/incidents/components/incident-form.types";
+import { sendIncidentSlackFn } from "@/features/incidents/incidents.functions";
+import { buildSlackIncidentMessage } from "@/features/incidents/lib/build-slack-message";
 import { getIncidentFormBaseline } from "@/features/incidents/lib/incident-form-baseline";
 import {
   openIncidentPipWindow,
@@ -13,6 +15,7 @@ import {
   type IncidentWindowState,
   type IncidentWindowSync,
 } from "@/features/incidents/lib/incident-window-sync";
+import { getClientErrorMessage } from "@/shared/lib/client-error";
 import type { Customer, Issue, Property } from "@/shared/types";
 import type { CreateIncidentInput } from "@/features/incidents/api/incidents.api";
 import type { WorkspaceActions } from "@/features/workspace/context/workspace-actions";
@@ -53,7 +56,10 @@ export function useIncidentActions({
   broadcastPatch: (patch: Partial<IncidentWindowState>) => void;
   broadcastFull: (overrides?: Partial<IncidentWindowState>) => void;
   formBroadcastTimer: React.MutableRefObject<number | null>;
-  createIncidentMutate: (data: CreateIncidentInput) => void;
+  createIncidentMutate: (
+    data: CreateIncidentInput,
+    options?: { onSuccess?: () => void },
+  ) => void;
   closeDetachedWindow: () => void;
 }) {
   const setForm = useCallback(
@@ -166,34 +172,68 @@ export function useIncidentActions({
     broadcastPatch({ panelMode: "expanded", detached: false });
   }, [broadcastPatch, setPanelMode]);
 
-  const submitIncident = useCallback(() => {
-    const issueSummary = form.issueSummary.trim() || issue?.name?.trim() || "";
-    if (!issueSummary) {
-      toast.error("Please select or enter what the issue is.");
-      return;
-    }
-    if (!customer?.id) {
-      toast.error("Select a customer before logging a report.");
-      return;
-    }
+  const submitIncident = useCallback(
+    (options?: { sendToSlack?: boolean }) => {
+      const issueSummary = form.issueSummary.trim() || issue?.name?.trim() || "";
+      if (!issueSummary) {
+        toast.error("Please select or enter what the issue is.");
+        return;
+      }
+      if (!customer?.id) {
+        toast.error("Select a customer before logging a report.");
+        return;
+      }
 
-    createIncidentMutate({
-      callerName: form.callerName,
-      callerContact: form.callerContact,
-      reservation: form.reservation,
-      nameOnBooking: form.nameOnBooking,
-      incidentType: form.incidentType,
-      issueSummary,
-      actions: form.actions,
-      priority: form.priority,
-      status: form.status,
-      callNotes: form.callNotes,
-      customerId: customer.id,
-      propertyId: property?.id,
-      propertyLabel: property?.name,
-      protocolIssueId: issue?.id,
-    });
-  }, [createIncidentMutate, form, customer, property, issue]);
+      if (options?.sendToSlack && !customer.hasSlackWebhook) {
+        toast.error(
+          "Add a Slack webhook URL for this customer in Directory → Basics to send messages.",
+        );
+        return;
+      }
+
+      const slackMessage = options?.sendToSlack
+        ? buildSlackIncidentMessage({
+            form,
+            customer,
+            property: property ?? null,
+            issue: issue ?? null,
+          })
+        : null;
+      const customerId = customer.id;
+
+      createIncidentMutate(
+        {
+          callerName: form.callerName,
+          callerContact: form.callerContact,
+          reservation: form.reservation,
+          nameOnBooking: form.nameOnBooking,
+          incidentType: form.incidentType,
+          issueSummary,
+          actions: form.actions,
+          priority: form.priority,
+          status: form.status,
+          callNotes: form.callNotes,
+          customerId,
+          propertyId: property?.id,
+          propertyLabel: property?.name,
+          protocolIssueId: issue?.id,
+        },
+        {
+          onSuccess: () => {
+            if (!slackMessage) return;
+            void sendIncidentSlackFn({ data: { message: slackMessage, customerId } })
+              .then(() => {
+                toast.success("Sent to Slack");
+              })
+              .catch((error: unknown) => {
+                toast.error(getClientErrorMessage(error, "Could not send to Slack."));
+              });
+          },
+        },
+      );
+    },
+    [createIncidentMutate, form, customer, property, issue],
+  );
 
   return {
     setForm,
