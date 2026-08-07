@@ -161,6 +161,7 @@ export function toReportListItem(report: Report, threadCount: number): ReportLis
     propertyName: report.propertyName,
     customerName: report.customerName,
     assignedAgentName: formatAssigneesLabel(assignees),
+    assignees,
     callerName: report.callerName,
     createdAt: report.createdAt,
     lastActivityAt: report.lastActivityAt,

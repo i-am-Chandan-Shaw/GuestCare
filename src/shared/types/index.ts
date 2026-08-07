@@ -69,11 +69,6 @@ export interface Customer {
   guestVerificationSteps?: OrderedStepItem[];
 }
 
-export interface HostContact {
-  name: string;
-  phone: string;
-}
-
 export interface Property {
   id: string;
   name: string;
@@ -103,7 +98,6 @@ export interface Property {
   laundryEscalation?: EscalationKind;
   waste?: string;
   systems: Partial<Record<SystemKey, SystemInfo>>;
-  hosts: HostContact[];
   mediaFolderUrl?: string;
   accessSummary?: {
     lockboxCode?: string;

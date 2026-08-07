@@ -1,14 +1,13 @@
 import { IssueHistoryPanel } from "@/features/workspace/components/IssueHistoryPanel";
-import { Building2, Key, Phone, Wifi } from "lucide-react";
+import { Building2 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { cn } from "@/lib/utils";
-import { copyText } from "@/lib/copy-to-clipboard";
 import { Chip, Tabs } from "@/components/ui/UiKit";
 import { priorityMeta } from "@/shared/constants/agent";
 import { useGlobalContact } from "@/features/copilot/hooks/useProtocolData";
 import { useIncidentComposeActions } from "@/features/incidents/context/IncidentComposeProvider";
 import { useIncidentLogs } from "@/features/incidents/hooks/useIncidents";
-import type { Issue, Property } from "@/shared/types";
+import type { CustomerContact, Issue, Property } from "@/shared/types";
 import {
   IssueDocumentsSection,
   IssueEscalationsSection,
@@ -17,38 +16,11 @@ import {
 } from "./IssueMetaTabs";
 import { IssueProtocolTab } from "./IssueProtocolTab";
 
-function QuickActionPill({
-  icon,
-  label,
-  onClick,
-  active = false,
-}: {
-  icon: React.ReactNode;
-  label: string;
-  onClick: () => void;
-  active?: boolean;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={cn(
-        "inline-flex h-9 items-center gap-1.5 rounded-lg border px-2.5 text-xs font-semibold transition-colors shadow-sm",
-        active
-          ? "border-success/30 bg-success/10 text-success"
-          : "border-border-color bg-card-bg text-text-primary hover:bg-app-bg",
-      )}
-    >
-      <span className={cn(active ? "text-success" : "text-brand-primary")}>{icon}</span>
-      {label}
-    </button>
-  );
-}
-
 export function IssuePanel({
   issue,
   property,
   customerId,
+  contacts = [],
   onPick,
   onBack,
   checked,
@@ -61,6 +33,7 @@ export function IssuePanel({
   issue: Issue | null;
   property: Property | null;
   customerId?: string | null;
+  contacts?: CustomerContact[];
   onPick: (i: Issue) => void;
   onBack?: () => void;
   checked: Record<string, boolean>;
@@ -74,8 +47,6 @@ export function IssuePanel({
   const toggle = (k: string) => setCollapsed((c) => ({ ...c, [k]: !c[k] }));
   const [activeTab, setActiveTab] = useState("protocol");
   const [stepExpanded, setStepExpanded] = useState<Record<string, boolean>>({});
-  const [wifiCopied, setWifiCopied] = useState(false);
-  const [accessCopied, setAccessCopied] = useState(false);
 
   const { openIncidentPanel } = useIncidentComposeActions();
   const { data: globalContact } = useGlobalContact(
@@ -102,8 +73,6 @@ export function IssuePanel({
 
   useEffect(() => {
     setStepExpanded({});
-    setWifiCopied(false);
-    setAccessCopied(false);
   }, [issue?.id, property?.id]);
 
   if (!property) {
@@ -141,70 +110,22 @@ export function IssuePanel({
 
   const pMeta = priorityMeta[issue.priority];
   const docs = issue.documents;
-  const wifiText =
-    [property.wifi.network, property.wifi.password].filter(Boolean).join(" / ") ||
-    property.wifi.raw ||
-    "";
-  const accessText =
-    property.accessSummary?.lockboxCode ||
-    property.accessSummary?.doorCode ||
-    property.accessSummary?.keyNest ||
-    property.spareKeys ||
-    "";
-
-  const copyWifi = async () => {
-    const ok = await copyText(wifiText, "WiFi details copied");
-    if (!ok) return;
-    setWifiCopied(true);
-    setTimeout(() => setWifiCopied(false), 1200);
-  };
-  const copyAccess = async () => {
-    const ok = await copyText(accessText, "Access code copied");
-    if (!ok) return;
-    setAccessCopied(true);
-    setTimeout(() => setAccessCopied(false), 1200);
-  };
-  const callHost = () => {
-    const phone = property.hosts[0]?.phone;
-    if (phone) window.open(`tel:${phone.replace(/\s/g, "")}`, "_self");
-  };
 
   return (
     <div className="flex h-full flex-col overflow-hidden bg-background">
       <div className="sticky top-0 z-10 bg-background/95 pt-5 backdrop-blur border-b border-border">
         <div className="flex flex-col px-6">
-          <div className="flex items-start gap-3 mb-2">
-            <div className="flex min-w-0 flex-1 flex-wrap items-center gap-3">
-              <h1 className="text-[22px] font-bold tracking-tight text-foreground">{issue.name}</h1>
-              <Chip
-                className={cn(
-                  "rounded-md border px-2.5 py-1 text-[12px] font-semibold",
-                  pMeta.tone,
-                )}
-              >
-                <span className={cn("h-1.5 w-1.5 rounded-full", pMeta.dot)} />
-                {pMeta.name}
-              </Chip>
-            </div>
-            <div className="flex shrink-0 items-center gap-1.5">
-              <QuickActionPill
-                icon={<Wifi className="h-3.5 w-3.5" />}
-                label="WiFi"
-                onClick={copyWifi}
-                active={wifiCopied}
-              />
-              <QuickActionPill
-                icon={<Key className="h-3.5 w-3.5" />}
-                label="Access"
-                onClick={copyAccess}
-                active={accessCopied}
-              />
-              <QuickActionPill
-                icon={<Phone className="h-3.5 w-3.5" />}
-                label="Host"
-                onClick={callHost}
-              />
-            </div>
+          <div className="mb-2 flex min-w-0 flex-wrap items-center gap-3">
+            <h1 className="text-[22px] font-bold tracking-tight text-foreground">{issue.name}</h1>
+            <Chip
+              className={cn(
+                "rounded-md border px-2.5 py-1 text-[12px] font-semibold",
+                pMeta.tone,
+              )}
+            >
+              <span className={cn("h-1.5 w-1.5 rounded-full", pMeta.dot)} />
+              {pMeta.name}
+            </Chip>
           </div>
           <p className="mb-4 text-[12.5px] font-medium text-text-secondary">
             {issue.category} · {issue.priorityCategory} · Verification:{" "}
@@ -245,7 +166,7 @@ export function IssuePanel({
           {activeTab === "escalations" && (
             <IssueEscalationsSection
               issue={issue}
-              property={property}
+              contacts={contacts}
               globalContact={globalContact}
             />
           )}

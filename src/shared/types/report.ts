@@ -23,6 +23,8 @@ export interface ReportListItem {
   customerName: string;
   /** Derived display label from assignees (e.g. "Ada, Bob +1"). */
   assignedAgentName: string;
+  /** Members for avatar stack in list views. */
+  assignees: ReportAssignee[];
   callerName: string;
   createdAt: IsoDateTime;
   lastActivityAt: IsoDateTime;

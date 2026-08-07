@@ -34,7 +34,6 @@ import type {
   CustomerSummary,
   EscalationContactId,
   GlobalContact,
-  HostContact,
   Issue,
   LastIssueSummary,
   Property,
@@ -122,7 +121,6 @@ function directoryPropertyToProperty(property: DirectoryProperty): Property {
     laundryEscalation: property.laundryEscalation,
     waste: property.waste,
     systems: property.systems,
-    hosts: [] as HostContact[],
     mediaFolderUrl: property.mediaFolderUrl,
     accessSummary: property.accessSummary,
     tags: [property.type, property.floor, property.unit].filter(
@@ -578,8 +576,8 @@ export const getWorkspaceContactFn = createServerFn({ method: "POST" })
         },
         property: {
           id: "property",
-          name: "Property / host contact",
-          details: "Escalate using the property or host contact details.",
+          name: "Customer emergency contacts",
+          details: "Escalate using the customer emergency contacts listed for this account.",
         },
       };
       return labels[data.id] ?? null;

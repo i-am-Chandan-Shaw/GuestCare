@@ -1,6 +1,6 @@
 import { Building2 } from "lucide-react";
 import { useState } from "react";
-import type { Property } from "@/shared/types";
+import type { CustomerContact, Property } from "@/shared/types";
 import { PropertyAccessTab } from "./PropertyAccessTab";
 import { PropertyOpsTab } from "./PropertyOpsTab";
 import { PropertyHero } from "./property-hero";
@@ -10,10 +10,12 @@ export type { PropertyTab };
 
 export function PropertyPanel({
   property,
+  contacts = [],
   tab = "access",
   onTabChange,
 }: {
   property: Property | null;
+  contacts?: CustomerContact[];
   onPick?: (p: Property) => void;
   tab?: PropertyTab;
   onTabChange?: (t: PropertyTab) => void;
@@ -49,7 +51,7 @@ export function PropertyPanel({
           {activeTab === "access" ? (
             <PropertyAccessTab property={property} />
           ) : (
-            <PropertyOpsTab property={property} />
+            <PropertyOpsTab property={property} contacts={contacts} />
           )}
         </div>
       </div>

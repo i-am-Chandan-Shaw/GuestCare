@@ -1,11 +1,10 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Plus, Search, X } from "lucide-react";
 import { Avatar } from "@/shared/components/Avatar";
+import { ASSIGNEE_STACK_VISIBLE_LIMIT } from "@/features/reports/components/AssigneeAvatarStack";
 import { cn } from "@/lib/utils";
 import type { Agent } from "@/shared/types/agent";
 import type { ReportAssignee } from "@/shared/types/report";
-
-const STACK_VISIBLE_LIMIT = 3;
 
 type MembersPanel =
   null | { type: "manage" } | { type: "member"; agentId: string } | { type: "overflow" };
@@ -32,9 +31,9 @@ export function ReportMembers({
   const [query, setQuery] = useState("");
   const rootRef = useRef<HTMLDivElement>(null);
 
-  const overlaps = assignees.length > STACK_VISIBLE_LIMIT;
-  const visible = overlaps ? assignees.slice(0, STACK_VISIBLE_LIMIT) : assignees;
-  const hidden = overlaps ? assignees.slice(STACK_VISIBLE_LIMIT) : [];
+  const overlaps = assignees.length > ASSIGNEE_STACK_VISIBLE_LIMIT;
+  const visible = overlaps ? assignees.slice(0, ASSIGNEE_STACK_VISIBLE_LIMIT) : assignees;
+  const hidden = overlaps ? assignees.slice(ASSIGNEE_STACK_VISIBLE_LIMIT) : [];
 
   useEffect(() => {
     if (!panel) return;

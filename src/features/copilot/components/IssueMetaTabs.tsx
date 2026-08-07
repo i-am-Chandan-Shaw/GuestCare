@@ -16,15 +16,15 @@ import { Chip, SectionCard } from "@/components/ui/UiKit";
 import { IssueListSkeleton } from "@/shared/components/ListSkeletons";
 import { SearchToolbar, filterBySearch } from "@/shared/components/SearchToolbar";
 import { priorityMeta } from "@/shared/constants/agent";
-import type { GlobalContact, IncidentLog, Issue, Property } from "@/shared/types";
+import type { CustomerContact, GlobalContact, IncidentLog, Issue, Property } from "@/shared/types";
 
 export function IssueEscalationsSection({
   issue,
-  property,
+  contacts = [],
   globalContact,
 }: {
   issue: Issue;
-  property: Property;
+  contacts?: CustomerContact[];
   globalContact: GlobalContact | null | undefined;
 }) {
   return (
@@ -59,21 +59,28 @@ export function IssueEscalationsSection({
 
       {issue.escalationContactId === "property" && (
         <SectionCard
-          title={`Hosts — ${property.name}`}
+          title="Emergency contacts"
           className="shadow-sm border border-border rounded-sm"
         >
-          {property.hosts.length === 0 ? (
-            <p className="text-[13px] text-muted-foreground">No hosts on file for this property.</p>
+          {contacts.length === 0 ? (
+            <p className="text-[13px] text-muted-foreground">No emergency contacts on file.</p>
           ) : (
             <ul className="divide-y divide-border/60">
-              {property.hosts.map((h) => (
-                <li key={h.phone} className="flex items-center justify-between py-2.5">
-                  <span className="text-[13.5px] font-semibold">{h.name}</span>
+              {contacts.map((contact) => (
+                <li key={contact.id} className="flex items-center justify-between py-2.5">
+                  <div className="min-w-0 pr-3">
+                    <span className="block text-[13.5px] font-semibold">
+                      {contact.label || contact.name}
+                    </span>
+                    {contact.label && contact.name ? (
+                      <span className="block text-[12px] text-muted-foreground">{contact.name}</span>
+                    ) : null}
+                  </div>
                   <a
-                    href={`tel:${h.phone.replace(/\s/g, "")}`}
-                    className="inline-flex items-center gap-2 font-mono text-[13px] text-muted-foreground hover:text-foreground"
+                    href={`tel:${contact.phone.replace(/\s/g, "")}`}
+                    className="inline-flex shrink-0 items-center gap-2 font-mono text-[13px] text-muted-foreground hover:text-foreground"
                   >
-                    {h.phone} <Phone className="h-3.5 w-3.5" />
+                    {contact.phone} <Phone className="h-3.5 w-3.5" />
                   </a>
                 </li>
               ))}

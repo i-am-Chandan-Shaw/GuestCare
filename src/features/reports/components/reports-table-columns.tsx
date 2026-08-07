@@ -2,6 +2,7 @@ import type { ICellRendererParams, ValueFormatterParams } from "ag-grid-communit
 import type { ColDef } from "ag-grid-community";
 import { Eye } from "lucide-react";
 import { StatusChip } from "@/components/ui/StatusChip";
+import { AssigneeAvatarStack } from "@/features/reports/components/AssigneeAvatarStack";
 import { priorityMeta } from "@/shared/constants/agent";
 import { REPORT_STATUS_LABELS, REPORT_STATUS_TONES } from "@/features/reports/lib/report-status";
 import { formatActivityTimestamp } from "@/shared/lib/datetime";
@@ -39,6 +40,11 @@ function LoggedCell({ data }: ICellRendererParams<ReportListItem>) {
       {formatActivityTimestamp(data.createdAt)}
     </span>
   );
+}
+
+function MembersCell({ data }: ICellRendererParams<ReportListItem>) {
+  if (!data) return null;
+  return <AssigneeAvatarStack assignees={data.assignees ?? []} size="sm" />;
 }
 
 function formatReportId(value: string | null | undefined) {
@@ -120,7 +126,9 @@ export function createReportsTableColumnDefs(options: {
       field: "assignedAgentName",
       colId: "agent",
       flex: 1,
-      minWidth: 140,
+      minWidth: 120,
+      cellRenderer: MembersCell,
+      tooltipValueGetter: (params) => params.data?.assignedAgentName,
     },
     {
       headerName: "CALLER",

@@ -1,6 +1,5 @@
 import type { Property, SystemInfo, SystemKey } from "@/shared/types";
 import { isPresent, parseEscalation } from "@/shared/types";
-import { getPropertyHosts } from "./contacts";
 import { getPropertyImageUrl } from "@/mock-data/property-images";
 
 const MEDIA_FOLDER_URL = "https://drive.google.com/drive/folders/16lz6Pfy4n8CRWC6RTy_fwJkObwvazLLr";
@@ -21,7 +20,7 @@ function buildSystems(source: SystemSource): Partial<Record<SystemKey, SystemInf
   ) as Partial<Record<SystemKey, SystemInfo>>;
 }
 
-type PropertySource = Omit<Property, "hosts" | "systems" | "tags"> & {
+type PropertySource = Omit<Property, "systems" | "tags"> & {
   systems?: SystemSource;
 };
 
@@ -29,7 +28,6 @@ function property(source: PropertySource): Property {
   return {
     ...source,
     systems: buildSystems(source.systems ?? {}),
-    hosts: getPropertyHosts(source.id),
     tags: [source.type, source.floor].filter(isPresent),
   };
 }
